@@ -231,7 +231,7 @@ contract Staking is GovChecker, ReentrancyGuard {
 
         balance[msg.sender] = balance[msg.sender].add(msg.value);
 
-        emit Staked(msg.sender, msg.value, balance[msg.sender], availableBalance(msg.sender));
+        emit Staked(msg.sender, msg.value, balance[msg.sender], availableBalanceOf(msg.sender));
     }
 
     /**
@@ -239,12 +239,12 @@ contract Staking is GovChecker, ReentrancyGuard {
     * @param amount The amount of funds will be withdrawn and transferred to.
     */
     function withdraw(uint256 amount) external nonReentrant {
-        require(amount <= availableBalance(msg.sender), "Withdraw amount should be equal or less than balance");
+        require(amount <= availableBalanceOf(msg.sender), "Withdraw amount should be equal or less than balance");
 
         balance[msg.sender] = balance[msg.sender].sub(amount);
         msg.sender.transfer(amount);
 
-        emit Unstaked(msg.sender, amount, balance[msg.sender], availableBalance(msg.sender));
+        emit Unstaked(msg.sender, amount, balance[msg.sender], availableBalanceOf(msg.sender));
     }
 
     /**
@@ -254,12 +254,12 @@ contract Staking is GovChecker, ReentrancyGuard {
     */
     function lock(address payee, uint256 lockAmount) external onlyGov {
         require(balance[payee] >= lockAmount, "Lock amount should be equal or less than balance");
-        require(availableBalance(payee) >= lockAmount, "Insufficient balance that can be locked");
+        require(availableBalanceOf(payee) >= lockAmount, "Insufficient balance that can be locked");
 
         lockedBalance[payee] = lockedBalance[payee].add(lockAmount);
         totalLockedBalance = totalLockedBalance.add(lockAmount);
 
-        emit Locked(payee, lockAmount, balance[payee], availableBalance(payee));
+        emit Locked(payee, lockAmount, balance[payee], availableBalanceOf(payee));
     }
 
     /**
@@ -273,7 +273,7 @@ contract Staking is GovChecker, ReentrancyGuard {
         lockedBalance[payee] = lockedBalance[payee].sub(unlockAmount);
         totalLockedBalance = totalLockedBalance.sub(unlockAmount);
 
-        emit Unlocked(payee, unlockAmount, balance[payee], availableBalance(payee));
+        emit Unlocked(payee, unlockAmount, balance[payee], availableBalanceOf(payee));
     }
 
     function balanceOf(address payee) public view returns (uint256) {
@@ -284,7 +284,7 @@ contract Staking is GovChecker, ReentrancyGuard {
         return lockedBalance[payee];
     }
 
-    function availableBalance(address payee) public view returns (uint256) {
+    function availableBalanceOf(address payee) public view returns (uint256) {
         return balance[payee].sub(lockedBalance[payee]);
     }
 

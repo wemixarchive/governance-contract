@@ -70,7 +70,7 @@ contract Gov is UpgradeabilityProxy, GovChecker {
 
         // Lock
         IStaking staking = IStaking(getStakingAddress());
-        require(staking.availableBalance(msg.sender) >= lockAmount, "Insufficient staking");
+        require(staking.availableBalanceOf(msg.sender) >= lockAmount, "Insufficient staking");
         staking.lock(msg.sender, lockAmount);
 
         // Add member
