@@ -11,6 +11,7 @@ interface IBallotStorage {
     function createVote(uint256, uint256, address, uint256, uint256) external returns (uint256);
     function finalizeBallot(uint256, uint256) external;
     function startBallot(uint256, uint256, uint256) external;
+    function updateBallotMemo(uint256, bytes) external;
     function updateBallotDuration(uint256, uint256) external;
     function updateBallotMemberLockAmount(uint256, uint256) external;
 

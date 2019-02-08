@@ -321,7 +321,7 @@ interface IStaking {
     function unlock(address, uint256) external;
     function balanceOf(address) external view returns (uint256);
     function lockedBalanceOf(address) external view returns (uint256);
-    function availableBalance(address) external view returns (uint256);
+    function availableBalanceOf(address) external view returns (uint256);
     function calcVotingWeight(address) external view returns (uint256);
     function calcVotingWeightWithScaleFactor(address, uint32) external view returns (uint256);
 }
@@ -468,7 +468,7 @@ contract Gov is UpgradeabilityProxy, GovChecker {
 
         // Lock
         IStaking staking = IStaking(getStakingAddress());
-        require(staking.availableBalance(msg.sender) >= lockAmount, "Insufficient staking");
+        require(staking.availableBalanceOf(msg.sender) >= lockAmount, "Insufficient staking");
         staking.lock(msg.sender, lockAmount);
 
         // Add member

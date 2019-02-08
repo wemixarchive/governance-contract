@@ -9,7 +9,7 @@ require('chai')
 const Registry = artifacts.require('Registry.sol');
 const Staking = artifacts.require('Staking.sol');
 
-contract('Staking', function ([deployer, fakeGov, user, user2, user3, user4]) {
+contract('Staking', function ([_, fakeGov, user, user2, user3, user4]) {
   let registry, staking;
   const amount = ether(4e7);
 
@@ -94,9 +94,7 @@ contract('Staking', function ([deployer, fakeGov, user, user2, user3, user4]) {
     });
 
     it('can lock and user cannot withdraw after lock', async () => {
-      const availBal = await staking.availableBalance(user);
-      availBal.should.be.bignumber.equal(0);
-
+      (await staking.availableBalanceOf(user)).should.be.bignumber.equal(0);
       await reverting(staking.withdraw(amount, { from: user }));
     });
 
@@ -106,8 +104,13 @@ contract('Staking', function ([deployer, fakeGov, user, user2, user3, user4]) {
 
     it('can unlock', async () => {
       await staking.unlock(user, amount, { from: fakeGov });
-      const availBal = await staking.availableBalance(user);
-      availBal.should.be.bignumber.equal(amount);
+      (await staking.availableBalanceOf(user)).should.be.bignumber.equal(amount);
+    });
+
+    it('can transfer', async () => {
+      await staking.transferLocked(user, amount, { from: fakeGov });
+      (await staking.balanceOf(user)).should.be.bignumber.equal(0);
+      (await staking.balanceOf(fakeGov)).should.be.bignumber.equal(amount);
     });
   });
 
@@ -122,11 +125,8 @@ contract('Staking', function ([deployer, fakeGov, user, user2, user3, user4]) {
     });
 
     it('can be zero when no lock', async () => {
-      const weightNolockUser = await staking.calcVotingWeight(user4);
-      weightNolockUser.should.be.bignumber.equal(0);
-
-      const weightZeroAddr = await staking.calcVotingWeight(0);
-      weightZeroAddr.should.be.bignumber.equal(0);
+      (await staking.calcVotingWeight(user4)).should.be.bignumber.equal(0);
+      (await staking.calcVotingWeight(0)).should.be.bignumber.equal(0);
     });
 
     it('can be calculated when distributed evenly', async () => {

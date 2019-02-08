@@ -10,12 +10,11 @@ import "./interface/IGov.sol";
  * @dev GovChecker Contract that uses Registry contract
  */
 contract GovChecker is Ownable {
-
     IRegistry public reg;
-    bytes32 public constant GOV_NAME ="GovernanceContract";
-    bytes32 public constant STAKING_NAME ="Staking";
-    bytes32 public constant BALLOT_STORAGE_NAME ="BallotStorage";
-    bytes32 public constant ENV_STORAGE_NAME ="EnvStorage";
+    bytes32 public constant GOV_NAME = "GovernanceContract";
+    bytes32 public constant STAKING_NAME = "Staking";
+    bytes32 public constant BALLOT_STORAGE_NAME = "BallotStorage";
+    bytes32 public constant ENV_STORAGE_NAME = "EnvStorage";
 
     /**
      * @dev Function to set registry address. Contract that wants to use registry should setRegistry first.
@@ -27,19 +26,26 @@ contract GovChecker is Ownable {
     }
     
     modifier onlyGov() {
-        require(getContractAddress(GOV_NAME) == msg.sender, "No Permission");
+        require(getGovAddress() == msg.sender, "No Permission");
         _;
     }
 
     modifier onlyGovMem() {
-        address addr = reg.getContractAddress(GOV_NAME);
-        require(addr != address(0), "No Governance");
-        require(IGov(addr).isMember(msg.sender), "No Permission");
+        require(IGov(getGovAddress()).isMember(msg.sender), "No Permission");
+        _;
+    }
+
+    modifier anyGov() {
+        require(getGovAddress() == msg.sender || IGov(getGovAddress()).isMember(msg.sender), "No Permission");
         _;
     }
 
     function getContractAddress(bytes32 name) internal view returns (address) {
         return reg.getContractAddress(name);
+    }
+
+    function getGovAddress() internal view returns (address) {
+        return getContractAddress(GOV_NAME);
     }
 
     function getStakingAddress() internal view returns (address) {

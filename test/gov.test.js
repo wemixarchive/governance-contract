@@ -29,7 +29,6 @@ const port = [
   8542,
   8542,
 ];
-const memo = 'memo';
 const envName = 'key';
 const envVal = 'value';
 
@@ -212,8 +211,8 @@ contract('Governance', function ([deployer, govMem1, govMem2, govMem3, govMem4, 
 
     it('can vote approval to change member totally', async () => {
       await staking.deposit({ value: amount, from: govMem1 });
-      const preDeployerAvail = await staking.availableBalance(deployer);
-      const preGovmem1Avail = await staking.availableBalance(govMem1);
+      const preDeployerAvail = await staking.availableBalanceOf(deployer);
+      const preGovmem1Avail = await staking.availableBalanceOf(govMem1);
       await govDelegator.addProposalToChangeMember(deployer, govMem1, enode[1], ip[1], port[1], amount, { from: deployer });
       await govDelegator.vote(1, true, { from: deployer });
       const len = await gov.voteLength();
@@ -237,8 +236,8 @@ contract('Governance', function ([deployer, govMem1, govMem2, govMem3, govMem4, 
       const nodeIdxFromGovMem1 = await gov.getNodeIdxFromMember(govMem1);
       nodeIdxFromGovMem1.should.be.bignumber.equal(1);
 
-      const postDeployerAvail = await staking.availableBalance(deployer);
-      const postGovmem1Avail = await staking.availableBalance(govMem1);
+      const postDeployerAvail = await staking.availableBalanceOf(deployer);
+      const postGovmem1Avail = await staking.availableBalanceOf(govMem1);
       postDeployerAvail.minus(preDeployerAvail).should.be.bignumber.equal(amount);
       preGovmem1Avail.minus(postGovmem1Avail).should.be.bignumber.equal(amount);
     });
@@ -363,7 +362,7 @@ contract('Governance', function ([deployer, govMem1, govMem2, govMem3, govMem4, 
     });
 
     it('can vote to remove first member', async () => {
-      const preAvail = await staking.availableBalance(deployer);
+      const preAvail = await staking.availableBalanceOf(deployer);
       await govDelegator.addProposalToRemoveMember(deployer, amount, { from: deployer });
       const len = await gov.ballotLength();
       await govDelegator.vote(len, true, { from: deployer });
@@ -389,12 +388,12 @@ contract('Governance', function ([deployer, govMem1, govMem2, govMem3, govMem4, 
       const nodeIdx = await gov.getNodeIdxFromMember(deployer);
       nodeIdx.should.be.bignumber.equal(0);
 
-      const postAvail = await staking.availableBalance(deployer);
+      const postAvail = await staking.availableBalanceOf(deployer);
       postAvail.minus(preAvail).should.be.bignumber.equal(amount);
     });
 
     it('can vote to remove last member', async () => {
-      const preAvail = await staking.availableBalance(govMem1);
+      const preAvail = await staking.availableBalanceOf(govMem1);
       await govDelegator.addProposalToRemoveMember(govMem1, amount, { from: deployer });
       const len = await gov.ballotLength();
       await govDelegator.vote(len, true, { from: deployer });
@@ -420,7 +419,7 @@ contract('Governance', function ([deployer, govMem1, govMem2, govMem3, govMem4, 
       const nodeIdx = await gov.getNodeIdxFromMember(govMem1);
       nodeIdx.should.be.bignumber.equal(0);
 
-      const postAvail = await staking.availableBalance(govMem1);
+      const postAvail = await staking.availableBalanceOf(govMem1);
       postAvail.minus(preAvail).should.be.bignumber.equal(amount);
     });
 
