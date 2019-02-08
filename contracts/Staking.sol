@@ -66,6 +66,18 @@ contract Staking is GovChecker, ReentrancyGuard {
     }
 
     /**
+    * @dev Transfer locked funds to governance
+    * @param from The address whose funds will be transfered.
+    * @param amount The amount of funds will be transfered.
+    */
+    function transferLocked(address from, uint256 amount) external onlyGov {
+        unlock(from, amount);
+        _balance[from] = _balance[from].sub(amount);
+        address gov = getGovAddress();
+        _balance[gov] = _balance[gov].add(amount);
+    }
+
+    /**
     * @dev Unlock fund
     * @param payee The address whose funds will be unlocked.
     * @param unlockAmount The amount of funds will be unlocked.
@@ -76,18 +88,6 @@ contract Staking is GovChecker, ReentrancyGuard {
         _totalLockedBalance = _totalLockedBalance.sub(unlockAmount);
 
         emit Unlocked(payee, unlockAmount, _balance[payee], availableBalanceOf(payee));
-    }
-
-    /**
-    * @dev Transfer locked funds to governance
-    * @param from The address whose funds will be transfered.
-    * @param amount The amount of funds will be transfered.
-    */
-    function transferLocked(address from, uint256 amount) external onlyGov {
-        unlock(from, amount);
-        _balance[from] = _balance[from].sub(amount);
-        address gov = getGovAddress();
-        _balance[gov] = _balance[gov].add(amount);
     }
 
     function balanceOf(address payee) public view returns (uint256) {

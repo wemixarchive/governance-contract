@@ -29,7 +29,6 @@ const port = [
   8542,
   8542,
 ];
-const memo = 'memo';
 const envName = 'key';
 const envVal = 'value';
 

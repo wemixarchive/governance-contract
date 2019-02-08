@@ -7,12 +7,16 @@ import "./GovChecker.sol";
 
 
 contract Gov is UpgradeabilityProxy, GovChecker {
-    bool private initialized;
+    bool private _initialized;
 
-    // For member
+    // For voting member
     mapping(uint256 => address) internal members;
     mapping(address => uint256) internal memberIdx;
     uint256 internal memberLength;
+
+    // For reward member
+    mapping(uint256 => address) internal rewards;
+    mapping(address => uint256) internal rewardIdx;
 
     // For enode
     struct Node {
@@ -32,7 +36,7 @@ contract Gov is UpgradeabilityProxy, GovChecker {
     uint256 internal ballotInVoting;
 
     constructor() public {
-        initialized = false;
+        _initialized = false;
         memberLength = 0;
         nodeLength = 0;
         ballotLength = 0;
@@ -43,6 +47,7 @@ contract Gov is UpgradeabilityProxy, GovChecker {
     function isMember(address addr) public view returns (bool) { return (memberIdx[addr] != 0); }
     function getMember(uint256 idx) public view returns (address) { return members[idx]; }
     function getMemberLength() public view returns (uint256) { return memberLength; }
+    function getReward(uint256 idx) public view returns (address) { return rewards[idx]; }
     function getNodeIdxFromMember(address addr) public view returns (uint256) { return nodeIdxFromMember[addr]; }
     function getMemberFromNodeIdx(uint256 idx) public view returns (address) { return nodeToMember[idx]; }
     function getNodeLength() public view returns (uint256) { return nodeLength; }
@@ -63,7 +68,7 @@ contract Gov is UpgradeabilityProxy, GovChecker {
     )
         public onlyOwner
     {
-        require(initialized == false, "Already initialized");
+        require(_initialized == false, "Already initialized");
 
         setRegistry(registry);
         setImplementation(implementation);
@@ -73,10 +78,14 @@ contract Gov is UpgradeabilityProxy, GovChecker {
         require(staking.availableBalanceOf(msg.sender) >= lockAmount, "Insufficient staking");
         staking.lock(msg.sender, lockAmount);
 
-        // Add member
+        // Add voting member
         memberLength = 1;
         members[memberLength] = msg.sender;
         memberIdx[msg.sender] = memberLength;
+
+        // Add reward member
+        rewards[memberLength] = msg.sender;
+        rewardIdx[msg.sender] = memberLength;
 
         // Add node
         nodeLength = 1;
@@ -87,6 +96,6 @@ contract Gov is UpgradeabilityProxy, GovChecker {
         nodeIdxFromMember[msg.sender] = nodeLength;
         nodeToMember[nodeLength] = msg.sender;
 
-        initialized = true;
+        _initialized = true;
     }
 }
