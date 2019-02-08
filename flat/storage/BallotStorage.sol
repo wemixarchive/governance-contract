@@ -130,12 +130,11 @@ contract Ownable {
 }
 
 contract GovChecker is Ownable {
-
     IRegistry public reg;
-    bytes32 public constant GOV_NAME ="GovernanceContract";
-    bytes32 public constant STAKING_NAME ="Staking";
-    bytes32 public constant BALLOT_STORAGE_NAME ="BallotStorage";
-    bytes32 public constant ENV_STORAGE_NAME ="EnvStorage";
+    bytes32 public constant GOV_NAME = "GovernanceContract";
+    bytes32 public constant STAKING_NAME = "Staking";
+    bytes32 public constant BALLOT_STORAGE_NAME = "BallotStorage";
+    bytes32 public constant ENV_STORAGE_NAME = "EnvStorage";
 
     /**
      * @dev Function to set registry address. Contract that wants to use registry should setRegistry first.
@@ -147,19 +146,26 @@ contract GovChecker is Ownable {
     }
     
     modifier onlyGov() {
-        require(getContractAddress(GOV_NAME) == msg.sender, "No Permission");
+        require(getGovAddress() == msg.sender, "No Permission");
         _;
     }
 
     modifier onlyGovMem() {
-        address addr = reg.getContractAddress(GOV_NAME);
-        require(addr != address(0), "No Governance");
-        require(IGov(addr).isMember(msg.sender), "No Permission");
+        require(IGov(getGovAddress()).isMember(msg.sender), "No Permission");
+        _;
+    }
+
+    modifier anyGov() {
+        require(getGovAddress() == msg.sender || IGov(getGovAddress()).isMember(msg.sender), "No Permission");
         _;
     }
 
     function getContractAddress(bytes32 name) internal view returns (address) {
         return reg.getContractAddress(name);
+    }
+
+    function getGovAddress() internal view returns (address) {
+        return getContractAddress(GOV_NAME);
     }
 
     function getStakingAddress() internal view returns (address) {
@@ -233,10 +239,24 @@ contract EnvConstants {
     bytes32 internal constant TEST_STRING = keccak256("TEST_STRING"); 
 }
 
+interface IEnvStorage {
+    function setBlockPerByBytes(bytes) external;
+    function setBallotDurationMinByBytes(bytes) external;
+    function setBallotDurationMaxByBytes(bytes) external;
+    function setStakingMinByBytes(bytes) external;
+    function setStakingMaxByBytes(bytes) external;
+    function getBlockPer() external view returns (uint256);
+    function getStakingMin() external view returns (uint256);
+    function getStakingMax() external view returns (uint256);
+    function getBallotDurationMin() external view returns (uint256);
+    function getBallotDurationMax() external view returns (uint256);
+}
+
 interface IGov {
     function isMember(address) external view returns (bool);
     function getMember(uint256) external view returns (address);
     function getMemberLength() external view returns (uint256);
+    function getReward(uint256) external view returns (address);
     function getNodeIdxFromMember(address) external view returns (uint256);
     function getMemberFromNodeIdx(uint256) external view returns (address);
     function getNodeLength() external view returns (uint256);
@@ -360,7 +380,24 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         // require(diffTime <= maxBallotDuration());
         _;
     }
+    modifier onlyValidDuration(uint256 _duration){
+        require(getMinVotingDuration() <= _duration, "Under min value of  duration");
+        require(_duration <= getMaxVotingDuration(), "Over max value of duration");
+        _;
+    }
 
+    modifier onlyGovOrCreator(uint256 _ballotId) {
+        require((getGovAddress() == msg.sender)||(ballotBasicMap[_ballotId].creator == msg.sender), "No Permission");
+        _;
+    }
+
+    function getMinVotingDuration() public view returns (uint256) {
+        return IEnvStorage(getEnvStorageAddress()).getBallotDurationMin();
+    }
+    
+    function getMaxVotingDuration() public view returns (uint256) {
+        return IEnvStorage(getEnvStorageAddress()).getBallotDurationMax();
+    }
     modifier notDisabled() {
         require(address(this) == getBallotStorageAddress(), "Is Disabled");
         _;
@@ -561,8 +598,6 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         require(!hasVotedMap[_ballotId][_voter], "already voted");
         require(ballotBasicMap[_ballotId].state
             == uint256(BallotStates.InProgress), "Not InProgress State");
-        // require((ballotBasicMap[_ballotId].startTime <= getTime()) 
-        //     && (getTime() <= ballotBasicMap[_ballotId].startTime), "not voting time");
 
         //1. 생성
         voteMap[_voteId] = Vote(_voteId, _ballotId, _voter, _decision, _power, getTime());
@@ -600,7 +635,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         bytes _memo
     )
         public 
-        onlyGov
+        onlyGovOrCreator(_ballotId)
         notDisabled
     {
         require(ballotBasicMap[_ballotId].id == _ballotId, "not existed Ballot");
@@ -614,12 +649,14 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         uint256 _duration
     )
         public 
-        onlyGov
+        onlyGovOrCreator(_ballotId)
         notDisabled
+        onlyValidDuration(_duration)
     {
         require(ballotBasicMap[_ballotId].id == _ballotId, "not existed Ballot");
         require(ballotBasicMap[_ballotId].isFinalized == false, "already finalized");
         require(ballotBasicMap[_ballotId].state == uint256(BallotStates.Ready), "Not Ready State");
+
         BallotBasic storage _ballot = ballotBasicMap[_ballotId];
         _ballot.duration = _duration;
     }

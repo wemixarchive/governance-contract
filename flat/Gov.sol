@@ -130,12 +130,11 @@ contract Ownable {
 }
 
 contract GovChecker is Ownable {
-
     IRegistry public reg;
-    bytes32 public constant GOV_NAME ="GovernanceContract";
-    bytes32 public constant STAKING_NAME ="Staking";
-    bytes32 public constant BALLOT_STORAGE_NAME ="BallotStorage";
-    bytes32 public constant ENV_STORAGE_NAME ="EnvStorage";
+    bytes32 public constant GOV_NAME = "GovernanceContract";
+    bytes32 public constant STAKING_NAME = "Staking";
+    bytes32 public constant BALLOT_STORAGE_NAME = "BallotStorage";
+    bytes32 public constant ENV_STORAGE_NAME = "EnvStorage";
 
     /**
      * @dev Function to set registry address. Contract that wants to use registry should setRegistry first.
@@ -147,19 +146,26 @@ contract GovChecker is Ownable {
     }
     
     modifier onlyGov() {
-        require(getContractAddress(GOV_NAME) == msg.sender, "No Permission");
+        require(getGovAddress() == msg.sender, "No Permission");
         _;
     }
 
     modifier onlyGovMem() {
-        address addr = reg.getContractAddress(GOV_NAME);
-        require(addr != address(0), "No Governance");
-        require(IGov(addr).isMember(msg.sender), "No Permission");
+        require(IGov(getGovAddress()).isMember(msg.sender), "No Permission");
+        _;
+    }
+
+    modifier anyGov() {
+        require(getGovAddress() == msg.sender || IGov(getGovAddress()).isMember(msg.sender), "No Permission");
         _;
     }
 
     function getContractAddress(bytes32 name) internal view returns (address) {
         return reg.getContractAddress(name);
+    }
+
+    function getGovAddress() internal view returns (address) {
+        return getContractAddress(GOV_NAME);
     }
 
     function getStakingAddress() internal view returns (address) {
@@ -179,6 +185,7 @@ interface IGov {
     function isMember(address) external view returns (bool);
     function getMember(uint256) external view returns (address);
     function getMemberLength() external view returns (uint256);
+    function getReward(uint256) external view returns (address);
     function getNodeIdxFromMember(address) external view returns (uint256);
     function getMemberFromNodeIdx(uint256) external view returns (address);
     function getNodeLength() external view returns (uint256);
@@ -281,12 +288,16 @@ contract UpgradeabilityProxy is Proxy {
 }
 
 contract Gov is UpgradeabilityProxy, GovChecker {
-    bool private initialized;
+    bool private _initialized;
 
-    // For member
+    // For voting member
     mapping(uint256 => address) internal members;
     mapping(address => uint256) internal memberIdx;
     uint256 internal memberLength;
+
+    // For reward member
+    mapping(uint256 => address) internal rewards;
+    mapping(address => uint256) internal rewardIdx;
 
     // For enode
     struct Node {
@@ -306,7 +317,7 @@ contract Gov is UpgradeabilityProxy, GovChecker {
     uint256 internal ballotInVoting;
 
     constructor() public {
-        initialized = false;
+        _initialized = false;
         memberLength = 0;
         nodeLength = 0;
         ballotLength = 0;
@@ -317,6 +328,7 @@ contract Gov is UpgradeabilityProxy, GovChecker {
     function isMember(address addr) public view returns (bool) { return (memberIdx[addr] != 0); }
     function getMember(uint256 idx) public view returns (address) { return members[idx]; }
     function getMemberLength() public view returns (uint256) { return memberLength; }
+    function getReward(uint256 idx) public view returns (address) { return rewards[idx]; }
     function getNodeIdxFromMember(address addr) public view returns (uint256) { return nodeIdxFromMember[addr]; }
     function getMemberFromNodeIdx(uint256 idx) public view returns (address) { return nodeToMember[idx]; }
     function getNodeLength() public view returns (uint256) { return nodeLength; }
@@ -337,7 +349,7 @@ contract Gov is UpgradeabilityProxy, GovChecker {
     )
         public onlyOwner
     {
-        require(initialized == false, "Already initialized");
+        require(_initialized == false, "Already initialized");
 
         setRegistry(registry);
         setImplementation(implementation);
@@ -347,10 +359,14 @@ contract Gov is UpgradeabilityProxy, GovChecker {
         require(staking.availableBalanceOf(msg.sender) >= lockAmount, "Insufficient staking");
         staking.lock(msg.sender, lockAmount);
 
-        // Add member
+        // Add voting member
         memberLength = 1;
         members[memberLength] = msg.sender;
         memberIdx[msg.sender] = memberLength;
+
+        // Add reward member
+        rewards[memberLength] = msg.sender;
+        rewardIdx[msg.sender] = memberLength;
 
         // Add node
         nodeLength = 1;
@@ -361,7 +377,7 @@ contract Gov is UpgradeabilityProxy, GovChecker {
         nodeIdxFromMember[msg.sender] = nodeLength;
         nodeToMember[nodeLength] = msg.sender;
 
-        initialized = true;
+        _initialized = true;
     }
 }
 

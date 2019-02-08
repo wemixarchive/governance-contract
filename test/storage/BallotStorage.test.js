@@ -4,6 +4,9 @@ const time = require('openzeppelin-solidity/test/helpers/time');
 const Registry = artifacts.require('Registry.sol');
 const Staking = artifacts.require('Staking.sol');
 const BallotStorage = artifacts.require('BallotStorage.sol');
+const EnvStorage = artifacts.require('EnvStorage.sol');
+const EnvStorageImp = artifacts.require('EnvStorageImp.sol');
+
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 const util = require('ethereumjs-util');
@@ -42,12 +45,20 @@ require('chai')
   .should();
 
 contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr, govAddr2, member1, member2, member3]) {
-  let registry, staking, ballotStorage;
+  let registry, staking, ballotStorage, envStorageImp, envStorage, iEnvStorage;
   before(async () => {
     registry = await Registry.new();
     staking = await Staking.new(registry.address);
     await registry.setContractDomain('Staking', staking.address);
     await registry.setContractDomain('GovernanceContract', govAddr);
+
+    envStorageImp = await EnvStorageImp.new();
+    envStorage = await EnvStorage.new(registry.address, envStorageImp.address);
+    await registry.setContractDomain('EnvStorage', envStorage.address);
+    iEnvStorage = EnvStorageImp.at(envStorage.address);
+    await iEnvStorage.initialize({ from: deployer });
+
+
   });
   describe('Ballot', function () {
     beforeEach(async () => {
@@ -618,6 +629,11 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
           const ballotBasicInfo = await ballotStorage.getBallotBasic(_id);
           assert.equal(web3Utils.toUtf8(ballotBasicInfo[BallotBasicParams.Memo]), _memo);
         });
+        it('update Ballot memo for MemberAdd from creator', async () => {
+          await ballotStorage.updateBallotMemo(_id, _memo, { value: 0, from: creator });
+          const ballotBasicInfo = await ballotStorage.getBallotBasic(_id);
+          assert.equal(web3Utils.toUtf8(ballotBasicInfo[BallotBasicParams.Memo]), _memo);
+        });
       });
       describe('setDuration', function () {
         it('update Ballot duration for MemberAdd', async () => {
@@ -626,6 +642,26 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
           assert.equal(ballotBasicInfo[BallotBasicParams.Duration], _duration);
           const ballotPeriodInfo = await ballotStorage.getBallotPeriod(_id);
           assert.equal(ballotPeriodInfo[2], _duration);
+        });
+        it('update Ballot duration for MemberAdd from creator', async () => {
+          await ballotStorage.updateBallotDuration(_id, _duration, { value: 0, from: creator });
+          const ballotBasicInfo = await ballotStorage.getBallotBasic(_id);
+          assert.equal(ballotBasicInfo[BallotBasicParams.Duration], _duration);
+          const ballotPeriodInfo = await ballotStorage.getBallotPeriod(_id);
+          assert.equal(ballotPeriodInfo[2], _duration);
+        });
+        it('cannot update Ballot duration for MemberAdd by invalid duration ', async () => {
+          let _minDuration = await iEnvStorage.getBallotDurationMin();
+          _minDuration -= 1 ;
+          await reverting(ballotStorage.updateBallotDuration(_id, _minDuration, { value: 0, from: govAddr }));
+
+          let _maxDuration = await iEnvStorage.getBallotDurationMax();
+          _maxDuration += 1 ;
+          await reverting(ballotStorage.updateBallotDuration(_id, _maxDuration, { value: 0, from: govAddr }));
+          // const ballotBasicInfo = await ballotStorage.getBallotBasic(_id);
+          // assert.equal(ballotBasicInfo[BallotBasicParams.Duration], _duration);
+          // const ballotPeriodInfo = await ballotStorage.getBallotPeriod(_id);
+          // assert.equal(ballotPeriodInfo[2], _duration);
         });
       });
       describe('updateLockAmount', function () {
