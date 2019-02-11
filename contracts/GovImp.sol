@@ -344,10 +344,8 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         nodeIdxFromMember[addr] = 0;
         nodeLength = nodeLength.sub(1);
 
-        // Unlock
-        unlock(addr, unlockAmount);
-
-        // TODO: if remained, transferLocked
+        // Unlock and transfer remained to governance
+        transferLockedAndUnlock(addr, unlockAmount);
 
         emit MemberRemoved(addr);
     }
@@ -371,8 +369,13 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
             // Lock
             require(getMinStaking() <= lockAmount && lockAmount <= getMaxStaking(), "Invalid lock amount");
             lock(nAddr, lockAmount);
+
             // Change member
             members[memberIdx[addr]] = nAddr;
+            memberIdx[nAddr] = memberIdx[addr];
+            rewards[memberIdx[addr]] = nAddr;
+            rewardIdx[nAddr] = rewardIdx[addr];
+            memberIdx[addr] = 0;
         }
 
         // Change node
@@ -385,8 +388,9 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
             nodeToMember[nodeIdx] = nAddr;
             nodeIdxFromMember[nAddr] = nodeIdx;
             nodeIdxFromMember[addr] = 0;
-            // Unlock
-            unlock(addr, lockAmount);
+
+            // Unlock and transfer remained to governance
+            transferLockedAndUnlock(addr, lockAmount);
 
             emit MemberChanged(addr, nAddr);
         }
@@ -485,6 +489,15 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
 
     function unlock(address addr, uint256 amount) private {
         IStaking(getStakingAddress()).unlock(addr, amount);
+    }
+
+    function transferLockedAndUnlock(address addr, uint256 unlockAmount) private {
+        IStaking staking = IStaking(getStakingAddress());
+        uint256 locked = staking.lockedBalanceOf(addr);
+        if (locked > unlockAmount) {
+            staking.transferLocked(addr, locked.sub(unlockAmount));
+        }
+        staking.unlock(addr, unlockAmount);
     }
     //------------------ Code reduction end
 }
