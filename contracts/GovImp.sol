@@ -161,7 +161,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
 
         // Finalize
         (, uint256 accept, uint256 reject) = getBallotVotingInfo(ballotIdx);
-        if (accept.add(reject) < getThreshould()) {
+        if (accept < getThreshould() && reject < getThreshould()) {
             return;
         }
         finalizeVote(ballotIdx, ballotType, accept > reject);
@@ -266,12 +266,16 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         ballotInVoting = 0;
     }
 
-    function addMember(uint256 ballotIdx) private {
+    function fromValidBallot(uint256 ballotIdx, uint256 targetType) private view {
         (uint256 ballotType, uint256 state, ) = getBallotState(ballotIdx);
-        require(ballotType == uint256(BallotTypes.MemberAdd), "Not voting for addMember");
+        require(ballotType == targetType, "Invalid voting type");
         require(state == uint(BallotStates.InProgress), "Invalid voting state");
         (, uint256 accept, uint256 reject) = getBallotVotingInfo(ballotIdx);
-        require(accept.add(reject) >= getThreshould(), "Not yet finalized");
+        require(accept >= getThreshould() || reject >= getThreshould(), "Not yet finalized");
+    }
+
+    function addMember(uint256 ballotIdx) private {
+        fromValidBallot(ballotIdx, uint256(BallotTypes.MemberAdd));
 
         (
             , address addr,
@@ -288,10 +292,12 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         require(getMinStaking() <= lockAmount && lockAmount <= getMaxStaking(), "Invalid lock amount");
         lock(addr, lockAmount);
 
-        // Add member
+        // Add voting and reward member
         uint256 nMemIdx = memberLength.add(1);
         members[nMemIdx] = addr;
         memberIdx[addr] = nMemIdx;
+        rewards[nMemIdx] = addr;
+        rewardIdx[addr] = nMemIdx;
 
         // Add node
         uint256 nNodeIdx = nodeLength.add(1);
@@ -299,8 +305,8 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         node.enode = enode;
         node.ip = ip;
         node.port = port;
-        nodeIdxFromMember[addr] = nNodeIdx;
         nodeToMember[nNodeIdx] = addr;
+        nodeIdxFromMember[addr] = nNodeIdx;
 
         memberLength = nMemIdx;
         nodeLength = nNodeIdx;
@@ -309,23 +315,22 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
     }
 
     function removeMember(uint256 ballotIdx) private {
-        (uint256 ballotType, uint256 state, ) = getBallotState(ballotIdx);
-        require(ballotType == uint256(BallotTypes.MemberRemoval), "Not voting for removeMember");
-        require(state == uint(BallotStates.InProgress), "Invalid voting state");
-        (, uint256 accept, uint256 reject) = getBallotVotingInfo(ballotIdx);
-        require(accept.add(reject) >= getThreshould(), "Not yet finalized");
+        fromValidBallot(ballotIdx, uint256(BallotTypes.MemberRemoval));
 
         (address addr, , , , , uint256 unlockAmount) = getBallotMember(ballotIdx);
         if (!isMember(addr)) {
             return; // Non-member. it is abnormal case
         }
 
-        // Remove member
+        // Remove voting and reward member
         if (memberIdx[addr] != memberLength) {
             (members[memberIdx[addr]], members[memberLength]) = (members[memberLength], members[memberIdx[addr]]);
+            (rewards[memberIdx[addr]], rewards[memberLength]) = (rewards[memberLength], rewards[memberIdx[addr]]);
         }
-        memberIdx[addr] = 0;
         members[memberLength] = address(0);
+        memberIdx[addr] = 0;
+        rewards[memberLength] = address(0);
+        rewardIdx[rewards[memberLength]] = 0;
         memberLength = memberLength.sub(1);
 
         // Remove node
@@ -335,22 +340,18 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
             node.ip = nodes[nodeLength].ip;
             node.port = nodes[nodeLength].port;
         }
-        nodeIdxFromMember[addr] = 0;
         nodeToMember[nodeLength] = address(0);
+        nodeIdxFromMember[addr] = 0;
         nodeLength = nodeLength.sub(1);
 
-        // Unlock
-        unlock(addr, unlockAmount);
+        // Unlock and transfer remained to governance
+        transferLockedAndUnlock(addr, unlockAmount);
 
         emit MemberRemoved(addr);
     }
 
     function changeMember(uint256 ballotIdx) private {
-        (uint256 ballotType, uint256 state, ) = getBallotState(ballotIdx);
-        require(ballotType == uint256(BallotTypes.MemberChange), "Not voting for changeMember");
-        require(state == uint(BallotStates.InProgress), "Invalid voting state");
-        (, uint256 accept, uint256 reject) = getBallotVotingInfo(ballotIdx);
-        require(accept.add(reject) >= getThreshould(), "Not yet finalized");
+        fromValidBallot(ballotIdx, uint256(BallotTypes.MemberChange));
         
         (
             address addr,
@@ -368,8 +369,13 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
             // Lock
             require(getMinStaking() <= lockAmount && lockAmount <= getMaxStaking(), "Invalid lock amount");
             lock(nAddr, lockAmount);
+
             // Change member
             members[memberIdx[addr]] = nAddr;
+            memberIdx[nAddr] = memberIdx[addr];
+            rewards[memberIdx[addr]] = nAddr;
+            rewardIdx[nAddr] = rewardIdx[addr];
+            memberIdx[addr] = 0;
         }
 
         // Change node
@@ -382,17 +388,16 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
             nodeToMember[nodeIdx] = nAddr;
             nodeIdxFromMember[nAddr] = nodeIdx;
             nodeIdxFromMember[addr] = 0;
-            // Unlock
-            unlock(addr, lockAmount);
+
+            // Unlock and transfer remained to governance
+            transferLockedAndUnlock(addr, lockAmount);
 
             emit MemberChanged(addr, nAddr);
         }
     }
 
     function changeGov(uint256 ballotIdx) private {
-        (uint256 ballotType, uint256 state, ) = getBallotState(ballotIdx);
-        require(ballotType == uint256(BallotTypes.GovernanceChange), "Not voting for applyGov");
-        require(state == uint(BallotStates.InProgress), "Invalid voting state");
+        fromValidBallot(ballotIdx, uint256(BallotTypes.GovernanceChange));
 
         address newImp = IBallotStorage(getBallotStorageAddress()).getBallotAddress(ballotIdx);
         if (newImp != address(0)) {
@@ -401,9 +406,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
     }
 
     function applyEnv(uint256 ballotIdx) private {
-        (uint256 ballotType, uint256 state, ) = getBallotState(ballotIdx);
-        require(ballotType == uint256(BallotTypes.EnvValChange), "Not voting for applyEnv");
-        require(state == uint(BallotStates.InProgress), "Invalid voting state");
+        fromValidBallot(ballotIdx, uint256(BallotTypes.EnvValChange));
 
         (
             bytes32 envKey,
@@ -427,7 +430,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         emit EnvChanged(envKey, envType, envVal);
     }
 
-    //------------------ Code reduction
+    //------------------ Code reduction for creation gas
     function createBallotForMemeber(
         uint256 id,
         uint256 bType,
@@ -486,6 +489,15 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
 
     function unlock(address addr, uint256 amount) private {
         IStaking(getStakingAddress()).unlock(addr, amount);
+    }
+
+    function transferLockedAndUnlock(address addr, uint256 unlockAmount) private {
+        IStaking staking = IStaking(getStakingAddress());
+        uint256 locked = staking.lockedBalanceOf(addr);
+        if (locked > unlockAmount) {
+            staking.transferLocked(addr, locked.sub(unlockAmount));
+        }
+        staking.unlock(addr, unlockAmount);
     }
     //------------------ Code reduction end
 }
