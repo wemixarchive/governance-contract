@@ -39,6 +39,20 @@ const BallotBasicParams = {
   IsFinalized: 9,
   Duration: 10,
 };
+const BallotStates = {
+  Invalid:0,
+  Ready:1,
+  InProgress:2,
+  Accepted:3,
+  Rejected:4,
+  Canceled:5
+};
+const BallotStatesPrams = {
+  ballotType:0,
+  state:1,
+  isFinalized:2
+}
+
 require('chai')
   .use(require('chai-as-promised'))
   .use(require('chai-bignumber')(web3.BigNumber))
@@ -621,6 +635,29 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
           ballotBasicVotingInfo[0].should.be.bignumber.equal(0);
           ballotBasicVotingInfo[1].should.be.bignumber.equal(0);
           ballotBasicVotingInfo[2].should.be.bignumber.equal(0);
+        });
+      });
+      describe('cancel', function () {
+        it('cancel Ballot for MemberAdd from gov', async () => {
+          await ballotStorage.cancelBallot(_id, { value: 0, from: govAddr });
+          const ballotBasicState = await ballotStorage.getBallotState(_id);
+          ballotBasicState[BallotStatesPrams.ballotType].should.be.bignumber.equal(_ballotType);
+          ballotBasicState[BallotStatesPrams.state].should.be.bignumber.equal(BallotStates.Canceled);
+          assert.equal(ballotBasicState[BallotStatesPrams.isFinalized], false);
+        });
+        it('cancel Ballot for MemberAdd from creator', async () => {
+          await ballotStorage.cancelBallot(_id, { value: 0, from: creator });
+          const ballotBasicState = await ballotStorage.getBallotState(_id);
+          ballotBasicState[BallotStatesPrams.ballotType].should.be.bignumber.equal(_ballotType);
+          ballotBasicState[BallotStatesPrams.state].should.be.bignumber.equal(BallotStates.Canceled);
+          assert.equal(ballotBasicState[BallotStatesPrams.isFinalized], false);
+        });
+        it('cannot cancel Ballot for MemberAdd from non-permition user', async () => {
+          await reverting(ballotStorage.cancelBallot(_id, { value: 0, from: member3 }));
+          const ballotBasicState = await ballotStorage.getBallotState(_id);
+          ballotBasicState[BallotStatesPrams.ballotType].should.be.bignumber.equal(_ballotType);
+          ballotBasicState[BallotStatesPrams.state].should.be.bignumber.equal(BallotStates.Ready);
+          assert.equal(ballotBasicState[BallotStatesPrams.isFinalized], false);
         });
       });
       describe('setMemo', function () {
