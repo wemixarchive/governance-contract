@@ -73,8 +73,8 @@ contract Staking is GovChecker, ReentrancyGuard {
     function transferLocked(address from, uint256 amount) external onlyGov {
         unlock(from, amount);
         _balance[from] = _balance[from].sub(amount);
-        address gov = getGovAddress();
-        _balance[gov] = _balance[gov].add(amount);
+        address rewardPool = getRewardPoolAddress();
+        _balance[rewardPool] = _balance[rewardPool].add(amount);
     }
 
     /**

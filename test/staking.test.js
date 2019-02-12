@@ -9,7 +9,7 @@ require('chai')
 const Registry = artifacts.require('Registry.sol');
 const Staking = artifacts.require('Staking.sol');
 
-contract('Staking', function ([_, fakeGov, user, user2, user3, user4]) {
+contract('Staking', function ([_, fakeGov, rewardPool, user, user2, user3, user4]) {
   let registry, staking;
   const amount = ether(4e7);
 
@@ -19,6 +19,7 @@ contract('Staking', function ([_, fakeGov, user, user2, user3, user4]) {
 
     await registry.setContractDomain('Staking', staking.address);
     await registry.setContractDomain('GovernanceContract', fakeGov);
+    await registry.setContractDomain('RewardPool', rewardPool);
   });
 
   describe('Staker ', function () {
@@ -110,7 +111,7 @@ contract('Staking', function ([_, fakeGov, user, user2, user3, user4]) {
     it('can transfer', async () => {
       await staking.transferLocked(user, amount, { from: fakeGov });
       (await staking.balanceOf(user)).should.be.bignumber.equal(0);
-      (await staking.balanceOf(fakeGov)).should.be.bignumber.equal(amount);
+      (await staking.balanceOf(rewardPool)).should.be.bignumber.equal(amount);
     });
   });
 
