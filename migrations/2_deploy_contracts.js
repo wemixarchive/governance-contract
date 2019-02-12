@@ -42,6 +42,10 @@ async function deploy (deployer, network, accounts) {
     console.log('Initialize governance');
     await contracts.gov.init(contracts.registry.address, contracts.govImp.address, amount, enode, ip, port);
 
+    //Initialize envStorage contract variables
+    let iEnvStorage = EnvStorageImp.at(contracts.envStorage.address);
+    await iEnvStorage.initialize(); 
+
     // Write contract address to contract.json
     await writeToContractsJson(contracts);
   });
