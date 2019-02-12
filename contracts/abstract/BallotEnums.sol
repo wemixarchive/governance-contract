@@ -6,7 +6,8 @@ contract BallotEnums {
         Ready,
         InProgress,
         Accepted,
-        Rejected
+        Rejected,
+        Canceled
     }
 
     enum DecisionTypes {
