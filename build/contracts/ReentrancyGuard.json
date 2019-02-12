@@ -18,14 +18,14 @@
     "absolutePath": "openzeppelin-solidity/contracts/utils/ReentrancyGuard.sol",
     "exportedSymbols": {
       "ReentrancyGuard": [
-        6402
+        6540
       ]
     },
-    "id": 6403,
+    "id": 6541,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 6373,
+        "id": 6511,
         "literals": [
           "solidity",
           "^",
@@ -41,19 +41,19 @@
         "contractKind": "contract",
         "documentation": "@title Helps contracts guard against reentrancy attacks.\n@author Remco Bloemen <remco@2π.com>, Eenae <alexey@mixbytes.io>\n@dev If you mark a function `nonReentrant`, you should also\nmark it `external`.",
         "fullyImplemented": true,
-        "id": 6402,
+        "id": 6540,
         "linearizedBaseContracts": [
-          6402
+          6540
         ],
         "name": "ReentrancyGuard",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "constant": false,
-            "id": 6375,
+            "id": 6513,
             "name": "_guardCounter",
             "nodeType": "VariableDeclaration",
-            "scope": 6402,
+            "scope": 6540,
             "src": "349:29:23",
             "stateVariable": true,
             "storageLocation": "default",
@@ -62,7 +62,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 6374,
+              "id": 6512,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "349:7:23",
@@ -76,25 +76,25 @@
           },
           {
             "body": {
-              "id": 6382,
+              "id": 6520,
               "nodeType": "Block",
               "src": "406:159:23",
               "statements": [
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 6380,
+                    "id": 6518,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
                       "argumentTypes": null,
-                      "id": 6378,
+                      "id": 6516,
                       "name": "_guardCounter",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 6375,
+                      "referencedDeclaration": 6513,
                       "src": "543:13:23",
                       "typeDescriptions": {
                         "typeIdentifier": "t_uint256",
@@ -106,7 +106,7 @@
                     "rightHandSide": {
                       "argumentTypes": null,
                       "hexValue": "31",
-                      "id": 6379,
+                      "id": 6517,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": true,
@@ -127,14 +127,14 @@
                       "typeString": "uint256"
                     }
                   },
-                  "id": 6381,
+                  "id": 6519,
                   "nodeType": "ExpressionStatement",
                   "src": "543:17:23"
                 }
               ]
             },
             "documentation": null,
-            "id": 6383,
+            "id": 6521,
             "implemented": true,
             "isConstructor": true,
             "isDeclaredConst": false,
@@ -142,19 +142,19 @@
             "name": "",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 6376,
+              "id": 6514,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "394:2:23"
             },
             "payable": false,
             "returnParameters": {
-              "id": 6377,
+              "id": 6515,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "406:0:23"
             },
-            "scope": 6402,
+            "scope": 6540,
             "src": "383:182:23",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -162,25 +162,25 @@
           },
           {
             "body": {
-              "id": 6400,
+              "id": 6538,
               "nodeType": "Block",
               "src": "948:122:23",
               "statements": [
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 6387,
+                    "id": 6525,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
                       "argumentTypes": null,
-                      "id": 6385,
+                      "id": 6523,
                       "name": "_guardCounter",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 6375,
+                      "referencedDeclaration": 6513,
                       "src": "954:13:23",
                       "typeDescriptions": {
                         "typeIdentifier": "t_uint256",
@@ -192,7 +192,7 @@
                     "rightHandSide": {
                       "argumentTypes": null,
                       "hexValue": "31",
-                      "id": 6386,
+                      "id": 6524,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": true,
@@ -213,21 +213,21 @@
                       "typeString": "uint256"
                     }
                   },
-                  "id": 6388,
+                  "id": 6526,
                   "nodeType": "ExpressionStatement",
                   "src": "954:18:23"
                 },
                 {
                   "assignments": [
-                    6390
+                    6528
                   ],
                   "declarations": [
                     {
                       "constant": false,
-                      "id": 6390,
+                      "id": 6528,
                       "name": "localCounter",
                       "nodeType": "VariableDeclaration",
-                      "scope": 6401,
+                      "scope": 6539,
                       "src": "978:20:23",
                       "stateVariable": false,
                       "storageLocation": "default",
@@ -236,7 +236,7 @@
                         "typeString": "uint256"
                       },
                       "typeName": {
-                        "id": 6389,
+                        "id": 6527,
                         "name": "uint256",
                         "nodeType": "ElementaryTypeName",
                         "src": "978:7:23",
@@ -249,14 +249,14 @@
                       "visibility": "internal"
                     }
                   ],
-                  "id": 6392,
+                  "id": 6530,
                   "initialValue": {
                     "argumentTypes": null,
-                    "id": 6391,
+                    "id": 6529,
                     "name": "_guardCounter",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 6375,
+                    "referencedDeclaration": 6513,
                     "src": "1001:13:23",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
@@ -267,7 +267,7 @@
                   "src": "978:36:23"
                 },
                 {
-                  "id": 6393,
+                  "id": 6531,
                   "nodeType": "PlaceholderStatement",
                   "src": "1020:1:23"
                 },
@@ -281,18 +281,18 @@
                           "typeIdentifier": "t_uint256",
                           "typeString": "uint256"
                         },
-                        "id": 6397,
+                        "id": 6535,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
                         "lValueRequested": false,
                         "leftExpression": {
                           "argumentTypes": null,
-                          "id": 6395,
+                          "id": 6533,
                           "name": "localCounter",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 6390,
+                          "referencedDeclaration": 6528,
                           "src": "1035:12:23",
                           "typeDescriptions": {
                             "typeIdentifier": "t_uint256",
@@ -303,11 +303,11 @@
                         "operator": "==",
                         "rightExpression": {
                           "argumentTypes": null,
-                          "id": 6396,
+                          "id": 6534,
                           "name": "_guardCounter",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 6375,
+                          "referencedDeclaration": 6513,
                           "src": "1051:13:23",
                           "typeDescriptions": {
                             "typeIdentifier": "t_uint256",
@@ -328,21 +328,21 @@
                           "typeString": "bool"
                         }
                       ],
-                      "id": 6394,
+                      "id": 6532,
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6420,
-                        6421
+                        6558,
+                        6559
                       ],
-                      "referencedDeclaration": 6420,
+                      "referencedDeclaration": 6558,
                       "src": "1027:7:23",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$returns$__$",
                         "typeString": "function (bool) pure"
                       }
                     },
-                    "id": 6398,
+                    "id": 6536,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -356,18 +356,18 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 6399,
+                  "id": 6537,
                   "nodeType": "ExpressionStatement",
                   "src": "1027:38:23"
                 }
               ]
             },
             "documentation": "@dev Prevents a contract from calling itself, directly or indirectly.\nCalling a `nonReentrant` function from another `nonReentrant`\nfunction is not supported. It is possible to prevent this from happening\nby making the `nonReentrant` function external, and make it call a\n`private` function that does the actual work.",
-            "id": 6401,
+            "id": 6539,
             "name": "nonReentrant",
             "nodeType": "ModifierDefinition",
             "parameters": {
-              "id": 6384,
+              "id": 6522,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "945:2:23"
@@ -376,7 +376,7 @@
             "visibility": "internal"
           }
         ],
-        "scope": 6403,
+        "scope": 6541,
         "src": "249:824:23"
       }
     ],
@@ -386,14 +386,14 @@
     "absolutePath": "openzeppelin-solidity/contracts/utils/ReentrancyGuard.sol",
     "exportedSymbols": {
       "ReentrancyGuard": [
-        6402
+        6540
       ]
     },
-    "id": 6403,
+    "id": 6541,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 6373,
+        "id": 6511,
         "literals": [
           "solidity",
           "^",
@@ -409,19 +409,19 @@
         "contractKind": "contract",
         "documentation": "@title Helps contracts guard against reentrancy attacks.\n@author Remco Bloemen <remco@2π.com>, Eenae <alexey@mixbytes.io>\n@dev If you mark a function `nonReentrant`, you should also\nmark it `external`.",
         "fullyImplemented": true,
-        "id": 6402,
+        "id": 6540,
         "linearizedBaseContracts": [
-          6402
+          6540
         ],
         "name": "ReentrancyGuard",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "constant": false,
-            "id": 6375,
+            "id": 6513,
             "name": "_guardCounter",
             "nodeType": "VariableDeclaration",
-            "scope": 6402,
+            "scope": 6540,
             "src": "349:29:23",
             "stateVariable": true,
             "storageLocation": "default",
@@ -430,7 +430,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 6374,
+              "id": 6512,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "349:7:23",
@@ -444,25 +444,25 @@
           },
           {
             "body": {
-              "id": 6382,
+              "id": 6520,
               "nodeType": "Block",
               "src": "406:159:23",
               "statements": [
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 6380,
+                    "id": 6518,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
                       "argumentTypes": null,
-                      "id": 6378,
+                      "id": 6516,
                       "name": "_guardCounter",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 6375,
+                      "referencedDeclaration": 6513,
                       "src": "543:13:23",
                       "typeDescriptions": {
                         "typeIdentifier": "t_uint256",
@@ -474,7 +474,7 @@
                     "rightHandSide": {
                       "argumentTypes": null,
                       "hexValue": "31",
-                      "id": 6379,
+                      "id": 6517,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": true,
@@ -495,14 +495,14 @@
                       "typeString": "uint256"
                     }
                   },
-                  "id": 6381,
+                  "id": 6519,
                   "nodeType": "ExpressionStatement",
                   "src": "543:17:23"
                 }
               ]
             },
             "documentation": null,
-            "id": 6383,
+            "id": 6521,
             "implemented": true,
             "isConstructor": true,
             "isDeclaredConst": false,
@@ -510,19 +510,19 @@
             "name": "",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 6376,
+              "id": 6514,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "394:2:23"
             },
             "payable": false,
             "returnParameters": {
-              "id": 6377,
+              "id": 6515,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "406:0:23"
             },
-            "scope": 6402,
+            "scope": 6540,
             "src": "383:182:23",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -530,25 +530,25 @@
           },
           {
             "body": {
-              "id": 6400,
+              "id": 6538,
               "nodeType": "Block",
               "src": "948:122:23",
               "statements": [
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 6387,
+                    "id": 6525,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
                       "argumentTypes": null,
-                      "id": 6385,
+                      "id": 6523,
                       "name": "_guardCounter",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 6375,
+                      "referencedDeclaration": 6513,
                       "src": "954:13:23",
                       "typeDescriptions": {
                         "typeIdentifier": "t_uint256",
@@ -560,7 +560,7 @@
                     "rightHandSide": {
                       "argumentTypes": null,
                       "hexValue": "31",
-                      "id": 6386,
+                      "id": 6524,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": true,
@@ -581,21 +581,21 @@
                       "typeString": "uint256"
                     }
                   },
-                  "id": 6388,
+                  "id": 6526,
                   "nodeType": "ExpressionStatement",
                   "src": "954:18:23"
                 },
                 {
                   "assignments": [
-                    6390
+                    6528
                   ],
                   "declarations": [
                     {
                       "constant": false,
-                      "id": 6390,
+                      "id": 6528,
                       "name": "localCounter",
                       "nodeType": "VariableDeclaration",
-                      "scope": 6401,
+                      "scope": 6539,
                       "src": "978:20:23",
                       "stateVariable": false,
                       "storageLocation": "default",
@@ -604,7 +604,7 @@
                         "typeString": "uint256"
                       },
                       "typeName": {
-                        "id": 6389,
+                        "id": 6527,
                         "name": "uint256",
                         "nodeType": "ElementaryTypeName",
                         "src": "978:7:23",
@@ -617,14 +617,14 @@
                       "visibility": "internal"
                     }
                   ],
-                  "id": 6392,
+                  "id": 6530,
                   "initialValue": {
                     "argumentTypes": null,
-                    "id": 6391,
+                    "id": 6529,
                     "name": "_guardCounter",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 6375,
+                    "referencedDeclaration": 6513,
                     "src": "1001:13:23",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
@@ -635,7 +635,7 @@
                   "src": "978:36:23"
                 },
                 {
-                  "id": 6393,
+                  "id": 6531,
                   "nodeType": "PlaceholderStatement",
                   "src": "1020:1:23"
                 },
@@ -649,18 +649,18 @@
                           "typeIdentifier": "t_uint256",
                           "typeString": "uint256"
                         },
-                        "id": 6397,
+                        "id": 6535,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
                         "lValueRequested": false,
                         "leftExpression": {
                           "argumentTypes": null,
-                          "id": 6395,
+                          "id": 6533,
                           "name": "localCounter",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 6390,
+                          "referencedDeclaration": 6528,
                           "src": "1035:12:23",
                           "typeDescriptions": {
                             "typeIdentifier": "t_uint256",
@@ -671,11 +671,11 @@
                         "operator": "==",
                         "rightExpression": {
                           "argumentTypes": null,
-                          "id": 6396,
+                          "id": 6534,
                           "name": "_guardCounter",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 6375,
+                          "referencedDeclaration": 6513,
                           "src": "1051:13:23",
                           "typeDescriptions": {
                             "typeIdentifier": "t_uint256",
@@ -696,21 +696,21 @@
                           "typeString": "bool"
                         }
                       ],
-                      "id": 6394,
+                      "id": 6532,
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6420,
-                        6421
+                        6558,
+                        6559
                       ],
-                      "referencedDeclaration": 6420,
+                      "referencedDeclaration": 6558,
                       "src": "1027:7:23",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$returns$__$",
                         "typeString": "function (bool) pure"
                       }
                     },
-                    "id": 6398,
+                    "id": 6536,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -724,18 +724,18 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 6399,
+                  "id": 6537,
                   "nodeType": "ExpressionStatement",
                   "src": "1027:38:23"
                 }
               ]
             },
             "documentation": "@dev Prevents a contract from calling itself, directly or indirectly.\nCalling a `nonReentrant` function from another `nonReentrant`\nfunction is not supported. It is possible to prevent this from happening\nby making the `nonReentrant` function external, and make it call a\n`private` function that does the actual work.",
-            "id": 6401,
+            "id": 6539,
             "name": "nonReentrant",
             "nodeType": "ModifierDefinition",
             "parameters": {
-              "id": 6384,
+              "id": 6522,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "945:2:23"
@@ -744,7 +744,7 @@
             "visibility": "internal"
           }
         ],
-        "scope": 6403,
+        "scope": 6541,
         "src": "249:824:23"
       }
     ],
@@ -756,5 +756,5 @@
   },
   "networks": {},
   "schemaVersion": "2.0.1",
-  "updatedAt": "2019-02-08T09:52:54.589Z"
+  "updatedAt": "2019-02-12T02:28:42.395Z"
 }

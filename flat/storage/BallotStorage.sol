@@ -187,7 +187,8 @@ contract BallotEnums {
         Ready,
         InProgress,
         Accepted,
-        Rejected
+        Rejected,
+        Canceled
     }
 
     enum DecisionTypes {
@@ -357,7 +358,11 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         uint256 indexed ballotId,
         uint256 state
     );
-    
+
+    event BallotCanceled ( 
+        uint256 indexed ballotId
+    );
+
     mapping(uint=>BallotBasic) internal ballotBasicMap;
     mapping(uint=>BallotMember) internal ballotMemberMap;
     mapping(uint=>BallotAddress) internal ballotAddressMap;
@@ -380,6 +385,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         // require(diffTime <= maxBallotDuration());
         _;
     }
+
     modifier onlyValidDuration(uint256 _duration){
         require(getMinVotingDuration() <= _duration, "Under min value of  duration");
         require(_duration <= getMaxVotingDuration(), "Over max value of duration");
@@ -387,7 +393,12 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     }
 
     modifier onlyGovOrCreator(uint256 _ballotId) {
-        require((getGovAddress() == msg.sender)||(ballotBasicMap[_ballotId].creator == msg.sender), "No Permission");
+        require((getGovAddress() == msg.sender) || (ballotBasicMap[_ballotId].creator == msg.sender), "No Permission");
+        _;
+    }
+
+    modifier notDisabled() {
+        require(address(this) == getBallotStorageAddress(), "Is Disabled");
         _;
     }
 
@@ -398,11 +409,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     function getMaxVotingDuration() public view returns (uint256) {
         return IEnvStorage(getEnvStorageAddress()).getBallotDurationMax();
     }
-    modifier notDisabled() {
-        require(address(this) == getBallotStorageAddress(), "Is Disabled");
-        _;
-    }
-
+   
     function getTime() public view returns(uint256) {
         return now;
     }
@@ -634,7 +641,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         uint256 _ballotId,
         bytes _memo
     )
-        public 
+        public
         onlyGovOrCreator(_ballotId)
         notDisabled
     {
@@ -675,6 +682,16 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         require(ballotBasicMap[_ballotId].state == uint256(BallotStates.Ready), "Not Ready State");
         BallotMember storage _ballot = ballotMemberMap[_ballotId];
         _ballot.lockAmount = _lockAmount;
+    }
+
+    // cancel ballot info.
+    function cancelBallot(uint256 _ballotId) public onlyGovOrCreator(_ballotId) notDisabled {
+        require(ballotBasicMap[_ballotId].id == _ballotId, "not existed Ballot");
+        require(ballotBasicMap[_ballotId].isFinalized == false, "already finalized");
+        require(ballotBasicMap[_ballotId].state == uint256(BallotStates.Ready), "Not Ready State");
+        BallotBasic storage _ballot = ballotBasicMap[_ballotId];
+        _ballot.state = uint256(BallotStates.Canceled);
+        emit BallotCanceled (_ballotId);
     }
 
     // finalize ballot info.

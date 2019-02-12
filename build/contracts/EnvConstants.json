@@ -11,14 +11,14 @@
     "absolutePath": "/Users/ywshin/Documents/WS/truffle/governance-contract-blueisle/contracts/abstract/EnvConstants.sol",
     "exportedSymbols": {
       "EnvConstants": [
-        2909
+        2973
       ]
     },
-    "id": 2910,
+    "id": 2974,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 2820,
+        "id": 2884,
         "literals": [
           "solidity",
           "^",
@@ -34,19 +34,19 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": true,
-        "id": 2909,
+        "id": 2973,
         "linearizedBaseContracts": [
-          2909
+          2973
         ],
         "name": "EnvConstants",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "constant": true,
-            "id": 2825,
+            "id": 2889,
             "name": "BLOCK_PER_NAME",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "54:64:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -55,7 +55,7 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 2821,
+              "id": 2885,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
               "src": "54:7:7",
@@ -70,7 +70,7 @@
                 {
                   "argumentTypes": null,
                   "hexValue": "626c6f636b506572",
-                  "id": 2823,
+                  "id": 2887,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -93,18 +93,18 @@
                     "typeString": "literal_string \"blockPer\""
                   }
                 ],
-                "id": 2822,
+                "id": 2886,
                 "name": "keccak256",
                 "nodeType": "Identifier",
                 "overloadedDeclarations": [],
-                "referencedDeclaration": 6411,
+                "referencedDeclaration": 6549,
                 "src": "97:9:7",
                 "typeDescriptions": {
                   "typeIdentifier": "t_function_sha3_pure$__$returns$_t_bytes32_$",
                   "typeString": "function () pure returns (bytes32)"
                 }
               },
-              "id": 2824,
+              "id": 2888,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -122,10 +122,10 @@
           },
           {
             "constant": true,
-            "id": 2831,
+            "id": 2895,
             "name": "BLOCK_PER_TYPE",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "125:70:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -134,7 +134,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 2826,
+              "id": 2890,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "125:7:7",
@@ -150,18 +150,18 @@
                   "argumentTypes": null,
                   "expression": {
                     "argumentTypes": null,
-                    "id": 2828,
+                    "id": 2892,
                     "name": "VariableTypes",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 2883,
+                    "referencedDeclaration": 2947,
                     "src": "176:13:7",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_type$_t_enum$_VariableTypes_$2883_$",
+                      "typeIdentifier": "t_type$_t_enum$_VariableTypes_$2947_$",
                       "typeString": "type(enum EnvConstants.VariableTypes)"
                     }
                   },
-                  "id": 2829,
+                  "id": 2893,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -171,7 +171,7 @@
                   "referencedDeclaration": null,
                   "src": "176:18:7",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_enum$_VariableTypes_$2883",
+                    "typeIdentifier": "t_enum$_VariableTypes_$2947",
                     "typeString": "enum EnvConstants.VariableTypes"
                   }
                 }
@@ -179,11 +179,11 @@
               "expression": {
                 "argumentTypes": [
                   {
-                    "typeIdentifier": "t_enum$_VariableTypes_$2883",
+                    "typeIdentifier": "t_enum$_VariableTypes_$2947",
                     "typeString": "enum EnvConstants.VariableTypes"
                   }
                 ],
-                "id": 2827,
+                "id": 2891,
                 "isConstant": false,
                 "isLValue": false,
                 "isPure": true,
@@ -196,7 +196,7 @@
                 },
                 "typeName": "uint256"
               },
-              "id": 2830,
+              "id": 2894,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -214,10 +214,10 @@
           },
           {
             "constant": true,
-            "id": 2836,
+            "id": 2900,
             "name": "BALLOT_DURATION_MIN_NAME",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "202:83:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -226,7 +226,7 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 2832,
+              "id": 2896,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
               "src": "202:7:7",
@@ -241,7 +241,7 @@
                 {
                   "argumentTypes": null,
                   "hexValue": "62616c6c6f744475726174696f6e4d696e",
-                  "id": 2834,
+                  "id": 2898,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -264,18 +264,18 @@
                     "typeString": "literal_string \"ballotDurationMin\""
                   }
                 ],
-                "id": 2833,
+                "id": 2897,
                 "name": "keccak256",
                 "nodeType": "Identifier",
                 "overloadedDeclarations": [],
-                "referencedDeclaration": 6411,
+                "referencedDeclaration": 6549,
                 "src": "255:9:7",
                 "typeDescriptions": {
                   "typeIdentifier": "t_function_sha3_pure$__$returns$_t_bytes32_$",
                   "typeString": "function () pure returns (bytes32)"
                 }
               },
-              "id": 2835,
+              "id": 2899,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -293,10 +293,10 @@
           },
           {
             "constant": true,
-            "id": 2842,
+            "id": 2906,
             "name": "BALLOT_DURATION_MIN_TYPE",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "292:80:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -305,7 +305,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 2837,
+              "id": 2901,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "292:7:7",
@@ -321,18 +321,18 @@
                   "argumentTypes": null,
                   "expression": {
                     "argumentTypes": null,
-                    "id": 2839,
+                    "id": 2903,
                     "name": "VariableTypes",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 2883,
+                    "referencedDeclaration": 2947,
                     "src": "353:13:7",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_type$_t_enum$_VariableTypes_$2883_$",
+                      "typeIdentifier": "t_type$_t_enum$_VariableTypes_$2947_$",
                       "typeString": "type(enum EnvConstants.VariableTypes)"
                     }
                   },
-                  "id": 2840,
+                  "id": 2904,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -342,7 +342,7 @@
                   "referencedDeclaration": null,
                   "src": "353:18:7",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_enum$_VariableTypes_$2883",
+                    "typeIdentifier": "t_enum$_VariableTypes_$2947",
                     "typeString": "enum EnvConstants.VariableTypes"
                   }
                 }
@@ -350,11 +350,11 @@
               "expression": {
                 "argumentTypes": [
                   {
-                    "typeIdentifier": "t_enum$_VariableTypes_$2883",
+                    "typeIdentifier": "t_enum$_VariableTypes_$2947",
                     "typeString": "enum EnvConstants.VariableTypes"
                   }
                 ],
-                "id": 2838,
+                "id": 2902,
                 "isConstant": false,
                 "isLValue": false,
                 "isPure": true,
@@ -367,7 +367,7 @@
                 },
                 "typeName": "uint256"
               },
-              "id": 2841,
+              "id": 2905,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -385,10 +385,10 @@
           },
           {
             "constant": true,
-            "id": 2847,
+            "id": 2911,
             "name": "BALLOT_DURATION_MAX_NAME",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "379:83:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -397,7 +397,7 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 2843,
+              "id": 2907,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
               "src": "379:7:7",
@@ -412,7 +412,7 @@
                 {
                   "argumentTypes": null,
                   "hexValue": "62616c6c6f744475726174696f6e4d6178",
-                  "id": 2845,
+                  "id": 2909,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -435,18 +435,18 @@
                     "typeString": "literal_string \"ballotDurationMax\""
                   }
                 ],
-                "id": 2844,
+                "id": 2908,
                 "name": "keccak256",
                 "nodeType": "Identifier",
                 "overloadedDeclarations": [],
-                "referencedDeclaration": 6411,
+                "referencedDeclaration": 6549,
                 "src": "432:9:7",
                 "typeDescriptions": {
                   "typeIdentifier": "t_function_sha3_pure$__$returns$_t_bytes32_$",
                   "typeString": "function () pure returns (bytes32)"
                 }
               },
-              "id": 2846,
+              "id": 2910,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -464,10 +464,10 @@
           },
           {
             "constant": true,
-            "id": 2853,
+            "id": 2917,
             "name": "BALLOT_DURATION_MAX_TYPE",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "469:80:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -476,7 +476,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 2848,
+              "id": 2912,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "469:7:7",
@@ -492,18 +492,18 @@
                   "argumentTypes": null,
                   "expression": {
                     "argumentTypes": null,
-                    "id": 2850,
+                    "id": 2914,
                     "name": "VariableTypes",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 2883,
+                    "referencedDeclaration": 2947,
                     "src": "530:13:7",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_type$_t_enum$_VariableTypes_$2883_$",
+                      "typeIdentifier": "t_type$_t_enum$_VariableTypes_$2947_$",
                       "typeString": "type(enum EnvConstants.VariableTypes)"
                     }
                   },
-                  "id": 2851,
+                  "id": 2915,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -513,7 +513,7 @@
                   "referencedDeclaration": null,
                   "src": "530:18:7",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_enum$_VariableTypes_$2883",
+                    "typeIdentifier": "t_enum$_VariableTypes_$2947",
                     "typeString": "enum EnvConstants.VariableTypes"
                   }
                 }
@@ -521,11 +521,11 @@
               "expression": {
                 "argumentTypes": [
                   {
-                    "typeIdentifier": "t_enum$_VariableTypes_$2883",
+                    "typeIdentifier": "t_enum$_VariableTypes_$2947",
                     "typeString": "enum EnvConstants.VariableTypes"
                   }
                 ],
-                "id": 2849,
+                "id": 2913,
                 "isConstant": false,
                 "isLValue": false,
                 "isPure": true,
@@ -538,7 +538,7 @@
                 },
                 "typeName": "uint256"
               },
-              "id": 2852,
+              "id": 2916,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -556,10 +556,10 @@
           },
           {
             "constant": true,
-            "id": 2858,
+            "id": 2922,
             "name": "STAKING_MIN_NAME",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "556:68:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -568,7 +568,7 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 2854,
+              "id": 2918,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
               "src": "556:7:7",
@@ -583,7 +583,7 @@
                 {
                   "argumentTypes": null,
                   "hexValue": "7374616b696e674d696e",
-                  "id": 2856,
+                  "id": 2920,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -606,18 +606,18 @@
                     "typeString": "literal_string \"stakingMin\""
                   }
                 ],
-                "id": 2855,
+                "id": 2919,
                 "name": "keccak256",
                 "nodeType": "Identifier",
                 "overloadedDeclarations": [],
-                "referencedDeclaration": 6411,
+                "referencedDeclaration": 6549,
                 "src": "601:9:7",
                 "typeDescriptions": {
                   "typeIdentifier": "t_function_sha3_pure$__$returns$_t_bytes32_$",
                   "typeString": "function () pure returns (bytes32)"
                 }
               },
-              "id": 2857,
+              "id": 2921,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -635,10 +635,10 @@
           },
           {
             "constant": true,
-            "id": 2864,
+            "id": 2928,
             "name": "STAKING_MIN_TYPE",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "631:72:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -647,7 +647,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 2859,
+              "id": 2923,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "631:7:7",
@@ -663,18 +663,18 @@
                   "argumentTypes": null,
                   "expression": {
                     "argumentTypes": null,
-                    "id": 2861,
+                    "id": 2925,
                     "name": "VariableTypes",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 2883,
+                    "referencedDeclaration": 2947,
                     "src": "684:13:7",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_type$_t_enum$_VariableTypes_$2883_$",
+                      "typeIdentifier": "t_type$_t_enum$_VariableTypes_$2947_$",
                       "typeString": "type(enum EnvConstants.VariableTypes)"
                     }
                   },
-                  "id": 2862,
+                  "id": 2926,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -684,7 +684,7 @@
                   "referencedDeclaration": null,
                   "src": "684:18:7",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_enum$_VariableTypes_$2883",
+                    "typeIdentifier": "t_enum$_VariableTypes_$2947",
                     "typeString": "enum EnvConstants.VariableTypes"
                   }
                 }
@@ -692,11 +692,11 @@
               "expression": {
                 "argumentTypes": [
                   {
-                    "typeIdentifier": "t_enum$_VariableTypes_$2883",
+                    "typeIdentifier": "t_enum$_VariableTypes_$2947",
                     "typeString": "enum EnvConstants.VariableTypes"
                   }
                 ],
-                "id": 2860,
+                "id": 2924,
                 "isConstant": false,
                 "isLValue": false,
                 "isPure": true,
@@ -709,7 +709,7 @@
                 },
                 "typeName": "uint256"
               },
-              "id": 2863,
+              "id": 2927,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -727,10 +727,10 @@
           },
           {
             "constant": true,
-            "id": 2869,
+            "id": 2933,
             "name": "STAKING_MAX_NAME",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "710:68:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -739,7 +739,7 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 2865,
+              "id": 2929,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
               "src": "710:7:7",
@@ -754,7 +754,7 @@
                 {
                   "argumentTypes": null,
                   "hexValue": "7374616b696e674d6178",
-                  "id": 2867,
+                  "id": 2931,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -777,18 +777,18 @@
                     "typeString": "literal_string \"stakingMax\""
                   }
                 ],
-                "id": 2866,
+                "id": 2930,
                 "name": "keccak256",
                 "nodeType": "Identifier",
                 "overloadedDeclarations": [],
-                "referencedDeclaration": 6411,
+                "referencedDeclaration": 6549,
                 "src": "755:9:7",
                 "typeDescriptions": {
                   "typeIdentifier": "t_function_sha3_pure$__$returns$_t_bytes32_$",
                   "typeString": "function () pure returns (bytes32)"
                 }
               },
-              "id": 2868,
+              "id": 2932,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -806,10 +806,10 @@
           },
           {
             "constant": true,
-            "id": 2875,
+            "id": 2939,
             "name": "STAKING_MAX_TYPE",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "785:72:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -818,7 +818,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 2870,
+              "id": 2934,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "785:7:7",
@@ -834,18 +834,18 @@
                   "argumentTypes": null,
                   "expression": {
                     "argumentTypes": null,
-                    "id": 2872,
+                    "id": 2936,
                     "name": "VariableTypes",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 2883,
+                    "referencedDeclaration": 2947,
                     "src": "838:13:7",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_type$_t_enum$_VariableTypes_$2883_$",
+                      "typeIdentifier": "t_type$_t_enum$_VariableTypes_$2947_$",
                       "typeString": "type(enum EnvConstants.VariableTypes)"
                     }
                   },
-                  "id": 2873,
+                  "id": 2937,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -855,7 +855,7 @@
                   "referencedDeclaration": null,
                   "src": "838:18:7",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_enum$_VariableTypes_$2883",
+                    "typeIdentifier": "t_enum$_VariableTypes_$2947",
                     "typeString": "enum EnvConstants.VariableTypes"
                   }
                 }
@@ -863,11 +863,11 @@
               "expression": {
                 "argumentTypes": [
                   {
-                    "typeIdentifier": "t_enum$_VariableTypes_$2883",
+                    "typeIdentifier": "t_enum$_VariableTypes_$2947",
                     "typeString": "enum EnvConstants.VariableTypes"
                   }
                 ],
-                "id": 2871,
+                "id": 2935,
                 "isConstant": false,
                 "isLValue": false,
                 "isPure": true,
@@ -880,7 +880,7 @@
                 },
                 "typeName": "uint256"
               },
-              "id": 2874,
+              "id": 2938,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -898,46 +898,46 @@
           },
           {
             "canonicalName": "EnvConstants.VariableTypes",
-            "id": 2883,
+            "id": 2947,
             "members": [
               {
-                "id": 2876,
+                "id": 2940,
                 "name": "Invalid",
                 "nodeType": "EnumValue",
                 "src": "893:7:7"
               },
               {
-                "id": 2877,
+                "id": 2941,
                 "name": "Int",
                 "nodeType": "EnumValue",
                 "src": "910:3:7"
               },
               {
-                "id": 2878,
+                "id": 2942,
                 "name": "Uint",
                 "nodeType": "EnumValue",
                 "src": "923:4:7"
               },
               {
-                "id": 2879,
+                "id": 2943,
                 "name": "Address",
                 "nodeType": "EnumValue",
                 "src": "937:7:7"
               },
               {
-                "id": 2880,
+                "id": 2944,
                 "name": "Bytes32",
                 "nodeType": "EnumValue",
                 "src": "954:7:7"
               },
               {
-                "id": 2881,
+                "id": 2945,
                 "name": "Bytes",
                 "nodeType": "EnumValue",
                 "src": "971:5:7"
               },
               {
-                "id": 2882,
+                "id": 2946,
                 "name": "String",
                 "nodeType": "EnumValue",
                 "src": "986:6:7"
@@ -949,10 +949,10 @@
           },
           {
             "constant": true,
-            "id": 2888,
+            "id": 2952,
             "name": "TEST_INT",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "1008:58:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -961,7 +961,7 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 2884,
+              "id": 2948,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
               "src": "1008:7:7",
@@ -976,7 +976,7 @@
                 {
                   "argumentTypes": null,
                   "hexValue": "544553545f494e54",
-                  "id": 2886,
+                  "id": 2950,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -999,18 +999,18 @@
                     "typeString": "literal_string \"TEST_INT\""
                   }
                 ],
-                "id": 2885,
+                "id": 2949,
                 "name": "keccak256",
                 "nodeType": "Identifier",
                 "overloadedDeclarations": [],
-                "referencedDeclaration": 6411,
+                "referencedDeclaration": 6549,
                 "src": "1045:9:7",
                 "typeDescriptions": {
                   "typeIdentifier": "t_function_sha3_pure$__$returns$_t_bytes32_$",
                   "typeString": "function () pure returns (bytes32)"
                 }
               },
-              "id": 2887,
+              "id": 2951,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1028,10 +1028,10 @@
           },
           {
             "constant": true,
-            "id": 2893,
+            "id": 2957,
             "name": "TEST_ADDRESS",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "1073:66:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1040,7 +1040,7 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 2889,
+              "id": 2953,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
               "src": "1073:7:7",
@@ -1055,7 +1055,7 @@
                 {
                   "argumentTypes": null,
                   "hexValue": "544553545f41444452455353",
-                  "id": 2891,
+                  "id": 2955,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -1078,18 +1078,18 @@
                     "typeString": "literal_string \"TEST_ADDRESS\""
                   }
                 ],
-                "id": 2890,
+                "id": 2954,
                 "name": "keccak256",
                 "nodeType": "Identifier",
                 "overloadedDeclarations": [],
-                "referencedDeclaration": 6411,
+                "referencedDeclaration": 6549,
                 "src": "1114:9:7",
                 "typeDescriptions": {
                   "typeIdentifier": "t_function_sha3_pure$__$returns$_t_bytes32_$",
                   "typeString": "function () pure returns (bytes32)"
                 }
               },
-              "id": 2892,
+              "id": 2956,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1107,10 +1107,10 @@
           },
           {
             "constant": true,
-            "id": 2898,
+            "id": 2962,
             "name": "TEST_BYTES32",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "1146:66:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1119,7 +1119,7 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 2894,
+              "id": 2958,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
               "src": "1146:7:7",
@@ -1134,7 +1134,7 @@
                 {
                   "argumentTypes": null,
                   "hexValue": "544553545f42595445533332",
-                  "id": 2896,
+                  "id": 2960,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -1157,18 +1157,18 @@
                     "typeString": "literal_string \"TEST_BYTES32\""
                   }
                 ],
-                "id": 2895,
+                "id": 2959,
                 "name": "keccak256",
                 "nodeType": "Identifier",
                 "overloadedDeclarations": [],
-                "referencedDeclaration": 6411,
+                "referencedDeclaration": 6549,
                 "src": "1187:9:7",
                 "typeDescriptions": {
                   "typeIdentifier": "t_function_sha3_pure$__$returns$_t_bytes32_$",
                   "typeString": "function () pure returns (bytes32)"
                 }
               },
-              "id": 2897,
+              "id": 2961,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1186,10 +1186,10 @@
           },
           {
             "constant": true,
-            "id": 2903,
+            "id": 2967,
             "name": "TEST_BYTES",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "1219:62:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1198,7 +1198,7 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 2899,
+              "id": 2963,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
               "src": "1219:7:7",
@@ -1213,7 +1213,7 @@
                 {
                   "argumentTypes": null,
                   "hexValue": "544553545f4259544553",
-                  "id": 2901,
+                  "id": 2965,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -1236,18 +1236,18 @@
                     "typeString": "literal_string \"TEST_BYTES\""
                   }
                 ],
-                "id": 2900,
+                "id": 2964,
                 "name": "keccak256",
                 "nodeType": "Identifier",
                 "overloadedDeclarations": [],
-                "referencedDeclaration": 6411,
+                "referencedDeclaration": 6549,
                 "src": "1258:9:7",
                 "typeDescriptions": {
                   "typeIdentifier": "t_function_sha3_pure$__$returns$_t_bytes32_$",
                   "typeString": "function () pure returns (bytes32)"
                 }
               },
-              "id": 2902,
+              "id": 2966,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1265,10 +1265,10 @@
           },
           {
             "constant": true,
-            "id": 2908,
+            "id": 2972,
             "name": "TEST_STRING",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "1288:64:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1277,7 +1277,7 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 2904,
+              "id": 2968,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
               "src": "1288:7:7",
@@ -1292,7 +1292,7 @@
                 {
                   "argumentTypes": null,
                   "hexValue": "544553545f535452494e47",
-                  "id": 2906,
+                  "id": 2970,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -1315,18 +1315,18 @@
                     "typeString": "literal_string \"TEST_STRING\""
                   }
                 ],
-                "id": 2905,
+                "id": 2969,
                 "name": "keccak256",
                 "nodeType": "Identifier",
                 "overloadedDeclarations": [],
-                "referencedDeclaration": 6411,
+                "referencedDeclaration": 6549,
                 "src": "1328:9:7",
                 "typeDescriptions": {
                   "typeIdentifier": "t_function_sha3_pure$__$returns$_t_bytes32_$",
                   "typeString": "function () pure returns (bytes32)"
                 }
               },
-              "id": 2907,
+              "id": 2971,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1343,7 +1343,7 @@
             "visibility": "internal"
           }
         ],
-        "scope": 2910,
+        "scope": 2974,
         "src": "26:1330:7"
       }
     ],
@@ -1353,14 +1353,14 @@
     "absolutePath": "/Users/ywshin/Documents/WS/truffle/governance-contract-blueisle/contracts/abstract/EnvConstants.sol",
     "exportedSymbols": {
       "EnvConstants": [
-        2909
+        2973
       ]
     },
-    "id": 2910,
+    "id": 2974,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 2820,
+        "id": 2884,
         "literals": [
           "solidity",
           "^",
@@ -1376,19 +1376,19 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": true,
-        "id": 2909,
+        "id": 2973,
         "linearizedBaseContracts": [
-          2909
+          2973
         ],
         "name": "EnvConstants",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "constant": true,
-            "id": 2825,
+            "id": 2889,
             "name": "BLOCK_PER_NAME",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "54:64:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1397,7 +1397,7 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 2821,
+              "id": 2885,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
               "src": "54:7:7",
@@ -1412,7 +1412,7 @@
                 {
                   "argumentTypes": null,
                   "hexValue": "626c6f636b506572",
-                  "id": 2823,
+                  "id": 2887,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -1435,18 +1435,18 @@
                     "typeString": "literal_string \"blockPer\""
                   }
                 ],
-                "id": 2822,
+                "id": 2886,
                 "name": "keccak256",
                 "nodeType": "Identifier",
                 "overloadedDeclarations": [],
-                "referencedDeclaration": 6411,
+                "referencedDeclaration": 6549,
                 "src": "97:9:7",
                 "typeDescriptions": {
                   "typeIdentifier": "t_function_sha3_pure$__$returns$_t_bytes32_$",
                   "typeString": "function () pure returns (bytes32)"
                 }
               },
-              "id": 2824,
+              "id": 2888,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1464,10 +1464,10 @@
           },
           {
             "constant": true,
-            "id": 2831,
+            "id": 2895,
             "name": "BLOCK_PER_TYPE",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "125:70:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1476,7 +1476,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 2826,
+              "id": 2890,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "125:7:7",
@@ -1492,18 +1492,18 @@
                   "argumentTypes": null,
                   "expression": {
                     "argumentTypes": null,
-                    "id": 2828,
+                    "id": 2892,
                     "name": "VariableTypes",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 2883,
+                    "referencedDeclaration": 2947,
                     "src": "176:13:7",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_type$_t_enum$_VariableTypes_$2883_$",
+                      "typeIdentifier": "t_type$_t_enum$_VariableTypes_$2947_$",
                       "typeString": "type(enum EnvConstants.VariableTypes)"
                     }
                   },
-                  "id": 2829,
+                  "id": 2893,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -1513,7 +1513,7 @@
                   "referencedDeclaration": null,
                   "src": "176:18:7",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_enum$_VariableTypes_$2883",
+                    "typeIdentifier": "t_enum$_VariableTypes_$2947",
                     "typeString": "enum EnvConstants.VariableTypes"
                   }
                 }
@@ -1521,11 +1521,11 @@
               "expression": {
                 "argumentTypes": [
                   {
-                    "typeIdentifier": "t_enum$_VariableTypes_$2883",
+                    "typeIdentifier": "t_enum$_VariableTypes_$2947",
                     "typeString": "enum EnvConstants.VariableTypes"
                   }
                 ],
-                "id": 2827,
+                "id": 2891,
                 "isConstant": false,
                 "isLValue": false,
                 "isPure": true,
@@ -1538,7 +1538,7 @@
                 },
                 "typeName": "uint256"
               },
-              "id": 2830,
+              "id": 2894,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1556,10 +1556,10 @@
           },
           {
             "constant": true,
-            "id": 2836,
+            "id": 2900,
             "name": "BALLOT_DURATION_MIN_NAME",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "202:83:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1568,7 +1568,7 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 2832,
+              "id": 2896,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
               "src": "202:7:7",
@@ -1583,7 +1583,7 @@
                 {
                   "argumentTypes": null,
                   "hexValue": "62616c6c6f744475726174696f6e4d696e",
-                  "id": 2834,
+                  "id": 2898,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -1606,18 +1606,18 @@
                     "typeString": "literal_string \"ballotDurationMin\""
                   }
                 ],
-                "id": 2833,
+                "id": 2897,
                 "name": "keccak256",
                 "nodeType": "Identifier",
                 "overloadedDeclarations": [],
-                "referencedDeclaration": 6411,
+                "referencedDeclaration": 6549,
                 "src": "255:9:7",
                 "typeDescriptions": {
                   "typeIdentifier": "t_function_sha3_pure$__$returns$_t_bytes32_$",
                   "typeString": "function () pure returns (bytes32)"
                 }
               },
-              "id": 2835,
+              "id": 2899,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1635,10 +1635,10 @@
           },
           {
             "constant": true,
-            "id": 2842,
+            "id": 2906,
             "name": "BALLOT_DURATION_MIN_TYPE",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "292:80:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1647,7 +1647,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 2837,
+              "id": 2901,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "292:7:7",
@@ -1663,18 +1663,18 @@
                   "argumentTypes": null,
                   "expression": {
                     "argumentTypes": null,
-                    "id": 2839,
+                    "id": 2903,
                     "name": "VariableTypes",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 2883,
+                    "referencedDeclaration": 2947,
                     "src": "353:13:7",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_type$_t_enum$_VariableTypes_$2883_$",
+                      "typeIdentifier": "t_type$_t_enum$_VariableTypes_$2947_$",
                       "typeString": "type(enum EnvConstants.VariableTypes)"
                     }
                   },
-                  "id": 2840,
+                  "id": 2904,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -1684,7 +1684,7 @@
                   "referencedDeclaration": null,
                   "src": "353:18:7",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_enum$_VariableTypes_$2883",
+                    "typeIdentifier": "t_enum$_VariableTypes_$2947",
                     "typeString": "enum EnvConstants.VariableTypes"
                   }
                 }
@@ -1692,11 +1692,11 @@
               "expression": {
                 "argumentTypes": [
                   {
-                    "typeIdentifier": "t_enum$_VariableTypes_$2883",
+                    "typeIdentifier": "t_enum$_VariableTypes_$2947",
                     "typeString": "enum EnvConstants.VariableTypes"
                   }
                 ],
-                "id": 2838,
+                "id": 2902,
                 "isConstant": false,
                 "isLValue": false,
                 "isPure": true,
@@ -1709,7 +1709,7 @@
                 },
                 "typeName": "uint256"
               },
-              "id": 2841,
+              "id": 2905,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1727,10 +1727,10 @@
           },
           {
             "constant": true,
-            "id": 2847,
+            "id": 2911,
             "name": "BALLOT_DURATION_MAX_NAME",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "379:83:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1739,7 +1739,7 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 2843,
+              "id": 2907,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
               "src": "379:7:7",
@@ -1754,7 +1754,7 @@
                 {
                   "argumentTypes": null,
                   "hexValue": "62616c6c6f744475726174696f6e4d6178",
-                  "id": 2845,
+                  "id": 2909,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -1777,18 +1777,18 @@
                     "typeString": "literal_string \"ballotDurationMax\""
                   }
                 ],
-                "id": 2844,
+                "id": 2908,
                 "name": "keccak256",
                 "nodeType": "Identifier",
                 "overloadedDeclarations": [],
-                "referencedDeclaration": 6411,
+                "referencedDeclaration": 6549,
                 "src": "432:9:7",
                 "typeDescriptions": {
                   "typeIdentifier": "t_function_sha3_pure$__$returns$_t_bytes32_$",
                   "typeString": "function () pure returns (bytes32)"
                 }
               },
-              "id": 2846,
+              "id": 2910,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1806,10 +1806,10 @@
           },
           {
             "constant": true,
-            "id": 2853,
+            "id": 2917,
             "name": "BALLOT_DURATION_MAX_TYPE",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "469:80:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1818,7 +1818,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 2848,
+              "id": 2912,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "469:7:7",
@@ -1834,18 +1834,18 @@
                   "argumentTypes": null,
                   "expression": {
                     "argumentTypes": null,
-                    "id": 2850,
+                    "id": 2914,
                     "name": "VariableTypes",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 2883,
+                    "referencedDeclaration": 2947,
                     "src": "530:13:7",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_type$_t_enum$_VariableTypes_$2883_$",
+                      "typeIdentifier": "t_type$_t_enum$_VariableTypes_$2947_$",
                       "typeString": "type(enum EnvConstants.VariableTypes)"
                     }
                   },
-                  "id": 2851,
+                  "id": 2915,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -1855,7 +1855,7 @@
                   "referencedDeclaration": null,
                   "src": "530:18:7",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_enum$_VariableTypes_$2883",
+                    "typeIdentifier": "t_enum$_VariableTypes_$2947",
                     "typeString": "enum EnvConstants.VariableTypes"
                   }
                 }
@@ -1863,11 +1863,11 @@
               "expression": {
                 "argumentTypes": [
                   {
-                    "typeIdentifier": "t_enum$_VariableTypes_$2883",
+                    "typeIdentifier": "t_enum$_VariableTypes_$2947",
                     "typeString": "enum EnvConstants.VariableTypes"
                   }
                 ],
-                "id": 2849,
+                "id": 2913,
                 "isConstant": false,
                 "isLValue": false,
                 "isPure": true,
@@ -1880,7 +1880,7 @@
                 },
                 "typeName": "uint256"
               },
-              "id": 2852,
+              "id": 2916,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1898,10 +1898,10 @@
           },
           {
             "constant": true,
-            "id": 2858,
+            "id": 2922,
             "name": "STAKING_MIN_NAME",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "556:68:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1910,7 +1910,7 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 2854,
+              "id": 2918,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
               "src": "556:7:7",
@@ -1925,7 +1925,7 @@
                 {
                   "argumentTypes": null,
                   "hexValue": "7374616b696e674d696e",
-                  "id": 2856,
+                  "id": 2920,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -1948,18 +1948,18 @@
                     "typeString": "literal_string \"stakingMin\""
                   }
                 ],
-                "id": 2855,
+                "id": 2919,
                 "name": "keccak256",
                 "nodeType": "Identifier",
                 "overloadedDeclarations": [],
-                "referencedDeclaration": 6411,
+                "referencedDeclaration": 6549,
                 "src": "601:9:7",
                 "typeDescriptions": {
                   "typeIdentifier": "t_function_sha3_pure$__$returns$_t_bytes32_$",
                   "typeString": "function () pure returns (bytes32)"
                 }
               },
-              "id": 2857,
+              "id": 2921,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1977,10 +1977,10 @@
           },
           {
             "constant": true,
-            "id": 2864,
+            "id": 2928,
             "name": "STAKING_MIN_TYPE",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "631:72:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1989,7 +1989,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 2859,
+              "id": 2923,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "631:7:7",
@@ -2005,18 +2005,18 @@
                   "argumentTypes": null,
                   "expression": {
                     "argumentTypes": null,
-                    "id": 2861,
+                    "id": 2925,
                     "name": "VariableTypes",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 2883,
+                    "referencedDeclaration": 2947,
                     "src": "684:13:7",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_type$_t_enum$_VariableTypes_$2883_$",
+                      "typeIdentifier": "t_type$_t_enum$_VariableTypes_$2947_$",
                       "typeString": "type(enum EnvConstants.VariableTypes)"
                     }
                   },
-                  "id": 2862,
+                  "id": 2926,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -2026,7 +2026,7 @@
                   "referencedDeclaration": null,
                   "src": "684:18:7",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_enum$_VariableTypes_$2883",
+                    "typeIdentifier": "t_enum$_VariableTypes_$2947",
                     "typeString": "enum EnvConstants.VariableTypes"
                   }
                 }
@@ -2034,11 +2034,11 @@
               "expression": {
                 "argumentTypes": [
                   {
-                    "typeIdentifier": "t_enum$_VariableTypes_$2883",
+                    "typeIdentifier": "t_enum$_VariableTypes_$2947",
                     "typeString": "enum EnvConstants.VariableTypes"
                   }
                 ],
-                "id": 2860,
+                "id": 2924,
                 "isConstant": false,
                 "isLValue": false,
                 "isPure": true,
@@ -2051,7 +2051,7 @@
                 },
                 "typeName": "uint256"
               },
-              "id": 2863,
+              "id": 2927,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -2069,10 +2069,10 @@
           },
           {
             "constant": true,
-            "id": 2869,
+            "id": 2933,
             "name": "STAKING_MAX_NAME",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "710:68:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -2081,7 +2081,7 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 2865,
+              "id": 2929,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
               "src": "710:7:7",
@@ -2096,7 +2096,7 @@
                 {
                   "argumentTypes": null,
                   "hexValue": "7374616b696e674d6178",
-                  "id": 2867,
+                  "id": 2931,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -2119,18 +2119,18 @@
                     "typeString": "literal_string \"stakingMax\""
                   }
                 ],
-                "id": 2866,
+                "id": 2930,
                 "name": "keccak256",
                 "nodeType": "Identifier",
                 "overloadedDeclarations": [],
-                "referencedDeclaration": 6411,
+                "referencedDeclaration": 6549,
                 "src": "755:9:7",
                 "typeDescriptions": {
                   "typeIdentifier": "t_function_sha3_pure$__$returns$_t_bytes32_$",
                   "typeString": "function () pure returns (bytes32)"
                 }
               },
-              "id": 2868,
+              "id": 2932,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -2148,10 +2148,10 @@
           },
           {
             "constant": true,
-            "id": 2875,
+            "id": 2939,
             "name": "STAKING_MAX_TYPE",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "785:72:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -2160,7 +2160,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 2870,
+              "id": 2934,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "785:7:7",
@@ -2176,18 +2176,18 @@
                   "argumentTypes": null,
                   "expression": {
                     "argumentTypes": null,
-                    "id": 2872,
+                    "id": 2936,
                     "name": "VariableTypes",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 2883,
+                    "referencedDeclaration": 2947,
                     "src": "838:13:7",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_type$_t_enum$_VariableTypes_$2883_$",
+                      "typeIdentifier": "t_type$_t_enum$_VariableTypes_$2947_$",
                       "typeString": "type(enum EnvConstants.VariableTypes)"
                     }
                   },
-                  "id": 2873,
+                  "id": 2937,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -2197,7 +2197,7 @@
                   "referencedDeclaration": null,
                   "src": "838:18:7",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_enum$_VariableTypes_$2883",
+                    "typeIdentifier": "t_enum$_VariableTypes_$2947",
                     "typeString": "enum EnvConstants.VariableTypes"
                   }
                 }
@@ -2205,11 +2205,11 @@
               "expression": {
                 "argumentTypes": [
                   {
-                    "typeIdentifier": "t_enum$_VariableTypes_$2883",
+                    "typeIdentifier": "t_enum$_VariableTypes_$2947",
                     "typeString": "enum EnvConstants.VariableTypes"
                   }
                 ],
-                "id": 2871,
+                "id": 2935,
                 "isConstant": false,
                 "isLValue": false,
                 "isPure": true,
@@ -2222,7 +2222,7 @@
                 },
                 "typeName": "uint256"
               },
-              "id": 2874,
+              "id": 2938,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -2240,46 +2240,46 @@
           },
           {
             "canonicalName": "EnvConstants.VariableTypes",
-            "id": 2883,
+            "id": 2947,
             "members": [
               {
-                "id": 2876,
+                "id": 2940,
                 "name": "Invalid",
                 "nodeType": "EnumValue",
                 "src": "893:7:7"
               },
               {
-                "id": 2877,
+                "id": 2941,
                 "name": "Int",
                 "nodeType": "EnumValue",
                 "src": "910:3:7"
               },
               {
-                "id": 2878,
+                "id": 2942,
                 "name": "Uint",
                 "nodeType": "EnumValue",
                 "src": "923:4:7"
               },
               {
-                "id": 2879,
+                "id": 2943,
                 "name": "Address",
                 "nodeType": "EnumValue",
                 "src": "937:7:7"
               },
               {
-                "id": 2880,
+                "id": 2944,
                 "name": "Bytes32",
                 "nodeType": "EnumValue",
                 "src": "954:7:7"
               },
               {
-                "id": 2881,
+                "id": 2945,
                 "name": "Bytes",
                 "nodeType": "EnumValue",
                 "src": "971:5:7"
               },
               {
-                "id": 2882,
+                "id": 2946,
                 "name": "String",
                 "nodeType": "EnumValue",
                 "src": "986:6:7"
@@ -2291,10 +2291,10 @@
           },
           {
             "constant": true,
-            "id": 2888,
+            "id": 2952,
             "name": "TEST_INT",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "1008:58:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -2303,7 +2303,7 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 2884,
+              "id": 2948,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
               "src": "1008:7:7",
@@ -2318,7 +2318,7 @@
                 {
                   "argumentTypes": null,
                   "hexValue": "544553545f494e54",
-                  "id": 2886,
+                  "id": 2950,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -2341,18 +2341,18 @@
                     "typeString": "literal_string \"TEST_INT\""
                   }
                 ],
-                "id": 2885,
+                "id": 2949,
                 "name": "keccak256",
                 "nodeType": "Identifier",
                 "overloadedDeclarations": [],
-                "referencedDeclaration": 6411,
+                "referencedDeclaration": 6549,
                 "src": "1045:9:7",
                 "typeDescriptions": {
                   "typeIdentifier": "t_function_sha3_pure$__$returns$_t_bytes32_$",
                   "typeString": "function () pure returns (bytes32)"
                 }
               },
-              "id": 2887,
+              "id": 2951,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -2370,10 +2370,10 @@
           },
           {
             "constant": true,
-            "id": 2893,
+            "id": 2957,
             "name": "TEST_ADDRESS",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "1073:66:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -2382,7 +2382,7 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 2889,
+              "id": 2953,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
               "src": "1073:7:7",
@@ -2397,7 +2397,7 @@
                 {
                   "argumentTypes": null,
                   "hexValue": "544553545f41444452455353",
-                  "id": 2891,
+                  "id": 2955,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -2420,18 +2420,18 @@
                     "typeString": "literal_string \"TEST_ADDRESS\""
                   }
                 ],
-                "id": 2890,
+                "id": 2954,
                 "name": "keccak256",
                 "nodeType": "Identifier",
                 "overloadedDeclarations": [],
-                "referencedDeclaration": 6411,
+                "referencedDeclaration": 6549,
                 "src": "1114:9:7",
                 "typeDescriptions": {
                   "typeIdentifier": "t_function_sha3_pure$__$returns$_t_bytes32_$",
                   "typeString": "function () pure returns (bytes32)"
                 }
               },
-              "id": 2892,
+              "id": 2956,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -2449,10 +2449,10 @@
           },
           {
             "constant": true,
-            "id": 2898,
+            "id": 2962,
             "name": "TEST_BYTES32",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "1146:66:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -2461,7 +2461,7 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 2894,
+              "id": 2958,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
               "src": "1146:7:7",
@@ -2476,7 +2476,7 @@
                 {
                   "argumentTypes": null,
                   "hexValue": "544553545f42595445533332",
-                  "id": 2896,
+                  "id": 2960,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -2499,18 +2499,18 @@
                     "typeString": "literal_string \"TEST_BYTES32\""
                   }
                 ],
-                "id": 2895,
+                "id": 2959,
                 "name": "keccak256",
                 "nodeType": "Identifier",
                 "overloadedDeclarations": [],
-                "referencedDeclaration": 6411,
+                "referencedDeclaration": 6549,
                 "src": "1187:9:7",
                 "typeDescriptions": {
                   "typeIdentifier": "t_function_sha3_pure$__$returns$_t_bytes32_$",
                   "typeString": "function () pure returns (bytes32)"
                 }
               },
-              "id": 2897,
+              "id": 2961,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -2528,10 +2528,10 @@
           },
           {
             "constant": true,
-            "id": 2903,
+            "id": 2967,
             "name": "TEST_BYTES",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "1219:62:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -2540,7 +2540,7 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 2899,
+              "id": 2963,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
               "src": "1219:7:7",
@@ -2555,7 +2555,7 @@
                 {
                   "argumentTypes": null,
                   "hexValue": "544553545f4259544553",
-                  "id": 2901,
+                  "id": 2965,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -2578,18 +2578,18 @@
                     "typeString": "literal_string \"TEST_BYTES\""
                   }
                 ],
-                "id": 2900,
+                "id": 2964,
                 "name": "keccak256",
                 "nodeType": "Identifier",
                 "overloadedDeclarations": [],
-                "referencedDeclaration": 6411,
+                "referencedDeclaration": 6549,
                 "src": "1258:9:7",
                 "typeDescriptions": {
                   "typeIdentifier": "t_function_sha3_pure$__$returns$_t_bytes32_$",
                   "typeString": "function () pure returns (bytes32)"
                 }
               },
-              "id": 2902,
+              "id": 2966,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -2607,10 +2607,10 @@
           },
           {
             "constant": true,
-            "id": 2908,
+            "id": 2972,
             "name": "TEST_STRING",
             "nodeType": "VariableDeclaration",
-            "scope": 2909,
+            "scope": 2973,
             "src": "1288:64:7",
             "stateVariable": true,
             "storageLocation": "default",
@@ -2619,7 +2619,7 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 2904,
+              "id": 2968,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
               "src": "1288:7:7",
@@ -2634,7 +2634,7 @@
                 {
                   "argumentTypes": null,
                   "hexValue": "544553545f535452494e47",
-                  "id": 2906,
+                  "id": 2970,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -2657,18 +2657,18 @@
                     "typeString": "literal_string \"TEST_STRING\""
                   }
                 ],
-                "id": 2905,
+                "id": 2969,
                 "name": "keccak256",
                 "nodeType": "Identifier",
                 "overloadedDeclarations": [],
-                "referencedDeclaration": 6411,
+                "referencedDeclaration": 6549,
                 "src": "1328:9:7",
                 "typeDescriptions": {
                   "typeIdentifier": "t_function_sha3_pure$__$returns$_t_bytes32_$",
                   "typeString": "function () pure returns (bytes32)"
                 }
               },
-              "id": 2907,
+              "id": 2971,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -2685,7 +2685,7 @@
             "visibility": "internal"
           }
         ],
-        "scope": 2910,
+        "scope": 2974,
         "src": "26:1330:7"
       }
     ],
@@ -2697,5 +2697,5 @@
   },
   "networks": {},
   "schemaVersion": "2.0.1",
-  "updatedAt": "2019-02-08T09:52:54.572Z"
+  "updatedAt": "2019-02-12T02:28:42.378Z"
 }
