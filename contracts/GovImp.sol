@@ -22,11 +22,11 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         bytes enode,
         bytes ip,
         uint port,
-        uint256 lockAmount
+        uint256 lockAmount,
+        bytes memo
     )
         external
         onlyGovMem
-        nonReentrant
         returns (uint256 ballotIdx)
     {
         require(msg.sender != member, "Cannot add self");
@@ -44,16 +44,17 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
             port // new port
         );
         updateBallotLock(ballotIdx, lockAmount);
+        updateBallotMemo(ballotIdx, memo);
         ballotLength = ballotIdx;
     }
 
     function addProposalToRemoveMember(
         address member,
-        uint256 lockAmount
+        uint256 lockAmount,
+        bytes memo
     )
         external
         onlyGovMem
-        nonReentrant
         returns (uint256 ballotIdx)
     {
         require(isMember(member), "Non-member");
@@ -71,6 +72,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
             0 // new port
         );
         updateBallotLock(ballotIdx, lockAmount);
+        updateBallotMemo(ballotIdx, memo);
         ballotLength = ballotIdx;
     }
 
@@ -80,11 +82,11 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         bytes nEnode,
         bytes nIp,
         uint nPort,
-        uint256 lockAmount
+        uint256 lockAmount,
+        bytes memo
     )
         external
         onlyGovMem
-        nonReentrant
         returns (uint256 ballotIdx)
     {
         require(isMember(target), "Non-member");
@@ -101,15 +103,16 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
             nPort // new port
         );
         updateBallotLock(ballotIdx, lockAmount);
+        updateBallotMemo(ballotIdx, memo);
         ballotLength = ballotIdx;
     }
 
     function addProposalToChangeGov(
-        address newGovAddr
+        address newGovAddr,
+        bytes memo
     )
         external
         onlyGovMem
-        nonReentrant
         returns (uint256 ballotIdx)
     {
         require(newGovAddr != address(0), "Implementation cannot be zero");
@@ -122,17 +125,18 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
             msg.sender, // creator
             newGovAddr // new governance address
         );
+        updateBallotMemo(ballotIdx, memo);
         ballotLength = ballotIdx;
     }
 
     function addProposalToChangeEnv(
         bytes32 envName,
         uint256 envType,
-        bytes envVal
+        bytes envVal,
+        bytes memo
     )
         external
         onlyGovMem
-        nonReentrant
         returns (uint256 ballotIdx)
     {
         require(uint256(VariableTypes.Int) <= envType && envType <= uint256(VariableTypes.String), "Invalid type");
@@ -146,6 +150,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
             envType, // env type
             envVal // env value
         );
+        updateBallotMemo(ballotIdx, memo);
         ballotLength = ballotIdx;
     }
 
@@ -457,6 +462,10 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
 
     function updateBallotLock(uint256 id, uint256 amount) private {
         IBallotStorage(getBallotStorageAddress()).updateBallotMemberLockAmount(id, amount);
+    }
+
+    function updateBallotMemo(uint256 id, bytes memo) private {
+        IBallotStorage(getBallotStorageAddress()).updateBallotMemo(id, memo);
     }
 
     function startBallot(uint256 id, uint256 s, uint256 e) private {

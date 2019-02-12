@@ -374,7 +374,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         uint256 _ballotId,
         bytes _memo
     )
-        public 
+        public
         onlyGovOrCreator(_ballotId)
         notDisabled
     {
