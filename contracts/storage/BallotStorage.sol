@@ -118,6 +118,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         // require(diffTime <= maxBallotDuration());
         _;
     }
+
     modifier onlyValidDuration(uint256 _duration){
         require(getMinVotingDuration() <= _duration, "Under min value of  duration");
         require(_duration <= getMaxVotingDuration(), "Over max value of duration");
@@ -125,7 +126,12 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     }
 
     modifier onlyGovOrCreator(uint256 _ballotId) {
-        require((getGovAddress() == msg.sender)||(ballotBasicMap[_ballotId].creator == msg.sender), "No Permission");
+        require((getGovAddress() == msg.sender) || (ballotBasicMap[_ballotId].creator == msg.sender), "No Permission");
+        _;
+    }
+
+    modifier notDisabled() {
+        require(address(this) == getBallotStorageAddress(), "Is Disabled");
         _;
     }
 
@@ -135,10 +141,6 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     
     function getMaxVotingDuration() public view returns (uint256) {
         return IEnvStorage(getEnvStorageAddress()).getBallotDurationMax();
-    }
-    modifier notDisabled() {
-        require(address(this) == getBallotStorageAddress(), "Is Disabled");
-        _;
     }
 
     function getTime() public view returns(uint256) {
