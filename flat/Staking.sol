@@ -158,10 +158,12 @@ contract ReentrancyGuard {
 
 contract GovChecker is Ownable {
     IRegistry public reg;
+
     bytes32 public constant GOV_NAME = "GovernanceContract";
     bytes32 public constant STAKING_NAME = "Staking";
     bytes32 public constant BALLOT_STORAGE_NAME = "BallotStorage";
     bytes32 public constant ENV_STORAGE_NAME = "EnvStorage";
+    bytes32 public constant REWARD_POOL_NAME = "RewardPool";
 
     /**
      * @dev Function to set registry address. Contract that wants to use registry should setRegistry first.
@@ -205,6 +207,10 @@ contract GovChecker is Ownable {
 
     function getEnvStorageAddress() internal view returns (address) {
         return getContractAddress(ENV_STORAGE_NAME);
+    }
+
+    function getRewardPoolAddress() internal view returns (address) {
+        return getContractAddress(REWARD_POOL_NAME);
     }
 }
 
@@ -276,8 +282,8 @@ contract Staking is GovChecker, ReentrancyGuard {
     function transferLocked(address from, uint256 amount) external onlyGov {
         unlock(from, amount);
         _balance[from] = _balance[from].sub(amount);
-        address gov = getGovAddress();
-        _balance[gov] = _balance[gov].add(amount);
+        address rewardPool = getRewardPoolAddress();
+        _balance[rewardPool] = _balance[rewardPool].add(amount);
     }
 
     /**
