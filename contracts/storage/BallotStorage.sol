@@ -6,6 +6,7 @@ import "../abstract/BallotEnums.sol";
 import "../GovChecker.sol";
 import "../interface/IEnvStorage.sol";
 
+
 contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     using SafeMath for uint256;
     
@@ -95,9 +96,11 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         uint256 indexed ballotId,
         uint256 state
     );
+
     event BallotCanceled ( 
         uint256 indexed ballotId
     );
+
     mapping(uint=>BallotBasic) internal ballotBasicMap;
     mapping(uint=>BallotMember) internal ballotMemberMap;
     mapping(uint=>BallotAddress) internal ballotAddressMap;
@@ -120,6 +123,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         // require(diffTime <= maxBallotDuration());
         _;
     }
+
     modifier onlyValidDuration(uint256 _duration){
         require(getMinVotingDuration() <= _duration, "Under min value of  duration");
         require(_duration <= getMaxVotingDuration(), "Over max value of duration");
@@ -127,7 +131,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     }
 
     modifier onlyGovOrCreator(uint256 _ballotId) {
-        require((getGovAddress() == msg.sender)||(ballotBasicMap[_ballotId].creator == msg.sender), "No Permission");
+        require((getGovAddress() == msg.sender) || (ballotBasicMap[_ballotId].creator == msg.sender), "No Permission");
         _;
     }
 
@@ -144,7 +148,6 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         return IEnvStorage(getEnvStorageAddress()).getBallotDurationMax();
     }
    
-
     function getTime() public view returns(uint256) {
         return now;
     }
@@ -376,7 +379,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         uint256 _ballotId,
         bytes _memo
     )
-        public 
+        public
         onlyGovOrCreator(_ballotId)
         notDisabled
     {

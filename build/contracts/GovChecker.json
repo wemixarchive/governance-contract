@@ -187,7 +187,7 @@
         "id": 338,
         "nodeType": "ImportDirective",
         "scope": 476,
-        "sourceUnit": 6468,
+        "sourceUnit": 6372,
         "src": "26:63:1",
         "symbolAliases": [],
         "unitAlias": ""
@@ -198,7 +198,7 @@
         "id": 339,
         "nodeType": "ImportDirective",
         "scope": 476,
-        "sourceUnit": 3258,
+        "sourceUnit": 3236,
         "src": "90:35:1",
         "symbolAliases": [],
         "unitAlias": ""
@@ -209,7 +209,7 @@
         "id": 340,
         "nodeType": "ImportDirective",
         "scope": 476,
-        "sourceUnit": 3248,
+        "sourceUnit": 3226,
         "src": "126:30:1",
         "symbolAliases": [],
         "unitAlias": ""
@@ -223,10 +223,10 @@
               "id": 341,
               "name": "Ownable",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 6467,
+              "referencedDeclaration": 6371,
               "src": "267:7:1",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_Ownable_$6467",
+                "typeIdentifier": "t_contract$_Ownable_$6371",
                 "typeString": "contract Ownable"
               }
             },
@@ -236,7 +236,7 @@
           }
         ],
         "contractDependencies": [
-          6467
+          6371
         ],
         "contractKind": "contract",
         "documentation": "@title GovChecker\n@dev GovChecker Contract that uses Registry contract",
@@ -244,7 +244,7 @@
         "id": 475,
         "linearizedBaseContracts": [
           475,
-          6467
+          6371
         ],
         "name": "GovChecker",
         "nodeType": "ContractDefinition",
@@ -259,7 +259,7 @@
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_contract$_IRegistry_$3257",
+              "typeIdentifier": "t_contract$_IRegistry_$3235",
               "typeString": "contract IRegistry"
             },
             "typeName": {
@@ -267,10 +267,10 @@
               "id": 343,
               "name": "IRegistry",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 3257,
+              "referencedDeclaration": 3235,
               "src": "281:9:1",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IRegistry_$3257",
+                "typeIdentifier": "t_contract$_IRegistry_$3235",
                 "typeString": "contract IRegistry"
               }
             },
@@ -472,7 +472,7 @@
                       "referencedDeclaration": 344,
                       "src": "851:3:1",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_IRegistry_$3257",
+                        "typeIdentifier": "t_contract$_IRegistry_$3235",
                         "typeString": "contract IRegistry"
                       }
                     },
@@ -506,10 +506,10 @@
                         "name": "IRegistry",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 3257,
+                        "referencedDeclaration": 3235,
                         "src": "857:9:1",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_type$_t_contract$_IRegistry_$3257_$",
+                          "typeIdentifier": "t_type$_t_contract$_IRegistry_$3235_$",
                           "typeString": "type(contract IRegistry)"
                         }
                       },
@@ -523,13 +523,13 @@
                       "nodeType": "FunctionCall",
                       "src": "857:16:1",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_IRegistry_$3257",
+                        "typeIdentifier": "t_contract$_IRegistry_$3235",
                         "typeString": "contract IRegistry"
                       }
                     },
                     "src": "851:22:1",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_contract$_IRegistry_$3257",
+                      "typeIdentifier": "t_contract$_IRegistry_$3235",
                       "typeString": "contract IRegistry"
                     }
                   },
@@ -554,7 +554,7 @@
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 6401,
+                  "referencedDeclaration": 6305,
                   "src": "831:9:1",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -674,7 +674,7 @@
                             "name": "msg",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 6513,
+                            "referencedDeclaration": 6417,
                             "src": "946:3:1",
                             "typeDescriptions": {
                               "typeIdentifier": "t_magic_message",
@@ -735,10 +735,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6516,
-                        6517
+                        6420,
+                        6421
                       ],
-                      "referencedDeclaration": 6517,
+                      "referencedDeclaration": 6421,
                       "src": "919:7:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -804,7 +804,7 @@
                               "name": "msg",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 6513,
+                              "referencedDeclaration": 6417,
                               "src": "1069:3:1",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_magic_message",
@@ -878,10 +878,10 @@
                               "name": "IGov",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 3247,
+                              "referencedDeclaration": 3225,
                               "src": "1038:4:1",
                               "typeDescriptions": {
-                                "typeIdentifier": "t_type$_t_contract$_IGov_$3247_$",
+                                "typeIdentifier": "t_type$_t_contract$_IGov_$3225_$",
                                 "typeString": "type(contract IGov)"
                               }
                             },
@@ -895,7 +895,7 @@
                             "nodeType": "FunctionCall",
                             "src": "1038:21:1",
                             "typeDescriptions": {
-                              "typeIdentifier": "t_contract$_IGov_$3247",
+                              "typeIdentifier": "t_contract$_IGov_$3225",
                               "typeString": "contract IGov"
                             }
                           },
@@ -906,7 +906,7 @@
                           "lValueRequested": false,
                           "memberName": "isMember",
                           "nodeType": "MemberAccess",
-                          "referencedDeclaration": 3192,
+                          "referencedDeclaration": 3170,
                           "src": "1038:30:1",
                           "typeDescriptions": {
                             "typeIdentifier": "t_function_external_view$_t_address_$returns$_t_bool_$",
@@ -961,10 +961,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6516,
-                        6517
+                        6420,
+                        6421
                       ],
-                      "referencedDeclaration": 6517,
+                      "referencedDeclaration": 6421,
                       "src": "1030:7:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -1081,7 +1081,7 @@
                               "name": "msg",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 6513,
+                              "referencedDeclaration": 6417,
                               "src": "1177:3:1",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_magic_message",
@@ -1121,7 +1121,7 @@
                                 "name": "msg",
                                 "nodeType": "Identifier",
                                 "overloadedDeclarations": [],
-                                "referencedDeclaration": 6513,
+                                "referencedDeclaration": 6417,
                                 "src": "1222:3:1",
                                 "typeDescriptions": {
                                   "typeIdentifier": "t_magic_message",
@@ -1195,10 +1195,10 @@
                                 "name": "IGov",
                                 "nodeType": "Identifier",
                                 "overloadedDeclarations": [],
-                                "referencedDeclaration": 3247,
+                                "referencedDeclaration": 3225,
                                 "src": "1191:4:1",
                                 "typeDescriptions": {
-                                  "typeIdentifier": "t_type$_t_contract$_IGov_$3247_$",
+                                  "typeIdentifier": "t_type$_t_contract$_IGov_$3225_$",
                                   "typeString": "type(contract IGov)"
                                 }
                               },
@@ -1212,7 +1212,7 @@
                               "nodeType": "FunctionCall",
                               "src": "1191:21:1",
                               "typeDescriptions": {
-                                "typeIdentifier": "t_contract$_IGov_$3247",
+                                "typeIdentifier": "t_contract$_IGov_$3225",
                                 "typeString": "contract IGov"
                               }
                             },
@@ -1223,7 +1223,7 @@
                             "lValueRequested": false,
                             "memberName": "isMember",
                             "nodeType": "MemberAccess",
-                            "referencedDeclaration": 3192,
+                            "referencedDeclaration": 3170,
                             "src": "1191:30:1",
                             "typeDescriptions": {
                               "typeIdentifier": "t_function_external_view$_t_address_$returns$_t_bool_$",
@@ -1284,10 +1284,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6516,
-                        6517
+                        6420,
+                        6421
                       ],
-                      "referencedDeclaration": 6517,
+                      "referencedDeclaration": 6421,
                       "src": "1150:7:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -1372,7 +1372,7 @@
                         "referencedDeclaration": 344,
                         "src": "1366:3:1",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_contract$_IRegistry_$3257",
+                          "typeIdentifier": "t_contract$_IRegistry_$3235",
                           "typeString": "contract IRegistry"
                         }
                       },
@@ -1383,7 +1383,7 @@
                       "lValueRequested": false,
                       "memberName": "getContractAddress",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 3256,
+                      "referencedDeclaration": 3234,
                       "src": "1366:22:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_external_view$_t_bytes32_$returns$_t_address_$",
@@ -1994,7 +1994,7 @@
         "id": 338,
         "nodeType": "ImportDirective",
         "scope": 476,
-        "sourceUnit": 6468,
+        "sourceUnit": 6372,
         "src": "26:63:1",
         "symbolAliases": [],
         "unitAlias": ""
@@ -2005,7 +2005,7 @@
         "id": 339,
         "nodeType": "ImportDirective",
         "scope": 476,
-        "sourceUnit": 3258,
+        "sourceUnit": 3236,
         "src": "90:35:1",
         "symbolAliases": [],
         "unitAlias": ""
@@ -2016,7 +2016,7 @@
         "id": 340,
         "nodeType": "ImportDirective",
         "scope": 476,
-        "sourceUnit": 3248,
+        "sourceUnit": 3226,
         "src": "126:30:1",
         "symbolAliases": [],
         "unitAlias": ""
@@ -2030,10 +2030,10 @@
               "id": 341,
               "name": "Ownable",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 6467,
+              "referencedDeclaration": 6371,
               "src": "267:7:1",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_Ownable_$6467",
+                "typeIdentifier": "t_contract$_Ownable_$6371",
                 "typeString": "contract Ownable"
               }
             },
@@ -2043,7 +2043,7 @@
           }
         ],
         "contractDependencies": [
-          6467
+          6371
         ],
         "contractKind": "contract",
         "documentation": "@title GovChecker\n@dev GovChecker Contract that uses Registry contract",
@@ -2051,7 +2051,7 @@
         "id": 475,
         "linearizedBaseContracts": [
           475,
-          6467
+          6371
         ],
         "name": "GovChecker",
         "nodeType": "ContractDefinition",
@@ -2066,7 +2066,7 @@
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_contract$_IRegistry_$3257",
+              "typeIdentifier": "t_contract$_IRegistry_$3235",
               "typeString": "contract IRegistry"
             },
             "typeName": {
@@ -2074,10 +2074,10 @@
               "id": 343,
               "name": "IRegistry",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 3257,
+              "referencedDeclaration": 3235,
               "src": "281:9:1",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IRegistry_$3257",
+                "typeIdentifier": "t_contract$_IRegistry_$3235",
                 "typeString": "contract IRegistry"
               }
             },
@@ -2279,7 +2279,7 @@
                       "referencedDeclaration": 344,
                       "src": "851:3:1",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_IRegistry_$3257",
+                        "typeIdentifier": "t_contract$_IRegistry_$3235",
                         "typeString": "contract IRegistry"
                       }
                     },
@@ -2313,10 +2313,10 @@
                         "name": "IRegistry",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 3257,
+                        "referencedDeclaration": 3235,
                         "src": "857:9:1",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_type$_t_contract$_IRegistry_$3257_$",
+                          "typeIdentifier": "t_type$_t_contract$_IRegistry_$3235_$",
                           "typeString": "type(contract IRegistry)"
                         }
                       },
@@ -2330,13 +2330,13 @@
                       "nodeType": "FunctionCall",
                       "src": "857:16:1",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_IRegistry_$3257",
+                        "typeIdentifier": "t_contract$_IRegistry_$3235",
                         "typeString": "contract IRegistry"
                       }
                     },
                     "src": "851:22:1",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_contract$_IRegistry_$3257",
+                      "typeIdentifier": "t_contract$_IRegistry_$3235",
                       "typeString": "contract IRegistry"
                     }
                   },
@@ -2361,7 +2361,7 @@
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 6401,
+                  "referencedDeclaration": 6305,
                   "src": "831:9:1",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -2481,7 +2481,7 @@
                             "name": "msg",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 6513,
+                            "referencedDeclaration": 6417,
                             "src": "946:3:1",
                             "typeDescriptions": {
                               "typeIdentifier": "t_magic_message",
@@ -2542,10 +2542,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6516,
-                        6517
+                        6420,
+                        6421
                       ],
-                      "referencedDeclaration": 6517,
+                      "referencedDeclaration": 6421,
                       "src": "919:7:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -2611,7 +2611,7 @@
                               "name": "msg",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 6513,
+                              "referencedDeclaration": 6417,
                               "src": "1069:3:1",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_magic_message",
@@ -2685,10 +2685,10 @@
                               "name": "IGov",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 3247,
+                              "referencedDeclaration": 3225,
                               "src": "1038:4:1",
                               "typeDescriptions": {
-                                "typeIdentifier": "t_type$_t_contract$_IGov_$3247_$",
+                                "typeIdentifier": "t_type$_t_contract$_IGov_$3225_$",
                                 "typeString": "type(contract IGov)"
                               }
                             },
@@ -2702,7 +2702,7 @@
                             "nodeType": "FunctionCall",
                             "src": "1038:21:1",
                             "typeDescriptions": {
-                              "typeIdentifier": "t_contract$_IGov_$3247",
+                              "typeIdentifier": "t_contract$_IGov_$3225",
                               "typeString": "contract IGov"
                             }
                           },
@@ -2713,7 +2713,7 @@
                           "lValueRequested": false,
                           "memberName": "isMember",
                           "nodeType": "MemberAccess",
-                          "referencedDeclaration": 3192,
+                          "referencedDeclaration": 3170,
                           "src": "1038:30:1",
                           "typeDescriptions": {
                             "typeIdentifier": "t_function_external_view$_t_address_$returns$_t_bool_$",
@@ -2768,10 +2768,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6516,
-                        6517
+                        6420,
+                        6421
                       ],
-                      "referencedDeclaration": 6517,
+                      "referencedDeclaration": 6421,
                       "src": "1030:7:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -2888,7 +2888,7 @@
                               "name": "msg",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 6513,
+                              "referencedDeclaration": 6417,
                               "src": "1177:3:1",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_magic_message",
@@ -2928,7 +2928,7 @@
                                 "name": "msg",
                                 "nodeType": "Identifier",
                                 "overloadedDeclarations": [],
-                                "referencedDeclaration": 6513,
+                                "referencedDeclaration": 6417,
                                 "src": "1222:3:1",
                                 "typeDescriptions": {
                                   "typeIdentifier": "t_magic_message",
@@ -3002,10 +3002,10 @@
                                 "name": "IGov",
                                 "nodeType": "Identifier",
                                 "overloadedDeclarations": [],
-                                "referencedDeclaration": 3247,
+                                "referencedDeclaration": 3225,
                                 "src": "1191:4:1",
                                 "typeDescriptions": {
-                                  "typeIdentifier": "t_type$_t_contract$_IGov_$3247_$",
+                                  "typeIdentifier": "t_type$_t_contract$_IGov_$3225_$",
                                   "typeString": "type(contract IGov)"
                                 }
                               },
@@ -3019,7 +3019,7 @@
                               "nodeType": "FunctionCall",
                               "src": "1191:21:1",
                               "typeDescriptions": {
-                                "typeIdentifier": "t_contract$_IGov_$3247",
+                                "typeIdentifier": "t_contract$_IGov_$3225",
                                 "typeString": "contract IGov"
                               }
                             },
@@ -3030,7 +3030,7 @@
                             "lValueRequested": false,
                             "memberName": "isMember",
                             "nodeType": "MemberAccess",
-                            "referencedDeclaration": 3192,
+                            "referencedDeclaration": 3170,
                             "src": "1191:30:1",
                             "typeDescriptions": {
                               "typeIdentifier": "t_function_external_view$_t_address_$returns$_t_bool_$",
@@ -3091,10 +3091,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6516,
-                        6517
+                        6420,
+                        6421
                       ],
-                      "referencedDeclaration": 6517,
+                      "referencedDeclaration": 6421,
                       "src": "1150:7:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -3179,7 +3179,7 @@
                         "referencedDeclaration": 344,
                         "src": "1366:3:1",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_contract$_IRegistry_$3257",
+                          "typeIdentifier": "t_contract$_IRegistry_$3235",
                           "typeString": "contract IRegistry"
                         }
                       },
@@ -3190,7 +3190,7 @@
                       "lValueRequested": false,
                       "memberName": "getContractAddress",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 3256,
+                      "referencedDeclaration": 3234,
                       "src": "1366:22:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_external_view$_t_bytes32_$returns$_t_address_$",
@@ -3780,5 +3780,5 @@
   },
   "networks": {},
   "schemaVersion": "2.0.1",
-  "updatedAt": "2019-02-12T02:04:33.135Z"
+  "updatedAt": "2019-02-08T09:52:54.563Z"
 }
