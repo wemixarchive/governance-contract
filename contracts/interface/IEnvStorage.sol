@@ -12,4 +12,5 @@ interface IEnvStorage {
     function getStakingMax() external view returns (uint256);
     function getBallotDurationMin() external view returns (uint256);
     function getBallotDurationMax() external view returns (uint256);
+    function getGasPrice() external view returns (uint256); 
 }

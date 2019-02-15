@@ -58,6 +58,8 @@ const envTypes = {
 contract('Governance', function ([deployer, govMem1, govMem2, govMem3, govMem4, govMem5, user1]) {
   let registry, staking, ballotStorage, govImp, gov, govDelegator, envStorage, envStorageImp, envDelegator;
 
+  
+
   beforeEach(async () => {
     registry = await Registry.new();
     envStorageImp = await EnvStorageImp.new();
@@ -74,7 +76,20 @@ contract('Governance', function ([deployer, govMem1, govMem2, govMem3, govMem4, 
 
     // Initialize environment storage
     envDelegator = EnvStorageImp.at(envStorage.address);
-    await envDelegator.initialize({ from: deployer });
+    const _defaultBlockPer =  1000;
+    const _defaultBallotDurationMin = 86400;
+    const _defaultBallotDurationMax = 604800;
+    const _defaultStakingMin = ether (4980000);
+    const _defaultStakingMax = ether (39840000);
+    const _defaultGasPrice = ether (0.00000008);
+    await envDelegator.initialize(
+      _defaultBlockPer,
+      _defaultBallotDurationMin,
+      _defaultBallotDurationMax,
+      _defaultStakingMin,
+      _defaultStakingMax,
+      _defaultGasPrice,
+      { from: deployer });
 
     // Initialize for staking
     await staking.deposit({ value: amount, from: deployer });

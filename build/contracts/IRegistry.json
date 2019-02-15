@@ -31,14 +31,14 @@
     "absolutePath": "/Users/ywshin/Documents/WS/truffle/governance-contract-blueisle/contracts/interface/IRegistry.sol",
     "exportedSymbols": {
       "IRegistry": [
-        3312
+        3328
       ]
     },
-    "id": 3313,
+    "id": 3329,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 3304,
+        "id": 3320,
         "literals": [
           "solidity",
           "^",
@@ -54,9 +54,9 @@
         "contractKind": "interface",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 3312,
+        "id": 3328,
         "linearizedBaseContracts": [
-          3312
+          3328
         ],
         "name": "IRegistry",
         "nodeType": "ContractDefinition",
@@ -64,7 +64,7 @@
           {
             "body": null,
             "documentation": null,
-            "id": 3311,
+            "id": 3327,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -72,15 +72,15 @@
             "name": "getContractAddress",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 3307,
+              "id": 3323,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 3306,
+                  "id": 3322,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 3311,
+                  "scope": 3327,
                   "src": "81:7:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -89,7 +89,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 3305,
+                    "id": 3321,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "81:7:11",
@@ -106,15 +106,15 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 3310,
+              "id": 3326,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 3309,
+                  "id": 3325,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 3311,
+                  "scope": 3327,
                   "src": "113:7:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -123,7 +123,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 3308,
+                    "id": 3324,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "113:7:11",
@@ -138,14 +138,14 @@
               ],
               "src": "112:9:11"
             },
-            "scope": 3312,
+            "scope": 3328,
             "src": "53:69:11",
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "external"
           }
         ],
-        "scope": 3313,
+        "scope": 3329,
         "src": "27:97:11"
       }
     ],
@@ -155,14 +155,14 @@
     "absolutePath": "/Users/ywshin/Documents/WS/truffle/governance-contract-blueisle/contracts/interface/IRegistry.sol",
     "exportedSymbols": {
       "IRegistry": [
-        3312
+        3328
       ]
     },
-    "id": 3313,
+    "id": 3329,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 3304,
+        "id": 3320,
         "literals": [
           "solidity",
           "^",
@@ -178,9 +178,9 @@
         "contractKind": "interface",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 3312,
+        "id": 3328,
         "linearizedBaseContracts": [
-          3312
+          3328
         ],
         "name": "IRegistry",
         "nodeType": "ContractDefinition",
@@ -188,7 +188,7 @@
           {
             "body": null,
             "documentation": null,
-            "id": 3311,
+            "id": 3327,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -196,15 +196,15 @@
             "name": "getContractAddress",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 3307,
+              "id": 3323,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 3306,
+                  "id": 3322,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 3311,
+                  "scope": 3327,
                   "src": "81:7:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -213,7 +213,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 3305,
+                    "id": 3321,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "81:7:11",
@@ -230,15 +230,15 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 3310,
+              "id": 3326,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 3309,
+                  "id": 3325,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 3311,
+                  "scope": 3327,
                   "src": "113:7:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -247,7 +247,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 3308,
+                    "id": 3324,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "113:7:11",
@@ -262,14 +262,14 @@
               ],
               "src": "112:9:11"
             },
-            "scope": 3312,
+            "scope": 3328,
             "src": "53:69:11",
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "external"
           }
         ],
-        "scope": 3313,
+        "scope": 3329,
         "src": "27:97:11"
       }
     ],
@@ -281,5 +281,5 @@
   },
   "networks": {},
   "schemaVersion": "2.0.1",
-  "updatedAt": "2019-02-12T09:09:00.415Z"
+  "updatedAt": "2019-02-15T07:13:17.628Z"
 }
