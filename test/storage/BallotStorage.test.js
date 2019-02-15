@@ -6,7 +6,7 @@ const Staking = artifacts.require('Staking.sol');
 const BallotStorage = artifacts.require('BallotStorage.sol');
 const EnvStorage = artifacts.require('EnvStorage.sol');
 const EnvStorageImp = artifacts.require('EnvStorageImp.sol');
-
+const { ether } = require('openzeppelin-solidity/test/helpers/ether');
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 const util = require('ethereumjs-util');
@@ -69,9 +69,25 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
     envStorageImp = await EnvStorageImp.new();
     envStorage = await EnvStorage.new(registry.address, envStorageImp.address);
     await registry.setContractDomain('EnvStorage', envStorage.address);
-    iEnvStorage = EnvStorageImp.at(envStorage.address);
-    await iEnvStorage.initialize({ from: deployer });
 
+    const _defaultBlockPer =  new web3.BigNumber(1000);
+    const _defaultBallotDurationMin = time.duration.days(1);
+    const _defaultBallotDurationMax = time.duration.days(7);
+    const _defaultStakingMin = ether (4980000);
+    const _defaultStakingMax = ether (39840000);
+    const _defaultGasPrice = ether (0.00000008);
+
+    iEnvStorage = EnvStorageImp.at(envStorage.address);
+    //await iEnvStorage.initialize({ from: deployer });
+    await iEnvStorage.initialize(
+      _defaultBlockPer,
+      _defaultBallotDurationMin,
+      _defaultBallotDurationMax,
+      _defaultStakingMin,
+      _defaultStakingMax,
+      _defaultGasPrice,
+      { from: deployer }
+    );
 
   });
   describe('Ballot', function () {

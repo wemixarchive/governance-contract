@@ -44,7 +44,21 @@ async function deploy (deployer, network, accounts) {
 
     //Initialize envStorage contract variables
     let iEnvStorage = EnvStorageImp.at(contracts.envStorage.address);
-    await iEnvStorage.initialize(); 
+    const _defaultBlockPer =  1000;
+    const _defaultBallotDurationMin = 86400;
+    const _defaultBallotDurationMax = 604800;
+    const _defaultStakingMin = 4980000000000000000000000;
+    const _defaultStakingMax = 39840000000000000000000000;
+    const _defaultGasPrice = 80000000000;
+    
+    await iEnvStorage.initialize(
+      _defaultBlockPer,
+      _defaultBallotDurationMin,
+      _defaultBallotDurationMax,
+      _defaultStakingMin,
+      _defaultStakingMax,
+      _defaultGasPrice);
+    
 
     // Write contract address to contract.json
     await writeToContractsJson(contracts);

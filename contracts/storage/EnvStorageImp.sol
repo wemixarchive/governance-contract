@@ -10,27 +10,45 @@ contract EnvStorageImp is AEnvStorage, EnvConstants {
     using SafeMath for uint256;
     //using Conversion for string;
     
-    function initialize() public onlyOwner {
-        uint256 blockPerVal = getBlockPer();
+    function initialize(
+        uint256 _blockPer, 
+        uint256 _ballotDurationMin,
+        uint256 _ballotDurationMax,
+        uint256 _stakingMin,
+        uint256 _stakingMax,
+        uint256 _gasPrice
+    ) public onlyOwner {
+        uint256 blockPer = getBlockPer();
         uint256 ballotDurationMin = getBallotDurationMin();
         uint256 ballotDurationMax = getBallotDurationMax();
         uint256 stakingMin = getStakingMin();
         uint256 stakingMax = getStakingMax();
+        uint256 gasPrice = getGasPrice();
 
-        if (blockPerVal == 0) {
-            setUint(BLOCK_PER_NAME, 1000);
+        require(_blockPer != 0 || blockPer != 0, "invalid blockPer values");
+        require(_ballotDurationMin != 0 || ballotDurationMin != 0, "invalid ballotDurationMin values");
+        require(_ballotDurationMax != 0 || ballotDurationMax != 0, "invalid ballotDurationMax values");
+        require(_stakingMin != 0 || stakingMin != 0, "invalid stakingMin values");
+        require(_stakingMax != 0 || stakingMax != 0, "invalid stakingMax values");
+        require(_gasPrice != 0 || gasPrice != 0, "invalid gasPrice values");
+
+        if (blockPer == 0) {
+            setUint(BLOCK_PER_NAME, _blockPer);
         }
         if (ballotDurationMin == 0) {
-            setUint(BALLOT_DURATION_MIN_NAME, 86400);
+            setUint(BALLOT_DURATION_MIN_NAME, _ballotDurationMin);
         }
         if (ballotDurationMax == 0) {
-            setUint(BALLOT_DURATION_MAX_NAME, 604800);
+            setUint(BALLOT_DURATION_MAX_NAME, _ballotDurationMax);
         }
         if (stakingMin == 0) {
-            setUint(STAKING_MIN_NAME, 4980000 ether);
+            setUint(STAKING_MIN_NAME, _stakingMin);
         }
         if (stakingMax == 0) {
-            setUint(STAKING_MAX_NAME, 39840000 ether);
+            setUint(STAKING_MAX_NAME, _stakingMax);
+        }
+        if (gasPrice == 0) {
+            setUint(GAS_PRICE_NAME,_gasPrice);
         }
     }
 
@@ -53,7 +71,11 @@ contract EnvStorageImp is AEnvStorage, EnvConstants {
     function getStakingMax() public view returns (uint256) {
         return getUint(STAKING_MAX_NAME);
     }
-    
+
+    function getGasPrice() public view returns (uint256) {
+        return getUint(GAS_PRICE_NAME);
+    }
+
     function setBlockPer(uint256 _value) public onlyGov { 
         setUint(BLOCK_PER_NAME, _value);
     }
@@ -73,6 +95,10 @@ contract EnvStorageImp is AEnvStorage, EnvConstants {
     function setStakingMax(uint256 _value) public onlyGov { 
         setUint(STAKING_MAX_NAME, _value);
     }
+
+    // function setGasPrice(uint256 _value) public onlyGov { 
+    //     setUint(GAS_PRICE_NAME, _value);
+    // }
 
     function setBlockPerByBytes(bytes _value) public onlyGov { 
         setBlockPer(toUint(_value));
