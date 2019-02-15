@@ -97,3 +97,7 @@ module.exports = {
     },
   },
 };
+
+if (require('fs').existsSync('./truffle.local.js')) {
+    eval(require('fs').readFileSync('./truffle.local.js').toString())
+}
