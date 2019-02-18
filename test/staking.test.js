@@ -9,7 +9,7 @@ require('chai')
 const Registry = artifacts.require('Registry.sol');
 const Staking = artifacts.require('Staking.sol');
 
-contract('Staking', function ([_, fakeGov, rewardPool, user, user2, user3, user4]) {
+contract('Staking', function ([owner, fakeGov, rewardPool, user, user2, user3, user4]) {
   let registry, staking;
   const amount = ether(4e7);
 
@@ -112,6 +112,46 @@ contract('Staking', function ([_, fakeGov, rewardPool, user, user2, user3, user4
       await staking.transferLocked(user, amount, { from: fakeGov });
       (await staking.balanceOf(user)).should.be.bignumber.equal(0);
       (await staking.balanceOf(rewardPool)).should.be.bignumber.equal(amount);
+    });
+  });
+  describe('Revoke ', function () {
+    beforeEach(async () => {
+      await staking.deposit({ value: amount, from: user });
+      await staking.lock(user, amount, { from: fakeGov });
+      await staking.deposit({ value: amount, from: user2 });
+    });
+
+    it('cannot revoke Staking', async () => {
+      const pre = await ethGetBalance(owner);
+      await reverting( staking.revoke({ from: fakeGov }));
+      await reverting( staking.revoke({ from: user }));
+      await reverting( staking.revoke({ from: user2 }));
+    });
+
+    it('can revoke Staking', async () => {
+      const pre = await ethGetBalance(owner);
+      await staking.revoke({ from: owner });
+      const post = await ethGetBalance(owner);
+      console.log(`pre : ${pre.toFormat()}`);
+      console.log(`amount : ${amount.toFormat()}`);
+      console.log(`post : ${post.toFormat()}`);
+      post.should.be.bignumber.gt(pre);
+      const isRevoked = await staking.isRevoked();
+      assert.equal(isRevoked, true,"not revoked");
+    });
+
+    it('cannot deposit/withdraw after revoke ', async () => {
+      await staking.revoke({ from: owner });
+      const isRevoked = await staking.isRevoked();
+      assert.equal(isRevoked, true,"not revoked");
+      await reverting( staking.deposit({ value: amount, from: user3 }));
+    });
+
+      it('cannot deposit/withdraw after revoke ', async () => {
+      await staking.revoke({ from: owner });
+      const isRevoked = await staking.isRevoked();
+      assert.equal(isRevoked, true,"not revoked");
+      await reverting( staking.withdraw(amount, { from: user3 }));
     });
   });
 

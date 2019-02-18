@@ -238,7 +238,7 @@ contract Staking is GovChecker, ReentrancyGuard {
     /**
     * @dev Deposit from a sender.
     */
-    function deposit() external nonReentrant payable {
+    function deposit() external nonReentrant notRevoked payable {
         require(msg.value > 0, "Deposit amount should be greater than zero");
 
         _balance[msg.sender] = _balance[msg.sender].add(msg.value);
@@ -250,7 +250,7 @@ contract Staking is GovChecker, ReentrancyGuard {
     * @dev Withdraw for a sender.
     * @param amount The amount of funds will be withdrawn and transferred to.
     */
-    function withdraw(uint256 amount) external nonReentrant {
+    function withdraw(uint256 amount) external nonReentrant notRevoked {
         require(amount <= availableBalanceOf(msg.sender), "Withdraw amount should be equal or less than balance");
 
         _balance[msg.sender] = _balance[msg.sender].sub(amount);
@@ -330,6 +330,30 @@ contract Staking is GovChecker, ReentrancyGuard {
     function calcVotingWeightWithScaleFactor(address payee, uint32 factor) public view returns (uint256) {
         if (_lockedBalance[payee] == 0 || factor == 0) return 0;
         return _lockedBalance[payee].mul(factor).div(_totalLockedBalance);
+    }
+
+    bool private revoked = false;
+    function isRevoked() public view returns (bool){
+        return revoked;
+    }
+    modifier notRevoked(){
+        require(!revoked, "Is revoked");
+        _;
+    }
+    event Revoked(address indexed owner, uint256 amount);
+    /**
+    * @notice Allows the owner to revoke the staking. Coins already staked
+    * staked funds are returned to the owner.
+    */
+    function revoke() public onlyOwner notRevoked{
+        address contractOwner = owner();
+        uint256 balance = address(this).balance;
+        
+        require(balance > 0 );
+
+        contractOwner.transfer(balance);
+        revoked = true;
+        emit Revoked(contractOwner,balance);
     }
 }
 
