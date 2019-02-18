@@ -22,10 +22,16 @@ require('babel-register')({
 });
 require('babel-polyfill');
 
+// For mnemonic or privatekey
 const HDWalletProvider = require('truffle-hdwallet-provider');
 const config = require('config');
 const ropstenConfig = config.get('ropsten');
 const metaTestnetConfig = config.get('metadiumTestnet');
+// For Keystore file
+//Usage : KEY_FILE=./keystore KEY_PASS=xxxx truffle migrate --network metadiumTestnetWithKeystore
+const WalletProvider = require("truffle-wallet-provider");
+//For Ledger
+const LedgerWalletProvider = require('truffle-ledger-provider');
 
 module.exports = {
   /**
@@ -52,6 +58,13 @@ module.exports = {
       gas: 7984452,
       gasPrice: 2000000000,
     },
+    ganache: {
+      host: 'localhost',
+      port: 9545,
+      network_id: '101', // Match any network id
+//      gas: 268435456,
+      gasPrice: 20000000000,
+    },
     coverage: {
       host: 'localhost',
       network_id: '*',
@@ -62,6 +75,46 @@ module.exports = {
     metadiumTestnet: {
       provider: () => {
         return new HDWalletProvider(metaTestnetConfig.mnemonic, metaTestnetConfig.provider);
+      },
+      network_id: metaTestnetConfig.network_id,
+      gas: 268435456,
+      gasPrice: metaTestnetConfig.gasPrice,
+    },
+    metadiumTestnetByKey: {
+      provider: () => {
+        return new HDWalletProvider(metaTestnetConfig.privateKey, metaTestnetConfig.provider);
+      },
+      network_id: metaTestnetConfig.network_id,
+      gasPrice: metaTestnetConfig.gasPrice,
+    },
+    metadiumTestnetWithKeystore: {
+      provider: () => {
+        
+
+        if (process.env.KEY_FILE == null || process.env.KEY_PASS == null) {
+          throw(new Error('KEY_FILE or(and) KEY_PASS is not setting'));
+        }
+        // Read and unlock keystore
+        var keystore = require('fs').readFileSync(process.env.KEY_FILE).toString();
+        //var pass = require('fs').readFileSync(process.env.KEY_PASS).toString().trim();
+        var pass = process.env.KEY_PASS.trim();
+        var wallet = require('ethereumjs-wallet').fromV3(keystore, pass);
+        return new WalletProvider(wallet, metaTestnetConfig.provider);
+      },
+      network_id: metaTestnetConfig.network_id,
+      gasPrice: metaTestnetConfig.gasPrice,
+    },
+    metadiumTestnetWithLedger: {
+      provider: () => {
+       
+        const ledgerOptions = {
+          networkId: 101, // mainnet
+          //  path: "44'/60'/0'/0", // ledger default derivation path
+          askConfirm: false,
+            // accountsLength: 1,
+          accountsOffset: 0
+        };
+        return new LedgerWalletProvider(ledgerOptions, metaTestnetConfig.provider,true);
       },
       network_id: metaTestnetConfig.network_id,
       gasPrice: metaTestnetConfig.gasPrice,
@@ -88,7 +141,7 @@ module.exports = {
   // Configure your compilers
   compilers: {
     solc: {
-      // version: '0.5.1',    // Fetch exact version from solc-bin (default: truffle's version)
+      version: '0.4.24',    // Fetch exact version from solc-bin (default: truffle's version)
       // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
       optimizer: {
         enabled: true,
