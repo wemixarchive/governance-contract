@@ -41,6 +41,7 @@
     "eslint-plugin-standard": "^3.1.0",
     "eth-gas-reporter": "^0.1.12",
     "ethereumjs-util": "^6.0.0",
+    "ethereumjs-wallet": "^0.6.0",
     "ganache-cli": "^6.2.5",
     "moment": "^2.23.0",
     "openzeppelin-solidity": "2.0.0",
