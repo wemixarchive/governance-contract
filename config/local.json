@@ -1,9 +1,10 @@
 {
     "metadiumTestnet": {
         "mnemonic": "below below below below below below below below below below below below",
-        "provider": "http://ip:8545",
+        "privateKey": "0000000000000000000000000000000000000000000000000000000000000000",        
+        "provider": "http://13.124.111.52:8545",
         "network_id": 101,
-        "gasPrice": 100000000000
+        "gasPrice": 18000000000
     },
     "ropsten": {
         "mnemonic": "below below below below below below below below below below below below",
