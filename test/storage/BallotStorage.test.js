@@ -302,6 +302,9 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
             assert.equal(ballotDetailInfo[2], _enodeid);
             assert.equal(web3Utils.toUtf8(ballotDetailInfo[3]), _nodeip);
             assert.equal(ballotDetailInfo[4], _nodePort);
+
+            const _ballotCount = await ballotStorage.getBallotCount();
+            _ballotCount.should.be.bignumber.equal(1);
           });
           it('cannot create Ballot by duplicated id ', async () => {
             await ballotStorage.createBallotForMemeber(

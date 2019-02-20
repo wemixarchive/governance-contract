@@ -383,6 +383,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
 
     address internal previousBallotStorage;
 
+    uint256 internal ballotCount = 0;
     constructor(address _registry) public {
         setRegistry(_registry);
     }
@@ -430,6 +431,10 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
 
     function isDisabled() public view returns (bool) {
         return (address(this) != getBallotStorageAddress());
+    }
+
+    function getBallotCount() public view returns (uint256) {
+        return ballotCount;
     }
 
     function getBallotBasic(uint256 _id) public view returns (
@@ -795,6 +800,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         newBallot.isFinalized = false;
 //        newBallot.duration = _duration;
         ballotBasicMap[_id] = newBallot;
+        ballotCount = ballotCount.add(1);
         emit BallotCreated(_id, _ballotType, _creator);
     }
 
