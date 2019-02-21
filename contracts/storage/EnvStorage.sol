@@ -17,6 +17,8 @@ contract EnvStorage is UpgradeabilityProxy, AEnvStorage {
     }
 
     function upgradeTo(address newImplementation) public onlyGovOrOwner {
+        require(newImplementation != address(0), "Implementation cannot be zero");
+        require(newImplementation != implementation(), "Same contract address");
         _upgradeTo(newImplementation);
     }
 }
