@@ -531,8 +531,7 @@ contract AEnvStorage is EternalStorage, GovChecker {
 
 contract EnvStorageImp is AEnvStorage, EnvConstants {
     using SafeMath for uint256;
-    //using Conversion for string;
-    
+
     function initialize(
         uint256 _blockPer, 
         uint256 _ballotDurationMin,

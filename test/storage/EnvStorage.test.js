@@ -77,12 +77,17 @@ contract('EnvStorage', accounts => {
       assert.equal(_govAddr, registry.address);
     });
 
-    // it('Upgrade', async () => {
-    //   let newEnvStorageImp = await EnvStorageImp.new();
-    //   envStorage._upgradeTo
-    //   const _govAddr = await iEnvStorage.REG.call();
-    //   assert.equal(_govAddr, registry.address);
-    // });
+    it('Upgrade Implementation', async () => {
+      let newEnvStorageImp = await EnvStorageImp.new();
+      envStorage.upgradeTo(newEnvStorageImp.address);
+      //const _govAddr = await iEnvStorage.REG.call();
+      const _impAddr = await envStorage.implementation();
+      assert.equal(_impAddr, newEnvStorageImp.address);
+      let newEnvStorageImp2 = await EnvStorageImp.new();
+      envStorage.upgradeTo(newEnvStorageImp2.address,{ value: 0, from: govAddr });
+      const _impAddr2 = await envStorage.implementation();
+      assert.equal(_impAddr2, newEnvStorageImp2.address);
+    });
     
     it('Check Variable Default Value', async () => {
       const blockPer = await iEnvStorage.getBlockPer();
