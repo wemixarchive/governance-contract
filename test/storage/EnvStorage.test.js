@@ -29,7 +29,7 @@ contract('EnvStorage', accounts => {
     registry = await Registry.new();
     // console.log(`registry : ${registry.address}`);
     envStorageImp = await EnvStorageImp.new();
-    // console.log(`envStorageImp : ${envStorageImp.address}`);
+    console.log(`envStorageImp : ${envStorageImp.address}`);
     envStorage = await EnvStorage.new(registry.address, envStorageImp.address);
     // console.log(`envStorage : ${envStorage.address}`);
     await registry.setContractDomain('EnvStorage', envStorage.address);
@@ -79,12 +79,14 @@ contract('EnvStorage', accounts => {
 
     it('Upgrade Implementation', async () => {
       let newEnvStorageImp = await EnvStorageImp.new();
-      envStorage.upgradeTo(newEnvStorageImp.address);
+      console.log(`newEnvStorageImp : ${newEnvStorageImp.address}`);
+      await envStorage.upgradeTo(newEnvStorageImp.address);
       //const _govAddr = await iEnvStorage.REG.call();
       const _impAddr = await envStorage.implementation();
       assert.equal(_impAddr, newEnvStorageImp.address);
       let newEnvStorageImp2 = await EnvStorageImp.new();
-      envStorage.upgradeTo(newEnvStorageImp2.address,{ value: 0, from: govAddr });
+      console.log(`newEnvStorageImp2 : ${newEnvStorageImp2.address}`);
+      await envStorage.upgradeTo(newEnvStorageImp2.address,{ value: 0, from: govAddr });
       const _impAddr2 = await envStorage.implementation();
       assert.equal(_impAddr2, newEnvStorageImp2.address);
     });
