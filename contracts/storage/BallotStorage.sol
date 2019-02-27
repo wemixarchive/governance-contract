@@ -41,8 +41,8 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     //For MemberAdding/MemberRemoval/MemberSwap
     struct BallotMember {
         uint256 id;    
-        address oldMemeberAddress;
-        address newMemeberAddress;
+        address oldMemberAddress;
+        address newMemberAddress;
         bytes newNodeId; // admin.nodeInfo.id is 512 bit public key
         bytes newNodeIp;
         uint256 newNodePort;
@@ -194,8 +194,8 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     }
 
     function getBallotMember(uint256 _id) public view returns (
-        address oldMemeberAddress,
-        address newMemeberAddress,
+        address oldMemberAddress,
+        address newMemberAddress,
         bytes newNodeId, // admin.nodeInfo.id is 512 bit public key
         bytes newNodeIp,
         uint256 newNodePort,
@@ -203,8 +203,8 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     )
     {
         BallotMember storage tBallot = ballotMemberMap[_id];
-        oldMemeberAddress = tBallot.oldMemeberAddress;
-        newMemeberAddress = tBallot.newMemeberAddress;
+        oldMemberAddress = tBallot.oldMemberAddress;
+        newMemberAddress = tBallot.newMemberAddress;
         newNodeId = tBallot.newNodeId;
         newNodeIp = tBallot.newNodeIp;
         newNodePort = tBallot.newNodePort;
@@ -237,12 +237,12 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     }
 
     //For MemberAdding/MemberRemoval/MemberSwap
-    function createBallotForMemeber(
+    function createBallotForMember(
         uint256 _id,
         uint256 _ballotType,
         address _creator,
-        address _oldMemeberAddress,
-        address _newMemeberAddress,
+        address _oldMemberAddress,
+        address _newMemberAddress,
         bytes _newNodeId, // admin.nodeInfo.id is 512 bit public key
         bytes _newNodeIp,
         uint _newNodePort
@@ -254,8 +254,8 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         require(
             _areMemberBallotParamValid(
                 _ballotType,
-                _oldMemeberAddress,
-                _newMemeberAddress,
+                _oldMemberAddress,
+                _newMemberAddress,
                 _newNodeId,
                 _newNodeIp,
                 _newNodePort
@@ -265,8 +265,8 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         _createBallot(_id, _ballotType, _creator);
         BallotMember memory newBallot;
         newBallot.id = _id;
-        newBallot.oldMemeberAddress = _oldMemeberAddress;
-        newBallot.newMemeberAddress = _newMemeberAddress;
+        newBallot.oldMemberAddress = _oldMemberAddress;
+        newBallot.newMemberAddress = _newMemberAddress;
         newBallot.newNodeId = _newNodeId;
         newBallot.newNodeIp = _newNodeIp;
         newBallot.newNodePort = _newNodePort;
@@ -534,8 +534,8 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
 
     function _areMemberBallotParamValid(
         uint256 _ballotType,
-        address _oldMemeberAddress,
-        address _newMemeberAddress,
+        address _oldMemberAddress,
+        address _newMemberAddress,
         bytes _newNodeId, // admin.nodeInfo.id is 512 bit public key
         bytes _newNodeIp,
         uint _newNodePort
@@ -548,8 +548,8 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
             && (_ballotType <= uint256(BallotTypes.MemberChange)), "Invalid Ballot Type");
 
         if (_ballotType == uint256(BallotTypes.MemberRemoval)){
-            require(_oldMemeberAddress != address(0), "Invalid old member address");
-            require(_newMemeberAddress == address(0), "Invalid new member address");
+            require(_oldMemberAddress != address(0), "Invalid old member address");
+            require(_newMemberAddress == address(0), "Invalid new member address");
             require(_newNodeId.length == 0, "Invalid new node id");
             require(_newNodeIp.length == 0, "Invalid new node IP");
             require(_newNodePort == 0, "Invalid new node Port");
@@ -558,11 +558,11 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
             require(_newNodeIp.length > 0, "Invalid new node IP");
             require(_newNodePort > 0, "Invalid new node Port");
             if (_ballotType == uint256(BallotTypes.MemberAdd)) {
-                require(_oldMemeberAddress == address(0), "Invalid old member address");
-                require(_newMemeberAddress != address(0), "Invalid new member address");
+                require(_oldMemberAddress == address(0), "Invalid old member address");
+                require(_newMemberAddress != address(0), "Invalid new member address");
             } else if (_ballotType == uint256(BallotTypes.MemberChange)) {
-                require(_oldMemeberAddress != address(0), "Invalid old member address");
-                require(_newMemeberAddress != address(0), "Invalid new member address");
+                require(_oldMemberAddress != address(0), "Invalid old member address");
+                require(_newMemberAddress != address(0), "Invalid new member address");
             }
         }
 

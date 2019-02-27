@@ -277,7 +277,7 @@ contract EnvConstants {
 }
 
 interface IBallotStorage {
-    function createBallotForMemeber(
+    function createBallotForMember(
         uint256, uint256, address, address,
         address, bytes, bytes, uint) external;
 
@@ -542,7 +542,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         require(!isMember(member), "Already member");
 
         ballotIdx = ballotLength.add(1);
-        createBallotForMemeber(
+        createBallotForMember(
             ballotIdx, // ballot id
             uint256(BallotTypes.MemberAdd), // ballot type
             msg.sender, // creator
@@ -570,7 +570,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         require(getMemberLength() > 1, "Cannot remove a sole member");
 
         ballotIdx = ballotLength.add(1);
-        createBallotForMemeber(
+        createBallotForMember(
             ballotIdx, // ballot id
             uint256(BallotTypes.MemberRemoval), // ballot type
             msg.sender, // creator
@@ -601,7 +601,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         require(isMember(target), "Non-member");
 
         ballotIdx = ballotLength.add(1);
-        createBallotForMemeber(
+        createBallotForMember(
             ballotIdx, // ballot id
             uint256(BallotTypes.MemberChange), // ballot type
             msg.sender, // creator
@@ -945,7 +945,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
     }
 
     //------------------ Code reduction for creation gas
-    function createBallotForMemeber(
+    function createBallotForMember(
         uint256 id,
         uint256 bType,
         address creator,
@@ -957,7 +957,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
     )
         private
     {
-        IBallotStorage(getBallotStorageAddress()).createBallotForMemeber(
+        IBallotStorage(getBallotStorageAddress()).createBallotForMember(
             id, // ballot id
             bType, // ballot type
             creator, // creator

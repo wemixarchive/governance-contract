@@ -2,7 +2,7 @@ pragma solidity ^0.4.16;
 
 
 interface IBallotStorage {
-    function createBallotForMemeber(
+    function createBallotForMember(
         uint256, uint256, address, address,
         address, bytes, bytes, uint) external;
 

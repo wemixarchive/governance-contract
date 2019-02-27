@@ -281,7 +281,7 @@
         "id": 2327,
         "nodeType": "ImportDirective",
         "scope": 2471,
-        "sourceUnit": 6642,
+        "sourceUnit": 6778,
         "src": "26:63:4",
         "symbolAliases": [],
         "unitAlias": ""
@@ -295,10 +295,10 @@
               "id": 2328,
               "name": "Ownable",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 6641,
+              "referencedDeclaration": 6777,
               "src": "423:7:4",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_Ownable_$6641",
+                "typeIdentifier": "t_contract$_Ownable_$6777",
                 "typeString": "contract Ownable"
               }
             },
@@ -308,7 +308,7 @@
           }
         ],
         "contractDependencies": [
-          6641
+          6777
         ],
         "contractKind": "contract",
         "documentation": "@title Registry\n@dev Registry Contract used to set domain and permission\nThe contracts used by the permissioned user in ShowMe references permission in this contract.\nNot only contract address but also general address can be set in this contract.\nOwner should set domain and permission.",
@@ -316,7 +316,7 @@
         "id": 2470,
         "linearizedBaseContracts": [
           2470,
-          6641
+          6777
         ],
         "name": "Registry",
         "nodeType": "ContractDefinition",
@@ -754,10 +754,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6690,
-                        6691
+                        6826,
+                        6827
                       ],
-                      "referencedDeclaration": 6691,
+                      "referencedDeclaration": 6827,
                       "src": "1082:7:4",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -867,7 +867,7 @@
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 6687,
+                          "referencedDeclaration": 6823,
                           "src": "1210:3:4",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_message",
@@ -1000,7 +1000,7 @@
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 6575,
+                  "referencedDeclaration": 6711,
                   "src": "1039:9:4",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -1271,10 +1271,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6690,
-                        6691
+                        6826,
+                        6827
                       ],
-                      "referencedDeclaration": 6691,
+                      "referencedDeclaration": 6827,
                       "src": "1539:7:4",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -1560,10 +1560,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6690,
-                        6691
+                        6826,
+                        6827
                       ],
-                      "referencedDeclaration": 6691,
+                      "referencedDeclaration": 6827,
                       "src": "2196:7:4",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -1817,7 +1817,7 @@
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 6575,
+                  "referencedDeclaration": 6711,
                   "src": "2153:9:4",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -2177,7 +2177,7 @@
         "id": 2327,
         "nodeType": "ImportDirective",
         "scope": 2471,
-        "sourceUnit": 6642,
+        "sourceUnit": 6778,
         "src": "26:63:4",
         "symbolAliases": [],
         "unitAlias": ""
@@ -2191,10 +2191,10 @@
               "id": 2328,
               "name": "Ownable",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 6641,
+              "referencedDeclaration": 6777,
               "src": "423:7:4",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_Ownable_$6641",
+                "typeIdentifier": "t_contract$_Ownable_$6777",
                 "typeString": "contract Ownable"
               }
             },
@@ -2204,7 +2204,7 @@
           }
         ],
         "contractDependencies": [
-          6641
+          6777
         ],
         "contractKind": "contract",
         "documentation": "@title Registry\n@dev Registry Contract used to set domain and permission\nThe contracts used by the permissioned user in ShowMe references permission in this contract.\nNot only contract address but also general address can be set in this contract.\nOwner should set domain and permission.",
@@ -2212,7 +2212,7 @@
         "id": 2470,
         "linearizedBaseContracts": [
           2470,
-          6641
+          6777
         ],
         "name": "Registry",
         "nodeType": "ContractDefinition",
@@ -2650,10 +2650,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6690,
-                        6691
+                        6826,
+                        6827
                       ],
-                      "referencedDeclaration": 6691,
+                      "referencedDeclaration": 6827,
                       "src": "1082:7:4",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -2763,7 +2763,7 @@
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 6687,
+                          "referencedDeclaration": 6823,
                           "src": "1210:3:4",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_message",
@@ -2896,7 +2896,7 @@
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 6575,
+                  "referencedDeclaration": 6711,
                   "src": "1039:9:4",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -3167,10 +3167,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6690,
-                        6691
+                        6826,
+                        6827
                       ],
-                      "referencedDeclaration": 6691,
+                      "referencedDeclaration": 6827,
                       "src": "1539:7:4",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -3456,10 +3456,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        6690,
-                        6691
+                        6826,
+                        6827
                       ],
-                      "referencedDeclaration": 6691,
+                      "referencedDeclaration": 6827,
                       "src": "2196:7:4",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -3713,7 +3713,7 @@
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 6575,
+                  "referencedDeclaration": 6711,
                   "src": "2153:9:4",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -4052,5 +4052,5 @@
   },
   "networks": {},
   "schemaVersion": "2.0.1",
-  "updatedAt": "2019-02-15T07:13:17.625Z"
+  "updatedAt": "2019-02-27T05:07:34.901Z"
 }
