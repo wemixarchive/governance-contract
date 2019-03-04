@@ -78,3 +78,5 @@ testcon/
 config/local-development.json
 config/local-metadiumTestnet.json
 config/local-metadiumMainnet.json
+
+build/
