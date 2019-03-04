@@ -11,6 +11,10 @@ import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
  * Owner should set domain and permission.
  */
 contract Registry is Ownable {
+    // "Metadium Registry"
+    uint public magic = 0x4d6574616469756d205265676973747279;
+    uint public modifiedBlock;
+
     mapping(bytes32=>address) public contracts;
     mapping(bytes32=>mapping(address=>bool)) public permissions;
 

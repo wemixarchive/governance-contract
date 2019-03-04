@@ -44,7 +44,7 @@ async function deploy (deployer, network, accounts) {
 
     //Initialize envStorage contract variables
     let iEnvStorage = EnvStorageImp.at(contracts.envStorage.address);
-    const _defaultBlockPer =  1000;
+    const _defaultBlocksPer = 100;
     const _defaultBallotDurationMin = 86400;
     const _defaultBallotDurationMax = 604800;
     const _defaultStakingMin = 4980000000000000000000000;
@@ -52,7 +52,7 @@ async function deploy (deployer, network, accounts) {
     const _defaultGasPrice = 80000000000;
     
     await iEnvStorage.initialize(
-      _defaultBlockPer,
+      _defaultBlocksPer,
       _defaultBallotDurationMin,
       _defaultBallotDurationMax,
       _defaultStakingMin,
@@ -78,7 +78,7 @@ async function deployContracts (deployer, network, accounts) {
   };
 
   contracts.registry = await deployer.deploy(Registry);
-  contracts.staking = await deployer.deploy(Staking, contracts.registry.address);
+  contracts.staking = await deployer.deploy(Staking, contracts.registry.address, "");
   contracts.ballotStorage = await deployer.deploy(BallotStorage, contracts.registry.address);
   contracts.envStorageImp = await deployer.deploy(EnvStorageImp);
   contracts.envStorage = await deployer.deploy(EnvStorage, contracts.registry.address, contracts.envStorageImp.address);

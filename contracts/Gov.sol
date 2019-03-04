@@ -7,6 +7,9 @@ import "./GovChecker.sol";
 
 
 contract Gov is UpgradeabilityProxy, GovChecker {
+    // "Metadium Governance"
+    uint public magic = 0x4d6574616469756d20476f7665726e616e6365;
+    uint public modifiedBlock;
     bool private _initialized;
 
     // For voting member
@@ -55,7 +58,7 @@ contract Gov is UpgradeabilityProxy, GovChecker {
     function getNode(uint256 idx) public view returns (bytes enode, bytes ip, uint port) {
         return (nodes[idx].enode, nodes[idx].ip, nodes[idx].port);
     }
-    
+
     function getBallotInVoting() public view returns (uint256) { return ballotInVoting; }
 
     function init(
@@ -97,5 +100,77 @@ contract Gov is UpgradeabilityProxy, GovChecker {
         nodeToMember[nodeLength] = msg.sender;
 
         _initialized = true;
+        modifiedBlock = block.number;
+    }
+
+    function initOnce(
+        address registry,
+        address implementation,
+        bytes data
+    )
+        public onlyOwner
+    {
+        require(_initialized == false, "Already initialized");
+
+        setRegistry(registry);
+        setImplementation(implementation);
+
+        _initialized = true;
+        modifiedBlock = block.number;
+
+        // []{uint addr, bytes enode, bytes ip, uint port}
+        // 32 bytes, 32 bytes, <enode>, 32 bytes, <ip> 32 bytes
+        address addr;
+        bytes memory enode;
+        bytes memory ip;
+        uint port;
+        uint idx = 0;
+
+        uint ix;
+        uint eix;
+        assembly {
+            ix := add(data, 0x20)
+        }
+        eix = ix + data.length;
+        while (ix < eix) {
+            assembly {
+                port := mload(ix)
+            }
+            addr = address(port);
+            ix += 0x20;
+            require(ix < eix);
+
+            assembly {
+                enode := ix
+            }
+            ix += 0x20 + enode.length;
+            require(ix < eix);
+
+            assembly {
+                ip := ix
+            }
+            ix += 0x20 + ip.length;
+            require(ix < eix);
+
+            assembly {
+                port := mload(ix)
+            }
+            ix += 0x20;
+
+            idx += 1;
+            members[idx] = addr;
+            memberIdx[addr] = idx;
+            rewards[idx] = addr;
+            rewardIdx[addr] = idx;
+
+            Node storage node = nodes[idx];
+            node.enode = enode;
+            node.ip = ip;
+            node.port = port;
+            nodeToMember[idx] = addr;
+            nodeIdxFromMember[addr] = idx;
+        }
+        memberLength = idx;
+        nodeLength = idx;
     }
 }
