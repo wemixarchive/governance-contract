@@ -16,7 +16,8 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
     event MemberRemoved(address indexed addr);
     event MemberChanged(address indexed oldAddr, address indexed newAddr);
     event EnvChanged(bytes32 envName, uint256 envType, bytes envVal);
-
+    event MemberUpdated(address indexed addr);
+    
     function addProposalToAddMember(
         address member,
         bytes enode,
@@ -398,6 +399,8 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
             transferLockedAndUnlock(addr, lockAmount);
 
             emit MemberChanged(addr, nAddr);
+        }else{
+            emit MemberUpdated(addr);
         }
     }
 
