@@ -125,7 +125,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
         const _ballotType = new web3.BigNumber(1);
         let newBallotStorage = await BallotStorage.new(registry.address);
         await newBallotStorage.setPreviousBallotStorage(ballotStorage.address);
-        await reverting(newBallotStorage.createBallotForMemeber(
+        await reverting(newBallotStorage.createBallotForMember(
           _id, // ballot id
           _ballotType, // ballot type
           creator, // creator
@@ -138,7 +138,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
         ));
 
         await registry.setContractDomain('BallotStorage', newBallotStorage.address);
-        await reverting(ballotStorage.createBallotForMemeber(
+        await reverting(ballotStorage.createBallotForMember(
           _id, // ballot id
           _ballotType, // ballot type
           creator, // creator
@@ -149,7 +149,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
           _nodePort, // newNodePort
           { value: 0, from: creator }
         ));
-        await newBallotStorage.createBallotForMemeber(
+        await newBallotStorage.createBallotForMember(
           _id, // ballot id
           _ballotType, // ballot type
           creator, // creator
@@ -167,7 +167,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
         describe('add', function () {
           const _ballotType = new web3.BigNumber(1);
           it('Cannot create Ballot for MemberAdd.(not govAddr)', async () => {
-            await reverting(ballotStorage.createBallotForMemeber(
+            await reverting(ballotStorage.createBallotForMember(
               _id, // ballot id
               _ballotType, // ballot type
               creator, // creator
@@ -181,7 +181,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
           });
           it('Cannot create Ballot for MemberAdd by Invalid param(oldMemberAddress)', async () => {
             // case oldMemberAddress is set
-            await reverting(ballotStorage.createBallotForMemeber(
+            await reverting(ballotStorage.createBallotForMember(
               _id, // ballot id
               _ballotType, // ballot type
               creator, // creator
@@ -196,7 +196,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
 
           it('Cannot create Ballot for MemberAdd by Invalid param(mewMemberAddress)', async () => {
             // case newMemberAddress is not set
-            await reverting(ballotStorage.createBallotForMemeber(
+            await reverting(ballotStorage.createBallotForMember(
               _id, // ballot id
               _ballotType, // ballot type
               creator, // creator
@@ -209,7 +209,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
             ));
 
             // case newMemberAddress is set invalid address
-            await reverting(ballotStorage.createBallotForMemeber(
+            await reverting(ballotStorage.createBallotForMember(
               _id, // ballot id
               _ballotType, // ballot type
               creator, // creator
@@ -225,7 +225,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
           it('Cannot create Ballot for MemberAdd by null param(newNodeId)', async () => {
             const _emptyEnodeid = '';
             // case newNodeId is not set
-            await reverting(ballotStorage.createBallotForMemeber(
+            await reverting(ballotStorage.createBallotForMember(
               _id, // ballot id
               _ballotType, // ballot type
               creator, // creator
@@ -242,7 +242,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
             const _emptyNodeip = '';
 
             // case newNodeIp is not set
-            await reverting(ballotStorage.createBallotForMemeber(
+            await reverting(ballotStorage.createBallotForMember(
               _id, // ballot id
               _ballotType, // ballot type
               creator, // creator
@@ -259,7 +259,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
             const _emptyNodePort = 0;
 
             // case newNodePort is not set
-            await reverting(ballotStorage.createBallotForMemeber(
+            await reverting(ballotStorage.createBallotForMember(
               _id, // ballot id
               _ballotType, // ballot type
               creator, // creator
@@ -273,7 +273,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
           });
 
           it('create Ballot for MemberAdd', async () => {
-            await ballotStorage.createBallotForMemeber(
+            await ballotStorage.createBallotForMember(
               _id, // ballot id
               _ballotType, // ballot type
               creator, // creator
@@ -307,7 +307,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
             _ballotCount.should.be.bignumber.equal(1);
           });
           it('cannot create Ballot by duplicated id ', async () => {
-            await ballotStorage.createBallotForMemeber(
+            await ballotStorage.createBallotForMember(
               _id, // ballot id
               _ballotType, // ballot type
               creator, // creator
@@ -322,7 +322,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
             const _enodeid2 = '0x6f8a80d14311c39f35f516fa664deaaaa13e85b2f7493f37f6144d86991ec012937307647bd3b9a82abe2974e1407241d54947bbb39763a4cac9f77166ad92bb';
             const _nodeip2 = '123.11.111.112';
             const _nodePort2 = 9541;
-            await reverting(ballotStorage.createBallotForMemeber(
+            await reverting(ballotStorage.createBallotForMember(
               _id, // ballot id
               _ballotType2, // ballot type
               creator, // creator
@@ -340,7 +340,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
               const _emptyNodePort = 0;
 
               // case newMemberAddress is not empty
-              await reverting(ballotStorage.createBallotForMemeber(
+              await reverting(ballotStorage.createBallotForMember(
                 _id, // ballot id
                 _ballotType, // ballot type
                 creator, // creator
@@ -352,7 +352,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
                 { value: 0, from: creator }
               ));
               // case newNodeId is not empty
-              await reverting(ballotStorage.createBallotForMemeber(
+              await reverting(ballotStorage.createBallotForMember(
                 _id, // ballot id
                 _ballotType, // ballot type
                 creator, // creator
@@ -364,7 +364,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
                 { value: 0, from: creator }
               ));
               // case newNodeIp is not empty
-              await reverting(ballotStorage.createBallotForMemeber(
+              await reverting(ballotStorage.createBallotForMember(
                 _id, // ballot id
                 _ballotType, // ballot type
                 creator, // creator
@@ -376,7 +376,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
                 { value: 0, from: creator }
               ));
               // case newNodePort is not empty
-              await reverting(ballotStorage.createBallotForMemeber(
+              await reverting(ballotStorage.createBallotForMember(
                 _id, // ballot id
                 _ballotType, // ballot type
                 creator, // creator
@@ -389,7 +389,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
               ));
             });
             it('create Ballot for MemberRemove', async () => {
-              await ballotStorage.createBallotForMemeber(
+              await ballotStorage.createBallotForMember(
                 _id, // ballot id
                 _ballotType, // ballot type
                 creator, // creator
@@ -424,7 +424,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
             const _ballotType = new web3.BigNumber(3);
             it('Cannot create Ballot for MemberSwap by invalid param', async () => {
             // case oldMemberAddress is empty
-              await reverting(ballotStorage.createBallotForMemeber(
+              await reverting(ballotStorage.createBallotForMember(
                 _id, // ballot id
                 _ballotType, // ballot type
                 creator, // creator
@@ -436,7 +436,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
                 { value: 0, from: creator }
               ));
               // case newMemberAddress is empty
-              await reverting(ballotStorage.createBallotForMemeber(
+              await reverting(ballotStorage.createBallotForMember(
                 _id, // ballot id
                 _ballotType, // ballot type
                 creator, // creator
@@ -448,7 +448,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
                 { value: 0, from: creator }
               ));
               // case newNodeId is  empty
-              await reverting(ballotStorage.createBallotForMemeber(
+              await reverting(ballotStorage.createBallotForMember(
                 _id, // ballot id
                 _ballotType, // ballot type
                 creator, // creator
@@ -460,7 +460,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
                 { value: 0, from: creator }
               ));
               // case newNodeIp is empty
-              await reverting(ballotStorage.createBallotForMemeber(
+              await reverting(ballotStorage.createBallotForMember(
                 _id, // ballot id
                 _ballotType, // ballot type
                 creator, // creator
@@ -472,7 +472,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
                 { value: 0, from: creator }
               ));
               // case newNodePort is  empty
-              await reverting(ballotStorage.createBallotForMemeber(
+              await reverting(ballotStorage.createBallotForMember(
                 _id, // ballot id
                 _ballotType, // ballot type
                 creator, // creator
@@ -485,7 +485,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
               ));
             });
             it('create Ballot for MemberSwap', async () => {
-              await ballotStorage.createBallotForMemeber(
+              await ballotStorage.createBallotForMember(
                 _id, // ballot id
                 _ballotType, // ballot type
                 creator, // creator
@@ -620,7 +620,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
     describe('update', function () {
       const _ballotType = new web3.BigNumber(1);
       beforeEach(async () => {
-        await ballotStorage.createBallotForMemeber(
+        await ballotStorage.createBallotForMember(
           _id, // ballot id
           _ballotType, // ballot type
           creator, // creator
@@ -768,7 +768,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
       // let _enodeid = web3Utils.hexToBytes(_enodidHexString);
       const _nodeip = '123.11.111.111';
       const _nodePort = 9545;
-      await ballotStorage.createBallotForMemeber(
+      await ballotStorage.createBallotForMember(
         _id, // ballot id
         _ballotType, // ballot type
         creator, // creator
