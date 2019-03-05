@@ -316,7 +316,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
 
         memberLength = nMemIdx;
         nodeLength = nNodeIdx;
-
+        modifiedBlock = block.number;
         emit MemberAdded(addr);
     }
 
@@ -349,7 +349,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         nodeToMember[nodeLength] = address(0);
         nodeIdxFromMember[addr] = 0;
         nodeLength = nodeLength.sub(1);
-
+        modifiedBlock = block.number;
         // Unlock and transfer remained to governance
         transferLockedAndUnlock(addr, unlockAmount);
 
@@ -390,6 +390,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         node.enode = enode;
         node.ip = ip;
         node.port = port;
+        modifiedBlock = block.number;
         if (addr != nAddr) {
             nodeToMember[nodeIdx] = nAddr;
             nodeIdxFromMember[nAddr] = nodeIdx;
@@ -434,7 +435,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         } else if (envKey == STAKING_MAX_NAME && envType == STAKING_MAX_TYPE) {
             envStorage.setStakingMaxByBytes(envVal);
         }
-
+        modifiedBlock = block.number;
         emit EnvChanged(envKey, envType, envVal);
     }
 
