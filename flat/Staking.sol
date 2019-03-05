@@ -226,9 +226,36 @@ contract Staking is GovChecker, ReentrancyGuard {
     event Locked(address indexed payee, uint256 amount, uint256 total, uint256 available);
     event Unlocked(address indexed payee, uint256 amount, uint256 total, uint256 available);
 
-    constructor(address registry) public {
+    constructor(address registry, bytes data) public {
         _totalLockedBalance = 0;
         setRegistry(registry);
+
+        if (data.length == 0)
+            return;
+
+        // []{address, amount}
+        address addr;
+        uint amount;
+        uint ix;
+        uint eix;
+        assembly {
+            ix := add(data, 0x20)
+        }
+        eix = ix + data.length;
+        while (ix < eix) {
+            assembly {
+                amount := mload(ix)
+            }
+            addr = address(amount);
+            ix += 0x20;
+            require (ix < eix);
+            assembly {
+                amount := mload(ix)
+            }
+            ix += 0x20;
+
+            _balance[addr] = amount;
+        }
     }
 
     function () external payable {

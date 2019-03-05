@@ -425,6 +425,9 @@ contract UpgradeabilityProxy is Proxy {
 }
 
 contract Gov is UpgradeabilityProxy, GovChecker {
+    // "Metadium Governance"
+    uint public magic = 0x4d6574616469756d20476f7665726e616e6365;
+    uint public modifiedBlock;
     bool private _initialized;
 
     // For voting member
@@ -473,7 +476,7 @@ contract Gov is UpgradeabilityProxy, GovChecker {
     function getNode(uint256 idx) public view returns (bytes enode, bytes ip, uint port) {
         return (nodes[idx].enode, nodes[idx].ip, nodes[idx].port);
     }
-    
+
     function getBallotInVoting() public view returns (uint256) { return ballotInVoting; }
 
     function init(
@@ -515,6 +518,85 @@ contract Gov is UpgradeabilityProxy, GovChecker {
         nodeToMember[nodeLength] = msg.sender;
 
         _initialized = true;
+        modifiedBlock = block.number;
+    }
+
+    function initOnce(
+        address registry,
+        address implementation,
+        bytes data
+    )
+        public onlyOwner
+    {
+        require(_initialized == false, "Already initialized");
+
+        setRegistry(registry);
+        setImplementation(implementation);
+
+        _initialized = true;
+        modifiedBlock = block.number;
+
+        // []{uint addr, bytes name, bytes enode, bytes ip, uint port}
+        // 32 bytes, [32 bytes, <data>] * 3, 32 bytes
+        address addr;
+        bytes memory name;
+        bytes memory enode;
+        bytes memory ip;
+        uint port;
+        uint idx = 0;
+
+        uint ix;
+        uint eix;
+        assembly {
+            ix := add(data, 0x20)
+        }
+        eix = ix + data.length;
+        while (ix < eix) {
+            assembly {
+                port := mload(ix)
+            }
+            addr = address(port);
+            ix += 0x20;
+            require(ix < eix);
+
+            assembly {
+                name := ix
+            }
+            ix += 0x20 + name.length;
+            require(ix < eix);
+
+            assembly {
+                enode := ix
+            }
+            ix += 0x20 + enode.length;
+            require(ix < eix);
+
+            assembly {
+                ip := ix
+            }
+            ix += 0x20 + ip.length;
+            require(ix < eix);
+
+            assembly {
+                port := mload(ix)
+            }
+            ix += 0x20;
+
+            idx += 1;
+            members[idx] = addr;
+            memberIdx[addr] = idx;
+            rewards[idx] = addr;
+            rewardIdx[addr] = idx;
+
+            Node storage node = nodes[idx];
+            node.enode = enode;
+            node.ip = ip;
+            node.port = port;
+            nodeToMember[idx] = addr;
+            nodeIdxFromMember[addr] = idx;
+        }
+        memberLength = idx;
+        nodeLength = idx;
     }
 }
 
@@ -525,7 +607,8 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
     event MemberRemoved(address indexed addr);
     event MemberChanged(address indexed oldAddr, address indexed newAddr);
     event EnvChanged(bytes32 envName, uint256 envType, bytes envVal);
-
+    event MemberUpdated(address indexed addr);
+    
     function addProposalToAddMember(
         address member,
         bytes enode,
@@ -824,7 +907,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
 
         memberLength = nMemIdx;
         nodeLength = nNodeIdx;
-
+        modifiedBlock = block.number;
         emit MemberAdded(addr);
     }
 
@@ -857,7 +940,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         nodeToMember[nodeLength] = address(0);
         nodeIdxFromMember[addr] = 0;
         nodeLength = nodeLength.sub(1);
-
+        modifiedBlock = block.number;
         // Unlock and transfer remained to governance
         transferLockedAndUnlock(addr, unlockAmount);
 
@@ -898,6 +981,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         node.enode = enode;
         node.ip = ip;
         node.port = port;
+        modifiedBlock = block.number;
         if (addr != nAddr) {
             nodeToMember[nodeIdx] = nAddr;
             nodeIdxFromMember[nAddr] = nodeIdx;
@@ -907,6 +991,8 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
             transferLockedAndUnlock(addr, lockAmount);
 
             emit MemberChanged(addr, nAddr);
+        }else{
+            emit MemberUpdated(addr);
         }
     }
 
@@ -940,7 +1026,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         } else if (envKey == STAKING_MAX_NAME && envType == STAKING_MAX_TYPE) {
             envStorage.setStakingMaxByBytes(envVal);
         }
-
+        modifiedBlock = block.number;
         emit EnvChanged(envKey, envType, envVal);
     }
 
