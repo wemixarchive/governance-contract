@@ -118,9 +118,10 @@ contract Gov is UpgradeabilityProxy, GovChecker {
         _initialized = true;
         modifiedBlock = block.number;
 
-        // []{uint addr, bytes enode, bytes ip, uint port}
-        // 32 bytes, 32 bytes, <enode>, 32 bytes, <ip> 32 bytes
+        // []{uint addr, bytes name, bytes enode, bytes ip, uint port}
+        // 32 bytes, [32 bytes, <data>] * 3, 32 bytes
         address addr;
+        bytes memory name;
         bytes memory enode;
         bytes memory ip;
         uint port;
@@ -138,6 +139,12 @@ contract Gov is UpgradeabilityProxy, GovChecker {
             }
             addr = address(port);
             ix += 0x20;
+            require(ix < eix);
+
+            assembly {
+                name := ix
+            }
+            ix += 0x20 + name.length;
             require(ix < eix);
 
             assembly {
