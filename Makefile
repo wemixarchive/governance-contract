@@ -39,7 +39,8 @@ gov: MetadiumGovernance.js
 MetadiumGovernance.js: build/MetadiumGovernance.js
 
 build/MetadiumGovernance.js: build_dir npm build/solc build/solc.sh build/gov.sol
-	PATH=${PWD}/build:${PATH} ${PWD}/build/solc.sh -r gov=${PWD}/contracts -r openzeppelin-solidity=${PWD}/node_modules/openzeppelin-solidity build/gov.sol $@
+	export DIR=${shell pwd}; cd build; \
+	PATH=$${DIR}/build:$${PATH} $${DIR}/build/solc.sh -r gov=$${DIR}/contracts -r openzeppelin-solidity=$${DIR}/node_modules/openzeppelin-solidity gov.sol $${DIR}/$@
 
 build/gov.sol:
 	@if [ ! -f build/gov.sol ]; then \
