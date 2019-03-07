@@ -372,6 +372,10 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     event BallotCanceled ( 
         uint256 indexed ballotId
     );
+    event BallotUpdated ( 
+        uint256 indexed ballotId,
+        address indexed updatedBy
+    );
 
     mapping(uint=>BallotBasic) internal ballotBasicMap;
     mapping(uint=>BallotMember) internal ballotMemberMap;
@@ -664,6 +668,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         require(ballotBasicMap[_ballotId].isFinalized == false, "already finalized");
         BallotBasic storage _ballot = ballotBasicMap[_ballotId];
         _ballot.memo = _memo;
+        emit BallotUpdated (_ballotId, msg.sender);
     }
 
     function updateBallotDuration(
@@ -681,6 +686,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
 
         BallotBasic storage _ballot = ballotBasicMap[_ballotId];
         _ballot.duration = _duration;
+        emit BallotUpdated (_ballotId, msg.sender);
     }
 
     function updateBallotMemberLockAmount(
@@ -697,6 +703,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         require(ballotBasicMap[_ballotId].state == uint256(BallotStates.Ready), "Not Ready State");
         BallotMember storage _ballot = ballotMemberMap[_ballotId];
         _ballot.lockAmount = _lockAmount;
+        emit BallotUpdated (_ballotId, msg.sender);
     }
 
     // cancel ballot info.
