@@ -9,6 +9,9 @@
 
 ifeq ($(shell uname -s), Linux)
     PASSWD_OPT=-u $(shell id -u):$(shell id -g) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro
+    CURDIR_SOLC=$(shell pwd)
+else
+    CURDIR_SOLC=/tmp
 endif
 
 #DOCKER_OPT=--network bobthe
@@ -39,8 +42,7 @@ gov: MetadiumGovernance.js
 MetadiumGovernance.js: build/MetadiumGovernance.js
 
 build/MetadiumGovernance.js: build_dir npm build/solc build/solc.sh build/gov.sol
-	export DIR=${shell pwd}; cd build; \
-	PATH=$${DIR}/build:$${PATH} $${DIR}/build/solc.sh -r gov=$${DIR}/contracts -r openzeppelin-solidity=$${DIR}/node_modules/openzeppelin-solidity gov.sol $${DIR}/$@
+	PATH=$(shell pwd)/build:$${PATH} build/solc.sh -r gov=$(CURDIR_SOLC)/contracts -r openzeppelin-solidity=$(CURDIR_SOLC)/node_modules/openzeppelin-solidity build/gov.sol $@
 
 build/gov.sol:
 	@if [ ! -f build/gov.sol ]; then \
