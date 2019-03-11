@@ -17,6 +17,7 @@ contract GovChecker is Ownable {
     bytes32 public constant BALLOT_STORAGE_NAME = "BallotStorage";
     bytes32 public constant ENV_STORAGE_NAME = "EnvStorage";
     bytes32 public constant REWARD_POOL_NAME = "RewardPool";
+    bytes32 public constant MAINTENANCE_NAME = "Maintenance";
 
     /**
      * @dev Function to set registry address. Contract that wants to use registry should setRegistry first.
