@@ -21,6 +21,7 @@ contract Staking is GovChecker, ReentrancyGuard {
         _totalLockedBalance = 0;
         setRegistry(registry);
 
+        // data is only for test purpose
         if (data.length == 0)
             return;
 
@@ -46,6 +47,7 @@ contract Staking is GovChecker, ReentrancyGuard {
             ix += 0x20;
 
             _balance[addr] = amount;
+            _lockedBalance[addr] = amount;
         }
     }
 
