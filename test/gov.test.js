@@ -65,7 +65,7 @@ contract('Governance', function ([deployer, govMem1, govMem2, govMem3, govMem4, 
     envStorageImp = await EnvStorageImp.new();
     envStorage = await EnvStorage.new(registry.address, envStorageImp.address);
     ballotStorage = await BallotStorage.new(registry.address);
-    staking = await Staking.new(registry.address);
+    staking = await Staking.new(registry.address,"");
     govImp = await GovImp.new();
     gov = await Gov.new();
 

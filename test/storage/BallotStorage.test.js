@@ -62,7 +62,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
   let registry, staking, ballotStorage, envStorageImp, envStorage, iEnvStorage;
   before(async () => {
     registry = await Registry.new();
-    staking = await Staking.new(registry.address);
+    staking = await Staking.new(registry.address,"");
     await registry.setContractDomain('Staking', staking.address);
     await registry.setContractDomain('GovernanceContract', govAddr);
 
@@ -755,7 +755,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
 
     beforeEach(async () => {
       // registry = await Registry.new();
-      // staking = await Staking.new(registry.address);
+      // staking = await Staking.new(registry.address,"");
       // await registry.setContractDomain('Staking', staking.address);
       ballotStorage = await BallotStorage.new(registry.address);
       await registry.setContractDomain('BallotStorage', ballotStorage.address);
