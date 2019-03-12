@@ -191,13 +191,13 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
 
     function getThreshould() public pure returns (uint256) { return 5100; } // 51% from 5100 of 10000
 
-    function checkUnfinalized(uint256 ballotIdx) private {
+    function checkUnfinalized(uint256 ballotIdx) private{
         if (ballotInVoting != 0) {
             (, uint256 state, ) = getBallotState(ballotInVoting);
             (, uint256 endTime, ) = getBallotPeriod(ballotInVoting);
             if (state == uint256(BallotStates.InProgress)) {
                 if (endTime < block.timestamp) {
-                    finalizeBallot(ballotIdx, uint256(BallotStates.Rejected));
+                    finalizeBallot(ballotInVoting, uint256(BallotStates.Rejected));
                     ballotInVoting = 0;
                     if (ballotIdx == ballotInVoting) {
                         return;
