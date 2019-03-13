@@ -20,10 +20,10 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
     
     function addProposalToAddMember(
         address member,
+        bytes name,
         bytes enode,
         bytes ip,
-        uint port,
-        uint256 lockAmount,
+        uint256[2] port_lockAmount,
         bytes memo
     )
         external
@@ -40,11 +40,12 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
             msg.sender, // creator
             address(0), // old member address
             member, // new member address
+            name,
             enode, // new enode
             ip, // new ip
-            port // new port
+            port_lockAmount[0] // new port
         );
-        updateBallotLock(ballotIdx, lockAmount);
+        updateBallotLock(ballotIdx, port_lockAmount[1]);
         updateBallotMemo(ballotIdx, memo);
         ballotLength = ballotIdx;
     }
@@ -68,6 +69,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
             msg.sender, // creator
             member, // old member address
             address(0), // new member address
+            new bytes(0), // new name
             new bytes(0), // new enode
             new bytes(0), // new ip
             0 // new port
@@ -78,32 +80,32 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
     }
 
     function addProposalToChangeMember(
-        address target,
-        address nMember,
+        address[2] target_nMember,
+        bytes nName,
         bytes nEnode,
         bytes nIp,
-        uint nPort,
-        uint256 lockAmount,
+        uint256[2] port_lockAmount,
         bytes memo
     )
         external
         onlyGovMem
         returns (uint256 ballotIdx)
     {
-        require(isMember(target), "Non-member");
+        require(isMember(target_nMember[0]), "Non-member");
 
         ballotIdx = ballotLength.add(1);
         createBallotForMember(
             ballotIdx, // ballot id
             uint256(BallotTypes.MemberChange), // ballot type
             msg.sender, // creator
-            target, // old member address
-            nMember, // new member address
+            target_nMember[0], // old member address
+            target_nMember[1], // new member address
+            nName, //new Name
             nEnode, // new enode
             nIp, // new ip
-            nPort // new port
+            port_lockAmount[0] // new port
         );
-        updateBallotLock(ballotIdx, lockAmount);
+        updateBallotLock(ballotIdx, port_lockAmount[1]);
         updateBallotMemo(ballotIdx, memo);
         ballotLength = ballotIdx;
     }
@@ -191,7 +193,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
 
     function getThreshould() public pure returns (uint256) { return 5100; } // 51% from 5100 of 10000
 
-    function checkUnfinalized(uint256 ballotIdx) private{
+    function checkUnfinalized(uint256 ballotIdx) private {
         if (ballotInVoting != 0) {
             (, uint256 state, ) = getBallotState(ballotInVoting);
             (, uint256 endTime, ) = getBallotPeriod(ballotInVoting);
@@ -285,6 +287,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
 
         (
             , address addr,
+            bytes memory name,
             bytes memory enode,
             bytes memory ip,
             uint port,
@@ -308,12 +311,13 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         // Add node
         uint256 nNodeIdx = nodeLength.add(1);
         Node storage node = nodes[nNodeIdx];
+
         node.enode = enode;
         node.ip = ip;
         node.port = port;
         nodeToMember[nNodeIdx] = addr;
         nodeIdxFromMember[addr] = nNodeIdx;
-
+        node.name = name;
         memberLength = nMemIdx;
         nodeLength = nNodeIdx;
         modifiedBlock = block.number;
@@ -323,7 +327,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
     function removeMember(uint256 ballotIdx) private {
         fromValidBallot(ballotIdx, uint256(BallotTypes.MemberRemoval));
 
-        (address addr, , , , , uint256 unlockAmount) = getBallotMember(ballotIdx);
+        (address addr, , , , , , uint256 unlockAmount) = getBallotMember(ballotIdx);
         if (!isMember(addr)) {
             return; // Non-member. it is abnormal case
         }
@@ -342,6 +346,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         // Remove node
         if (nodeIdxFromMember[addr] != nodeLength) {
             Node storage node = nodes[nodeIdxFromMember[addr]];
+            node.name = nodes[nodeLength].name;
             node.enode = nodes[nodeLength].enode;
             node.ip = nodes[nodeLength].ip;
             node.port = nodes[nodeLength].port;
@@ -362,6 +367,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         (
             address addr,
             address nAddr,
+            bytes memory name,
             bytes memory enode,
             bytes memory ip,
             uint port,
@@ -387,6 +393,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         // Change node
         uint256 nodeIdx = nodeIdxFromMember[addr];
         Node storage node = nodes[nodeIdx];
+        node.name = name;
         node.enode = enode;
         node.ip = ip;
         node.port = port;
@@ -446,6 +453,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         address creator,
         address oAddr,
         address nAddr,
+        bytes name,
         bytes enode,
         bytes ip,
         uint port
@@ -458,6 +466,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
             creator, // creator
             oAddr, // old member address
             nAddr, // new member address
+            name, // new name
             enode, // new enode
             ip, // new ip
             port // new port
@@ -492,7 +501,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         return IBallotStorage(getBallotStorageAddress()).getBallotVotingInfo(id);
     }
 
-    function getBallotMember(uint256 id) private view returns (address, address, bytes, bytes, uint256, uint256) {
+    function getBallotMember(uint256 id) private view returns (address, address, bytes, bytes, bytes, uint256, uint256) {
         return IBallotStorage(getBallotStorageAddress()).getBallotMember(id);
     }
 

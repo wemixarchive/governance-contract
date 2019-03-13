@@ -4,7 +4,7 @@ pragma solidity ^0.4.16;
 interface IBallotStorage {
     function createBallotForMember(
         uint256, uint256, address, address,
-        address, bytes, bytes, uint) external;
+        address, bytes, bytes, bytes, uint) external;
 
     function createBallotForAddress(uint256, uint256, address, address)external returns (uint256);
     function createBallotForVariable(uint256, uint256, address, bytes32, uint256, bytes) external returns (uint256);
@@ -23,7 +23,7 @@ interface IBallotStorage {
         uint256, uint256, uint256, address, bytes, uint256,
         uint256, uint256, uint256, bool, uint256);
 
-    function getBallotMember(uint256) external view returns (address, address, bytes, bytes, uint256, uint256);
+    function getBallotMember(uint256) external view returns (address, address, bytes, bytes, bytes, uint256, uint256);
     function getBallotAddress(uint256) external view returns (address);
     function getBallotVariable(uint256) external view returns (bytes32, uint256, bytes);
 }

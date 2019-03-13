@@ -271,7 +271,7 @@ interface IGov {
     function getNodeIdxFromMember(address) external view returns (uint256);
     function getMemberFromNodeIdx(uint256) external view returns (address);
     function getNodeLength() external view returns (uint256);
-    function getNode(uint256) external view returns (bytes, bytes, uint);
+    function getNode(uint256) external view returns (bytes, bytes, bytes, uint);
     function getBallotInVoting() external view returns (uint256);
 }
 
@@ -315,6 +315,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         uint256 id;    
         address oldMemberAddress;
         address newMemberAddress;
+        bytes newNodeName; // name
         bytes newNodeId; // admin.nodeInfo.id is 512 bit public key
         bytes newNodeIp;
         uint256 newNodePort;
@@ -472,6 +473,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     function getBallotMember(uint256 _id) public view returns (
         address oldMemberAddress,
         address newMemberAddress,
+        bytes newNodeName, // name
         bytes newNodeId, // admin.nodeInfo.id is 512 bit public key
         bytes newNodeIp,
         uint256 newNodePort,
@@ -481,6 +483,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         BallotMember storage tBallot = ballotMemberMap[_id];
         oldMemberAddress = tBallot.oldMemberAddress;
         newMemberAddress = tBallot.newMemberAddress;
+        newNodeName = tBallot.newNodeName;
         newNodeId = tBallot.newNodeId;
         newNodeIp = tBallot.newNodeIp;
         newNodePort = tBallot.newNodePort;
@@ -519,6 +522,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         address _creator,
         address _oldMemberAddress,
         address _newMemberAddress,
+        bytes _newNodeName, // name
         bytes _newNodeId, // admin.nodeInfo.id is 512 bit public key
         bytes _newNodeIp,
         uint _newNodePort
@@ -543,6 +547,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         newBallot.id = _id;
         newBallot.oldMemberAddress = _oldMemberAddress;
         newBallot.newMemberAddress = _newMemberAddress;
+        newBallot.newNodeName = _newNodeName;
         newBallot.newNodeId = _newNodeId;
         newBallot.newNodeIp = _newNodeIp;
         newBallot.newNodePort = _newNodePort;
