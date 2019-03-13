@@ -10,29 +10,30 @@ contract EnvStorageImp is AEnvStorage, EnvConstants {
     using SafeMath for uint256;
 
     function initialize(
-        uint256 _blockPer, 
+        uint256 _blocksPer, 
         uint256 _ballotDurationMin,
         uint256 _ballotDurationMax,
         uint256 _stakingMin,
         uint256 _stakingMax,
-        uint256 _gasPrice
+        uint256 _gasPrice,
+        uint256 _maxIdleBlockInterval
     ) public onlyOwner {
-        uint256 blockPer = getBlockPer();
+        uint256 blocksPer = getBlocksPer();
         uint256 ballotDurationMin = getBallotDurationMin();
         uint256 ballotDurationMax = getBallotDurationMax();
         uint256 stakingMin = getStakingMin();
         uint256 stakingMax = getStakingMax();
         uint256 gasPrice = getGasPrice();
-
-        require(_blockPer != 0 || blockPer != 0, "invalid blockPer values");
+        uint256 maxIdleBlockInterval = getMaxIdleBlockInterval();
+        require(_blocksPer != 0 || blocksPer != 0, "invalid blocksPer values");
         require(_ballotDurationMin != 0 || ballotDurationMin != 0, "invalid ballotDurationMin values");
         require(_ballotDurationMax != 0 || ballotDurationMax != 0, "invalid ballotDurationMax values");
         require(_stakingMin != 0 || stakingMin != 0, "invalid stakingMin values");
         require(_stakingMax != 0 || stakingMax != 0, "invalid stakingMax values");
         require(_gasPrice != 0 || gasPrice != 0, "invalid gasPrice values");
-
-        if (blockPer == 0) {
-            setUint(BLOCK_PER_NAME, _blockPer);
+        require(_maxIdleBlockInterval != 0 || _maxIdleBlockInterval != 0, "invalid max Idle Block Interval values");
+        if (blocksPer == 0) {
+            setUint(BLOCKS_PER_NAME, _blocksPer);
         }
         if (ballotDurationMin == 0) {
             setUint(BALLOT_DURATION_MIN_NAME, _ballotDurationMin);
@@ -49,10 +50,13 @@ contract EnvStorageImp is AEnvStorage, EnvConstants {
         if (gasPrice == 0) {
             setUint(GAS_PRICE_NAME,_gasPrice);
         }
+        if (maxIdleBlockInterval == 0) {
+            setUint(MAX_IDLE_BLOCK_INTERVAL_NAME,_maxIdleBlockInterval);
+        }
     }
 
-    function getBlockPer() public view returns (uint256) {
-        return getUint(BLOCK_PER_NAME);
+    function getBlocksPer() public view returns (uint256) {
+        return getUint(BLOCKS_PER_NAME);
     }
 
     function getBallotDurationMin() public view returns (uint256) {
@@ -74,9 +78,12 @@ contract EnvStorageImp is AEnvStorage, EnvConstants {
     function getGasPrice() public view returns (uint256) {
         return getUint(GAS_PRICE_NAME);
     }
+    function getMaxIdleBlockInterval() public view returns (uint256) {
+        return getUint(MAX_IDLE_BLOCK_INTERVAL_NAME);
+    }
 
-    function setBlockPer(uint256 _value) public onlyGov { 
-        setUint(BLOCK_PER_NAME, _value);
+    function setBlocksPer(uint256 _value) public onlyGov { 
+        setUint(BLOCKS_PER_NAME, _value);
     }
 
     function setBallotDurationMin(uint256 _value) public onlyGov { 
@@ -95,12 +102,16 @@ contract EnvStorageImp is AEnvStorage, EnvConstants {
         setUint(STAKING_MAX_NAME, _value);
     }
 
-    // function setGasPrice(uint256 _value) public onlyGov { 
-    //     setUint(GAS_PRICE_NAME, _value);
-    // }
+    function setGasPrice(uint256 _value) public onlyGov { 
+        setUint(GAS_PRICE_NAME, _value);
+    }
+    
+    function setMaxIdleBlockInterval(uint256 _value) public onlyGov { 
+        setUint(MAX_IDLE_BLOCK_INTERVAL_NAME, _value);
+    }
 
-    function setBlockPerByBytes(bytes _value) public onlyGov { 
-        setBlockPer(toUint(_value));
+    function setBlocksPerByBytes(bytes _value) public onlyGov { 
+        setBlocksPer(toUint(_value));
     }
 
     function setBallotDurationMinByBytes(bytes _value) public onlyGov { 
@@ -119,6 +130,14 @@ contract EnvStorageImp is AEnvStorage, EnvConstants {
         setStakingMax(toUint(_value));
     }
 
+    function setGasPriceByBytes(bytes _value) public onlyGov { 
+        setStakingMax(toUint(_value));
+    }
+
+    function setMaxIdleBlockIntervalByBytes(bytes _value) public onlyGov { 
+        setStakingMax(toUint(_value));
+    }
+    
     function getTestInt() public view returns (int256) {
         return getInt(TEST_INT);
     }

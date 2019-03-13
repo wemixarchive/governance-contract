@@ -214,8 +214,8 @@ contract BallotEnums {
 }
 
 contract EnvConstants {
-    bytes32 public constant BLOCK_PER_NAME = keccak256("blockPer"); 
-    uint256 public constant BLOCK_PER_TYPE = uint256(VariableTypes.Uint);
+    bytes32 public constant BLOCKS_PER_NAME = keccak256("blocksPer"); 
+    uint256 public constant BLOCKS_PER_TYPE = uint256(VariableTypes.Uint);
 
     bytes32 public constant BALLOT_DURATION_MIN_NAME = keccak256("ballotDurationMin"); 
     uint256 public constant BALLOT_DURATION_MIN_TYPE = uint256(VariableTypes.Uint);
@@ -231,6 +231,10 @@ contract EnvConstants {
 
     bytes32 public constant GAS_PRICE_NAME = keccak256("gasPrice"); 
     uint256 public constant GAS_PRICE_TYPE = uint256(VariableTypes.Uint);
+
+    bytes32 public constant MAX_IDLE_BLOCK_INTERVAL_NAME = keccak256("MaxIdleBlockInterval"); 
+    uint256 public constant MAX_IDLE_BLOCK_INTERVAL_TYPE = uint256(VariableTypes.Uint);
+
 
     enum VariableTypes {
         Invalid,
@@ -250,17 +254,20 @@ contract EnvConstants {
 }
 
 interface IEnvStorage {
-    function setBlockPerByBytes(bytes) external;
+    function setBlocksPerByBytes(bytes) external;
     function setBallotDurationMinByBytes(bytes) external;
     function setBallotDurationMaxByBytes(bytes) external;
     function setStakingMinByBytes(bytes) external;
     function setStakingMaxByBytes(bytes) external;
-    function getBlockPer() external view returns (uint256);
+    function setGasPriceByBytes(bytes) external;
+    function setMaxIdleBlockIntervalByBytes(bytes) external;
+    function getBlocksPer() external view returns (uint256);
     function getStakingMin() external view returns (uint256);
     function getStakingMax() external view returns (uint256);
     function getBallotDurationMin() external view returns (uint256);
     function getBallotDurationMax() external view returns (uint256);
     function getGasPrice() external view returns (uint256); 
+    function getMaxIdleBlockInterval() external view returns (uint256);
 }
 
 interface IGov {
