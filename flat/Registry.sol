@@ -70,6 +70,10 @@ contract Ownable {
 }
 
 contract Registry is Ownable {
+    // "Metadium Registry"
+    uint public magic = 0x4d6574616469756d205265676973747279;
+    uint public modifiedBlock;
+
     mapping(bytes32=>address) public contracts;
     mapping(bytes32=>mapping(address=>bool)) public permissions;
 
@@ -86,7 +90,7 @@ contract Registry is Ownable {
     function setContractDomain(bytes32 _name, address _addr) public onlyOwner returns (bool success) {
         require(_addr != address(0x0), "address should be non-zero");
         contracts[_name] = _addr;
-
+        modifiedBlock = block.number;
         emit SetContractDomain(msg.sender, _name, _addr);
 
         return true;
@@ -115,7 +119,7 @@ contract Registry is Ownable {
     function setPermission(bytes32 _contract, address _granted, bool _status) public onlyOwner returns (bool success) {
         require(_granted != address(0x0), "address should be non-zero");
         permissions[_contract][_granted] = _status;
-
+        modifiedBlock = block.number;
         emit SetPermission(_contract, _granted, _status);
         
         return true;

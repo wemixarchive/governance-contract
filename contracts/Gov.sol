@@ -23,6 +23,7 @@ contract Gov is UpgradeabilityProxy, GovChecker {
 
     // For enode
     struct Node {
+        bytes name;
         bytes enode;
         bytes ip;
         uint port;
@@ -55,8 +56,8 @@ contract Gov is UpgradeabilityProxy, GovChecker {
     function getMemberFromNodeIdx(uint256 idx) public view returns (address) { return nodeToMember[idx]; }
     function getNodeLength() public view returns (uint256) { return nodeLength; }
 
-    function getNode(uint256 idx) public view returns (bytes enode, bytes ip, uint port) {
-        return (nodes[idx].enode, nodes[idx].ip, nodes[idx].port);
+    function getNode(uint256 idx) public view returns (bytes name, bytes enode, bytes ip, uint port) {
+        return (nodes[idx].name, nodes[idx].enode, nodes[idx].ip, nodes[idx].port);
     }
 
     function getBallotInVoting() public view returns (uint256) { return ballotInVoting; }
@@ -65,6 +66,7 @@ contract Gov is UpgradeabilityProxy, GovChecker {
         address registry,
         address implementation,
         uint256 lockAmount,
+        bytes name,
         bytes enode,
         bytes ip,
         uint port
@@ -93,6 +95,7 @@ contract Gov is UpgradeabilityProxy, GovChecker {
         // Add node
         nodeLength = 1;
         Node storage node = nodes[nodeLength];
+        node.name = name;
         node.enode = enode;
         node.ip = ip;
         node.port = port;
@@ -171,6 +174,7 @@ contract Gov is UpgradeabilityProxy, GovChecker {
             rewardIdx[addr] = idx;
 
             Node storage node = nodes[idx];
+            node.name = name;
             node.enode = enode;
             node.ip = ip;
             node.port = port;

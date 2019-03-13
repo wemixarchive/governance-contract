@@ -15,7 +15,7 @@ contract('Staking', function ([owner, fakeGov, rewardPool, user, user2, user3, u
 
   beforeEach(async () => {
     registry = await Registry.new();
-    staking = await Staking.new(registry.address);
+    staking = await Staking.new(registry.address,"");
 
     await registry.setContractDomain('Staking', staking.address);
     await registry.setContractDomain('GovernanceContract', fakeGov);
@@ -277,14 +277,18 @@ contract('Staking', function ([owner, fakeGov, rewardPool, user, user2, user3, u
       // Rand
       const start = 1;
       const end = amount * 3;
-      [user, user2, user3].forEach(async (u) => {
+      [user, user2, user3].forEach( async (u) => {
         const rand = Math.floor(Math.random() * (end - start) + start);
         await staking.lock(u, rand, { from: fakeGov });
+        console.log('rand lock:',rand);
       });
 
       const weight1 = await staking.calcVotingWeight(user);
+      console.log('weight1:',weight1);
       const weight2 = await staking.calcVotingWeight(user2);
+      console.log('weight2:',weight2);
       const weight3 = await staking.calcVotingWeight(user3);
+      console.log('weight3:',weight3);
       weight1.plus(weight2).plus(weight3).should.be.bignumber.gt(97);
     });
   });

@@ -9,6 +9,6 @@ interface IGov {
     function getNodeIdxFromMember(address) external view returns (uint256);
     function getMemberFromNodeIdx(uint256) external view returns (address);
     function getNodeLength() external view returns (uint256);
-    function getNode(uint256) external view returns (bytes, bytes, uint);
+    function getNode(uint256) external view returns (bytes, bytes, bytes, uint);
     function getBallotInVoting() external view returns (uint256);
 }

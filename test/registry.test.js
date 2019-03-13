@@ -8,7 +8,7 @@ contract('Registry', function ([deployer, admin, user]) {
 
   beforeEach(async () => {
     registry = await Registry.new();
-    staking = await Staking.new(registry.address);
+    staking = await Staking.new(registry.address,"");
   });
 
   describe('Owner ', function () {

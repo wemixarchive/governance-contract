@@ -39,6 +39,16 @@ const BallotBasicParams = {
   IsFinalized: 9,
   Duration: 10,
 };
+const BallotMemberParams = {
+  oldMemberAddress:0,
+  newMemberAddress:1,
+  newNodeName:2, // name
+  newNodeId:3, // admin.nodeInfo.id is 512 bit public key
+  newNodeIp:4,
+  newNodePort:5,
+  lockAmount:6
+}
+
 const BallotStates = {
   Invalid:0,
   Ready:1,
@@ -62,7 +72,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
   let registry, staking, ballotStorage, envStorageImp, envStorage, iEnvStorage;
   before(async () => {
     registry = await Registry.new();
-    staking = await Staking.new(registry.address);
+    staking = await Staking.new(registry.address,"");
     await registry.setContractDomain('Staking', staking.address);
     await registry.setContractDomain('GovernanceContract', govAddr);
 
@@ -100,6 +110,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
     const _start_time = moment.utc().add(20, 'seconds').unix();
     const _end_time = moment.utc().add(10, 'days').unix();
     const _memo = 'test message for ballot';
+    const _nodeName = 'Meta001'
     const _enodeid = '0x6f8a80d14311c39f35f516fa664deaaaa13e85b2f7493f37f6144d86991ec012937307647bd3b9a82abe2974e1407241d54947bbb39763a4cac9f77166ad92a0';
     const _nodeip = '123.11.111.111';
     const _nodePort = 9545;
@@ -131,6 +142,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
           creator, // creator
           ZERO_ADDRESS, // oldMemberAddress
           addMem, // newMemberAddress
+          _nodeName, // newNodeName
           _enodeid, // newNodeId
           _nodeip, // newNodeIp
           _nodePort, // newNodePort
@@ -144,6 +156,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
           creator, // creator
           ZERO_ADDRESS, // oldMemberAddress
           addMem, // newMemberAddress
+          _nodeName, // newNodeName
           _enodeid, // newNodeId
           _nodeip, // newNodeIp
           _nodePort, // newNodePort
@@ -155,6 +168,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
           creator, // creator
           ZERO_ADDRESS, // oldMemberAddress
           addMem, // newMemberAddress
+          _nodeName, // newNodeName
           _enodeid, // newNodeId
           _nodeip, // newNodeIp
           _nodePort, // newNodePort
@@ -173,6 +187,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
               creator, // creator
               ZERO_ADDRESS, // oldMemberAddress
               addMem, // newMemberAddress
+              _nodeName, // newNodeName
               _enodeid, // newNodeId
               _nodeip, // newNodeIp
               _nodePort, // newNodePort
@@ -187,6 +202,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
               creator, // creator
               addMem, // oldMemberAddress
               addMem2, // newMemberAddress
+              _nodeName, // newNodeName
               _enodeid, // newNodeId
               _nodeip, // newNodeIp
               _nodePort, // newNodePort
@@ -202,6 +218,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
               creator, // creator
               ZERO_ADDRESS, // oldMemberAddress
               ZERO_ADDRESS, // newMemberAddress
+              _nodeName, // newNodeName
               _enodeid, // newNodeId
               _nodeip, // newNodeIp
               _nodePort, // newNodePort
@@ -215,6 +232,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
               creator, // creator
               ZERO_ADDRESS, // oldMemberAddress
               '0xabbb12', // newMemberAddress
+              _nodeName, // newNodeName
               _enodeid, // newNodeId
               _nodeip, // newNodeIp
               _nodePort, // newNodePort
@@ -231,6 +249,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
               creator, // creator
               ZERO_ADDRESS, // oldMemberAddress
               addMem, // newMemberAddress
+              _nodeName, // newNodeName
               _emptyEnodeid, // newNodeId
               _nodeip, // newNodeIp
               _nodePort, // newNodePort
@@ -248,6 +267,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
               creator, // creator
               ZERO_ADDRESS, // oldMemberAddress
               addMem, // newMemberAddress
+              _nodeName, // newNodeName
               _enodeid, // newNodeId
               _emptyNodeip, // newNodeIp
               _nodePort, // newNodePort
@@ -265,6 +285,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
               creator, // creator
               ZERO_ADDRESS, // oldMemberAddress
               addMem, // newMemberAddress
+              _nodeName, // newNodeName
               _enodeid, // newNodeId
               _nodeip, // newNodeIp
               _emptyNodePort, // newNodePort
@@ -279,6 +300,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
               creator, // creator
               ZERO_ADDRESS, // oldMemberAddress
               addMem, // newMemberAddress
+              _nodeName, // newNodeName
               _enodeid, // newNodeId
               _nodeip, // newNodeIp
               _nodePort, // newNodePort
@@ -289,6 +311,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
 
             ballotBasicInfo[BallotBasicParams.BallotType].should.be.bignumber.equal(_ballotType);
             assert.equal(ballotBasicInfo[BallotBasicParams.Creator], creator);
+            
             ballotBasicInfo[BallotBasicParams.TotalVoters].should.be.bignumber.equal(0);
             ballotBasicInfo[BallotBasicParams.PowerOfAccepts].should.be.bignumber.equal(0);
             ballotBasicInfo[BallotBasicParams.PowerOfRejects].should.be.bignumber.equal(0);
@@ -297,11 +320,12 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
 
             const ballotDetailInfo = await ballotStorage.getBallotMember(_id);
 
-            assert.equal(ballotDetailInfo[0], ZERO_ADDRESS);
-            assert.equal(ballotDetailInfo[1], addMem);
-            assert.equal(ballotDetailInfo[2], _enodeid);
-            assert.equal(web3Utils.toUtf8(ballotDetailInfo[3]), _nodeip);
-            assert.equal(ballotDetailInfo[4], _nodePort);
+            assert.equal(ballotDetailInfo[BallotMemberParams.oldMemberAddress], ZERO_ADDRESS);
+            assert.equal(ballotDetailInfo[BallotMemberParams.newMemberAddress], addMem);
+            assert.equal(web3Utils.toUtf8(ballotDetailInfo[BallotMemberParams.newNodeName]), _nodeName);
+            assert.equal(ballotDetailInfo[BallotMemberParams.newNodeId], _enodeid);
+            assert.equal(web3Utils.toUtf8(ballotDetailInfo[BallotMemberParams.newNodeIp]), _nodeip);
+            assert.equal(ballotDetailInfo[BallotMemberParams.newNodePort], _nodePort);
 
             const _ballotCount = await ballotStorage.getBallotCount();
             _ballotCount.should.be.bignumber.equal(1);
@@ -313,12 +337,14 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
               creator, // creator
               ZERO_ADDRESS, // oldMemberAddress
               addMem, // newMemberAddress
+              _nodeName, // newNodeName
               _enodeid, // newNodeId
               _nodeip, // newNodeIp
               _nodePort, // newNodePort
               { value: 0, from: govAddr }
             );
             const _ballotType2 = 1; // new web3.BigNumber(1);
+            const _nodeName2 = 'Meta2'; // newNodeName
             const _enodeid2 = '0x6f8a80d14311c39f35f516fa664deaaaa13e85b2f7493f37f6144d86991ec012937307647bd3b9a82abe2974e1407241d54947bbb39763a4cac9f77166ad92bb';
             const _nodeip2 = '123.11.111.112';
             const _nodePort2 = 9541;
@@ -328,6 +354,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
               creator, // creator
               ZERO_ADDRESS, // oldMemberAddress
               addMem2, // newMemberAddress
+              _nodeName2, // newNodeName
               _enodeid2, // newNodeId
               _nodeip2, // newNodeIp
               _nodePort2, // newNodePort
@@ -346,6 +373,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
                 creator, // creator
                 addMem, // oldMemberAddress
                 addMem, // newMemberAddress
+                _nodeName, // newNodeName
                 '', // newNodeId
                 '', // newNodeIp
                 0, // newNodePort
@@ -358,6 +386,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
                 creator, // creator
                 addMem, // oldMemberAddress
                 ZERO_ADDRESS, // newMemberAddress
+                _nodeName, // newNodeName
                 _enodeid, // newNodeId
                 '', // newNodeIp
                 0, // newNodePort
@@ -370,6 +399,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
                 creator, // creator
                 addMem, // oldMemberAddress
                 ZERO_ADDRESS, // newMemberAddress
+                _nodeName, // newNodeName
                 '', // newNodeId
                 _nodeip, // newNodeIp
                 0, // newNodePort
@@ -382,6 +412,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
                 creator, // creator
                 addMem, // oldMemberAddress
                 ZERO_ADDRESS, // newMemberAddress
+                _nodeName, // newNodeName
                 '', // newNodeId
                 '', // newNodeIp
                 _nodePort, // newNodePort
@@ -395,6 +426,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
                 creator, // creator
                 addMem, // oldMemberAddress
                 ZERO_ADDRESS, // newMemberAddress
+                _nodeName, // newNodeName
                 '0x', // newNodeId
                 '', // newNodeIp
                 0, // newNodePort
@@ -413,11 +445,13 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
 
               const ballotDetailInfo = await ballotStorage.getBallotMember(_id);
 
-              assert.equal(ballotDetailInfo[0], addMem);
-              assert.equal(ballotDetailInfo[1], ZERO_ADDRESS);
-              assert.equal(ballotDetailInfo[2], '0x');
-              assert.equal(web3Utils.toUtf8(ballotDetailInfo[3]), '');
-              assert.equal(ballotDetailInfo[4], 0);
+              assert.equal(ballotDetailInfo[BallotMemberParams.oldMemberAddress], addMem);
+              assert.equal(ballotDetailInfo[BallotMemberParams.newMemberAddress], ZERO_ADDRESS);
+              assert.equal(web3Utils.toUtf8(ballotDetailInfo[BallotMemberParams.newNodeName]), _nodeName);
+              assert.equal(ballotDetailInfo[BallotMemberParams.newNodeId], '0x');
+              assert.equal(web3Utils.toUtf8(ballotDetailInfo[BallotMemberParams.newNodeIp]), '');
+              assert.equal(ballotDetailInfo[BallotMemberParams.newNodePort], 0);
+
             });
           });
           describe('swap', function () {
@@ -430,6 +464,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
                 creator, // creator
                 ZERO_ADDRESS, // oldMemberAddress
                 addMem, // newMemberAddress
+                _nodeName, // newNodeName
                 _enodeid, // newNodeId
                 _nodeip, // newNodeIp
                 _nodePort, // newNodePort
@@ -442,6 +477,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
                 creator, // creator
                 addMem, // oldMemberAddress
                 ZERO_ADDRESS, // newMemberAddress
+                _nodeName, // newNodeName
                 _enodeid, // newNodeId
                 _nodeip, // newNodeIp
                 _nodePort, // newNodePort
@@ -454,6 +490,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
                 creator, // creator
                 addMem, // oldMemberAddress
                 addMem, // newMemberAddress
+                _nodeName, // newNodeName
                 '0x', // newNodeId
                 _nodeip, // newNodeIp
                 _nodePort, // newNodePort
@@ -466,6 +503,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
                 creator, // creator
                 addMem, // oldMemberAddress
                 addMem, // newMemberAddress
+                _nodeName, // newNodeName
                 _enodeid, // newNodeId
                 '0x', // newNodeIp
                 _nodePort, // newNodePort
@@ -478,6 +516,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
                 creator, // creator
                 addMem, // oldMemberAddress
                 addMem, // newMemberAddress
+                _nodeName, // newNodeName
                 _enodeid, // newNodeId
                 _nodeip, // newNodeIp
                 0, // newNodePort
@@ -491,6 +530,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
                 creator, // creator
                 addMem, // oldMemberAddress
                 addMem, // newMemberAddress
+                _nodeName, // newNodeName
                 _enodeid, // newNodeId
                 _nodeip, // newNodeIp
                 _nodePort, // newNodePort
@@ -509,11 +549,12 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
 
               const ballotDetailInfo = await ballotStorage.getBallotMember(_id);
 
-              assert.equal(ballotDetailInfo[0], addMem);
-              assert.equal(ballotDetailInfo[1], addMem);
-              assert.equal(ballotDetailInfo[2], _enodeid);
-              assert.equal(web3Utils.toUtf8(ballotDetailInfo[3]), _nodeip);
-              assert.equal(ballotDetailInfo[4], _nodePort);
+              assert.equal(ballotDetailInfo[BallotMemberParams.oldMemberAddress], addMem);
+              assert.equal(ballotDetailInfo[BallotMemberParams.newMemberAddress], addMem);
+              assert.equal(web3Utils.toUtf8(ballotDetailInfo[BallotMemberParams.newNodeName]), _nodeName);
+              assert.equal(ballotDetailInfo[BallotMemberParams.newNodeId], _enodeid);
+              assert.equal(web3Utils.toUtf8(ballotDetailInfo[BallotMemberParams.newNodeIp]),  _nodeip);
+              assert.equal(ballotDetailInfo[BallotMemberParams.newNodePort], _nodePort);
             });
           });
         });
@@ -626,6 +667,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
           creator, // creator
           ZERO_ADDRESS, // oldMemberAddress
           addMem, // newMemberAddress
+          _nodeName, // newNodeName
           _enodeid, // newNodeId
           _nodeip, // newNodeIp
           _nodePort, // newNodePort
@@ -724,7 +766,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
         it('update lockAmount for MemberAdd', async () => {
           await ballotStorage.updateBallotMemberLockAmount(_id, _lockAmount, { value: 0, from: govAddr });
           const ballotMemberInfo = await ballotStorage.getBallotMember(_id);
-          ballotMemberInfo[5].should.be.bignumber.equal(_lockAmount);
+          ballotMemberInfo[BallotMemberParams.lockAmount].should.be.bignumber.equal(_lockAmount);
         });
       });
       describe('finalize', function () {
@@ -755,7 +797,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
 
     beforeEach(async () => {
       // registry = await Registry.new();
-      // staking = await Staking.new(registry.address);
+      // staking = await Staking.new(registry.address,"");
       // await registry.setContractDomain('Staking', staking.address);
       ballotStorage = await BallotStorage.new(registry.address);
       await registry.setContractDomain('BallotStorage', ballotStorage.address);
@@ -764,6 +806,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
       _start_time = moment.utc().add(1, 'seconds').unix();
       _end_time = moment.utc().add(10, 'days').unix();
       const _ballotType = 1; // new web3.BigNumber(1);
+      const _nodeName ='Meta001';
       const _enodeid = '0x6f8a80d14311c39f35f516fa664deaaaa13e85b2f7493f37f6144d86991ec012937307647bd3b9a82abe2974e1407241d54947bbb39763a4cac9f77166ad92a0';
       // let _enodeid = web3Utils.hexToBytes(_enodidHexString);
       const _nodeip = '123.11.111.111';
@@ -774,6 +817,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
         creator, // creator
         ZERO_ADDRESS, // oldMemberAddress
         addMem, // newMemberAddress
+        _nodeName, // newNodeName
         _enodeid, // newNodeId
         _nodeip, // newNodeIp
         _nodePort, // newNodePort

@@ -195,7 +195,7 @@ interface IGov {
     function getNodeIdxFromMember(address) external view returns (uint256);
     function getMemberFromNodeIdx(uint256) external view returns (address);
     function getNodeLength() external view returns (uint256);
-    function getNode(uint256) external view returns (bytes, bytes, uint);
+    function getNode(uint256) external view returns (bytes, bytes, bytes, uint);
     function getBallotInVoting() external view returns (uint256);
 }
 
@@ -295,6 +295,9 @@ contract UpgradeabilityProxy is Proxy {
 }
 
 contract Gov is UpgradeabilityProxy, GovChecker {
+    // "Metadium Governance"
+    uint public magic = 0x4d6574616469756d20476f7665726e616e6365;
+    uint public modifiedBlock;
     bool private _initialized;
 
     // For voting member
@@ -308,6 +311,7 @@ contract Gov is UpgradeabilityProxy, GovChecker {
 
     // For enode
     struct Node {
+        bytes name;
         bytes enode;
         bytes ip;
         uint port;
@@ -340,16 +344,17 @@ contract Gov is UpgradeabilityProxy, GovChecker {
     function getMemberFromNodeIdx(uint256 idx) public view returns (address) { return nodeToMember[idx]; }
     function getNodeLength() public view returns (uint256) { return nodeLength; }
 
-    function getNode(uint256 idx) public view returns (bytes enode, bytes ip, uint port) {
-        return (nodes[idx].enode, nodes[idx].ip, nodes[idx].port);
+    function getNode(uint256 idx) public view returns (bytes name, bytes enode, bytes ip, uint port) {
+        return (nodes[idx].name, nodes[idx].enode, nodes[idx].ip, nodes[idx].port);
     }
-    
+
     function getBallotInVoting() public view returns (uint256) { return ballotInVoting; }
 
     function init(
         address registry,
         address implementation,
         uint256 lockAmount,
+        bytes name,
         bytes enode,
         bytes ip,
         uint port
@@ -378,6 +383,7 @@ contract Gov is UpgradeabilityProxy, GovChecker {
         // Add node
         nodeLength = 1;
         Node storage node = nodes[nodeLength];
+        node.name = name;
         node.enode = enode;
         node.ip = ip;
         node.port = port;
@@ -385,6 +391,86 @@ contract Gov is UpgradeabilityProxy, GovChecker {
         nodeToMember[nodeLength] = msg.sender;
 
         _initialized = true;
+        modifiedBlock = block.number;
+    }
+
+    function initOnce(
+        address registry,
+        address implementation,
+        bytes data
+    )
+        public onlyOwner
+    {
+        require(_initialized == false, "Already initialized");
+
+        setRegistry(registry);
+        setImplementation(implementation);
+
+        _initialized = true;
+        modifiedBlock = block.number;
+
+        // []{uint addr, bytes name, bytes enode, bytes ip, uint port}
+        // 32 bytes, [32 bytes, <data>] * 3, 32 bytes
+        address addr;
+        bytes memory name;
+        bytes memory enode;
+        bytes memory ip;
+        uint port;
+        uint idx = 0;
+
+        uint ix;
+        uint eix;
+        assembly {
+            ix := add(data, 0x20)
+        }
+        eix = ix + data.length;
+        while (ix < eix) {
+            assembly {
+                port := mload(ix)
+            }
+            addr = address(port);
+            ix += 0x20;
+            require(ix < eix);
+
+            assembly {
+                name := ix
+            }
+            ix += 0x20 + name.length;
+            require(ix < eix);
+
+            assembly {
+                enode := ix
+            }
+            ix += 0x20 + enode.length;
+            require(ix < eix);
+
+            assembly {
+                ip := ix
+            }
+            ix += 0x20 + ip.length;
+            require(ix < eix);
+
+            assembly {
+                port := mload(ix)
+            }
+            ix += 0x20;
+
+            idx += 1;
+            members[idx] = addr;
+            memberIdx[addr] = idx;
+            rewards[idx] = addr;
+            rewardIdx[addr] = idx;
+
+            Node storage node = nodes[idx];
+            node.name = name;
+            node.enode = enode;
+            node.ip = ip;
+            node.port = port;
+            nodeToMember[idx] = addr;
+            nodeIdxFromMember[addr] = idx;
+        }
+        memberLength = idx;
+        nodeLength = idx;
     }
 }
 
