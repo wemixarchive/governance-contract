@@ -431,8 +431,8 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         ) = IBallotStorage(getBallotStorageAddress()).getBallotVariable(ballotIdx);
 
         IEnvStorage envStorage = IEnvStorage(getEnvStorageAddress());
-        if (envKey == BLOCK_PER_NAME && envType == BLOCK_PER_TYPE) {
-            envStorage.setBlockPerByBytes(envVal);
+        if (envKey == BLOCKS_PER_NAME && envType == BLOCKS_PER_TYPE) {
+            envStorage.setBlocksPerByBytes(envVal);
         } else if (envKey == BALLOT_DURATION_MIN_NAME && envType == BALLOT_DURATION_MIN_TYPE) {
             envStorage.setBallotDurationMinByBytes(envVal);
         } else if (envKey == BALLOT_DURATION_MAX_NAME && envType == BALLOT_DURATION_MAX_TYPE) {
@@ -441,7 +441,12 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
             envStorage.setStakingMinByBytes(envVal);
         } else if (envKey == STAKING_MAX_NAME && envType == STAKING_MAX_TYPE) {
             envStorage.setStakingMaxByBytes(envVal);
+        } else if (envKey == GAS_PRICE_NAME && envType == GAS_PRICE_TYPE) {
+            envStorage.setGasPriceByBytes(envVal);
+        } else if (envKey == MAX_IDLE_BLOCK_INTERVAL_NAME && envType == MAX_IDLE_BLOCK_INTERVAL_TYPE) {
+            envStorage.setMaxIdleBlockIntervalByBytes(envVal);
         }
+
         modifiedBlock = block.number;
         emit EnvChanged(envKey, envType, envVal);
     }

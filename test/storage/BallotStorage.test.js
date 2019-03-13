@@ -80,22 +80,24 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
     envStorage = await EnvStorage.new(registry.address, envStorageImp.address);
     await registry.setContractDomain('EnvStorage', envStorage.address);
 
-    const _defaultBlockPer =  new web3.BigNumber(1000);
+    const _defaultBlocksPer =  new web3.BigNumber(1000);
     const _defaultBallotDurationMin = time.duration.days(1);
     const _defaultBallotDurationMax = time.duration.days(7);
     const _defaultStakingMin = ether (4980000);
     const _defaultStakingMax = ether (39840000);
     const _defaultGasPrice = ether (0.00000008);
+    const _defaultMaxIdleBlockInterval = 5;
 
     iEnvStorage = EnvStorageImp.at(envStorage.address);
     //await iEnvStorage.initialize({ from: deployer });
     await iEnvStorage.initialize(
-      _defaultBlockPer,
+      _defaultBlocksPer,
       _defaultBallotDurationMin,
       _defaultBallotDurationMax,
       _defaultStakingMin,
       _defaultStakingMax,
       _defaultGasPrice,
+      _defaultMaxIdleBlockInterval,
       { from: deployer }
     );
 
@@ -601,7 +603,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
           const _end_time = 0;
           const _ballotType = new web3.BigNumber(5);
           const _memo = 'test message for ballot';
-          const _varName = web3.sha3('blockPer');
+          const _varName = web3.sha3('blocksPer');
           const _varType = new web3.BigNumber(2);
 
           const _varVal = '0x0000000000000000000000000000000000000000000000000000000000007530';
@@ -610,7 +612,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
           // const _id = new web3.BigNumber(4);
           // const _ballotType = new web3.BigNumber(4);
           // const _memo = 'test message for ballot';
-          // const _varName = web3.sha3('blockPer');
+          // const _varName = web3.sha3('blocksPer');
           // const _varType = new web3.BigNumber(2);
           // const _varVal = new web3.BigNumber(1000);
             await reverting(ballotStorage.createBallotForVariable(

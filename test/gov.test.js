@@ -79,19 +79,22 @@ contract('Governance', function ([deployer, govMem1, govMem2, govMem3, govMem4, 
 
     // Initialize environment storage
     envDelegator = EnvStorageImp.at(envStorage.address);
-    const _defaultBlockPer =  1000;
+    const _defaultBlocksPer =  1000;
     const _defaultBallotDurationMin = 86400;
     const _defaultBallotDurationMax = 604800;
     const _defaultStakingMin = ether (4980000);
     const _defaultStakingMax = ether (39840000);
     const _defaultGasPrice = ether (0.00000008);
+    const _defaultMaxIdleBlockInterval = 5;
+
     await envDelegator.initialize(
-      _defaultBlockPer,
+      _defaultBlocksPer,
       _defaultBallotDurationMin,
       _defaultBallotDurationMax,
       _defaultStakingMin,
       _defaultStakingMax,
       _defaultGasPrice,
+      _defaultMaxIdleBlockInterval,
       { from: deployer });
 
     // Initialize for staking
@@ -311,7 +314,7 @@ contract('Governance', function ([deployer, govMem1, govMem2, govMem3, govMem4, 
     });
 
     it('can vote approval to change environment', async () => {
-      await govDelegator.addProposalToChangeEnv(web3.sha3('blockPer'), envTypes.Uint, '0x0000000000000000000000000000000000000000000000000000000000000064', memo[0], { from: deployer });
+      await govDelegator.addProposalToChangeEnv(web3.sha3('blocksPer'), envTypes.Uint, '0x0000000000000000000000000000000000000000000000000000000000000064', memo[0], { from: deployer });
       await govDelegator.vote(1, true, { from: deployer });
       const len = await gov.voteLength();
       len.should.be.bignumber.equal(1);
@@ -321,8 +324,8 @@ contract('Governance', function ([deployer, govMem1, govMem2, govMem3, govMem4, 
       state[1].should.be.bignumber.equal(ballotStates.Accepted);
       state[2].should.equal(true);
 
-      const blockPer = await envDelegator.getBlockPer();
-      blockPer.should.be.bignumber.equal(100);
+      const blocksPer = await envDelegator.getBlocksPer();
+      blocksPer.should.be.bignumber.equal(100);
     });
 
     it('cannot vote for a ballot already done', async () => {

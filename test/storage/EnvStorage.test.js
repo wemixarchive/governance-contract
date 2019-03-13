@@ -18,12 +18,13 @@ contract('EnvStorage', accounts => {
   const [deployer, creator, addMem, govAddr, govAddr2] = accounts;
   let registry, iEnvStorage, envStorage, envStorageImp;
 
-  const _defaultBlockPer =  new web3.BigNumber(1000);
+  const _defaultBlocksPer =  new web3.BigNumber(1000);
   const _defaultBallotDurationMin = time.duration.days(1);
   const _defaultBallotDurationMax = time.duration.days(7);
   const _defaultStakingMin = ether (4980000);
   const _defaultStakingMax = ether (39840000);
   const _defaultGasPrice = ether (0.00000008);
+  const _defaultMaxIdleBlockInterval = 5;
 
   beforeEach(async () => {
     registry = await Registry.new();
@@ -37,19 +38,20 @@ contract('EnvStorage', accounts => {
 
     iEnvStorage = EnvStorageImp.at(envStorage.address);
     await iEnvStorage.initialize(
-      _defaultBlockPer,
+      _defaultBlocksPer,
       _defaultBallotDurationMin,
       _defaultBallotDurationMax,
       _defaultStakingMin,
       _defaultStakingMax,
       _defaultGasPrice,
+      _defaultMaxIdleBlockInterval,
       { from: deployer });
   });
 
   describe('EnvStorage', function () {
 
-    const _blockPer =  100;
-    const _blockPerBytes = web3EthAbi.encodeParameter('uint', _blockPer);
+    const _blocksPer =  100;
+    const _blocksPerBytes = web3EthAbi.encodeParameter('uint', _blocksPer);
     const _ballotDurationMin = time.duration.days(2);
     const _ballotDurationMinBytes = web3EthAbi.encodeParameter('uint', _ballotDurationMin.toString(10));
     const _ballotDurationMax = time.duration.weeks(2);
@@ -91,15 +93,16 @@ contract('EnvStorage', accounts => {
     });
     
     it('Check Variable Default Value', async () => {
-      const blockPer = await iEnvStorage.getBlockPer();
+      const blocksPer = await iEnvStorage.getBlocksPer();
       const durationMin = await iEnvStorage.getBallotDurationMin();
       const durationMax = await iEnvStorage.getBallotDurationMax();
       const stakingMin = await iEnvStorage.getStakingMin();
       const stakingMax = await iEnvStorage.getStakingMax();
       const gasPrice = await iEnvStorage.getGasPrice();
-
-      blockPer.should.be.bignumber.equal( _defaultBlockPer, "is not Default of BlockPer");
-      console.log(`blockPer : ${blockPer.toFormat()}`);
+      const maxIdleBlockInterval = await iEnvStorage.getMaxIdleBlockInterval();
+      
+      blocksPer.should.be.bignumber.equal( _defaultBlocksPer, "is not Default of BlocksPer");
+      console.log(`blocksPer : ${blocksPer.toFormat()}`);
       durationMin.should.be.bignumber.equal( _defaultBallotDurationMin, "is not Default of BallotDurationMin");
       console.log(`durationMin : ${durationMin.toFormat()}`);
       durationMax.should.be.bignumber.equal( _defaultBallotDurationMax, "is not Default of BallotDurationMax");
@@ -107,11 +110,12 @@ contract('EnvStorage', accounts => {
       stakingMin.should.be.bignumber.equal( _defaultStakingMin, "is not Default of StakingMin");
       console.log(`stakingMin : ${stakingMin.toFormat()}`);
       stakingMax.should.be.bignumber.equal( _defaultStakingMax, "is not Default of StakingMax");
-     
       console.log(`stakingMax : ${stakingMax.toFormat()}`);
       gasPrice.should.be.bignumber.equal( _defaultGasPrice, "is not Default of GasPrice");
-      
       console.log(`gasPrice : ${gasPrice.toFormat()}`);
+      maxIdleBlockInterval.should.be.bignumber.equal( _defaultMaxIdleBlockInterval, "is not Default of MaxIdleBlockInterval");
+      
+      console.log(`gasPrice : ${maxIdleBlockInterval.toFormat()}`);
     });
 
     it('Type Test', async () => {
@@ -143,26 +147,26 @@ contract('EnvStorage', accounts => {
     });
 
     it('Canot Set block per variable(not govAddr)', async () => {
-      await reverting(iEnvStorage.setBlockPerByBytes(_blockPerBytes), { value: 0, from: creator });
-      await reverting(iEnvStorage.setBlockPer(_blockPerBytes), { value: 0, from: creator });
+      await reverting(iEnvStorage.setBlocksPerByBytes(_blocksPerBytes), { value: 0, from: creator });
+      await reverting(iEnvStorage.setBlocksPer(_blocksPerBytes), { value: 0, from: creator });
     });
 
     it('Update block per String variable  with VariableChange Event', async () => {
-      const _result = await iEnvStorage.setBlockPerByBytes(_blockPerBytes, { value: 0, from: govAddr });
+      const _result = await iEnvStorage.setBlocksPerByBytes(_blocksPerBytes, { value: 0, from: govAddr });
       // truffleAssert.eventEmitted(_result, 'UintVarableChanged', (ev) => {
-      //   return ev._name === web3.sha3('blockPer') && ev._value == _blockPer;
+      //   return ev._name === web3.sha3('blocksPer') && ev._value == _blocksPer;
       // });
-      const _value = await iEnvStorage.getBlockPer();
-      _value.should.be.bignumber.equal(_blockPer);
+      const _value = await iEnvStorage.getBlocksPer();
+      _value.should.be.bignumber.equal(_blocksPer);
     });
 
     it('Update block per uint variable  with VariableChange Event', async () => {
-      const _result = await iEnvStorage.setBlockPer(_blockPer, { value: 0, from: govAddr });
+      const _result = await iEnvStorage.setBlocksPer(_blocksPer, { value: 0, from: govAddr });
       // truffleAssert.eventEmitted(_result, 'UintVarableChanged', (ev) => {
-      //   return ev._name === web3.sha3('blockPer') && ev._value == _blockPer;
+      //   return ev._name === web3.sha3('blocksPer') && ev._value == _blocksPer;
       // });
-      const _value = await iEnvStorage.getBlockPer();
-      _value.should.be.bignumber.equal(_blockPer);
+      const _value = await iEnvStorage.getBlocksPer();
+      _value.should.be.bignumber.equal(_blocksPer);
     });
 
     it('Update BallotDurationMin String variable  with VariableChange Event', async () => {
