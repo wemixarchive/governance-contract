@@ -418,6 +418,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         address newImp = IBallotStorage(getBallotStorageAddress()).getBallotAddress(ballotIdx);
         if (newImp != address(0)) {
             setImplementation(newImp);
+            modifiedBlock = block.number;
         }
     }
 
