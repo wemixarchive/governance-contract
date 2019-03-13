@@ -558,7 +558,7 @@ contract EnvStorageImp is AEnvStorage, EnvConstants {
         require(_stakingMin != 0 || stakingMin != 0, "invalid stakingMin values");
         require(_stakingMax != 0 || stakingMax != 0, "invalid stakingMax values");
         require(_gasPrice != 0 || gasPrice != 0, "invalid gasPrice values");
-        require(_maxIdleBlockInterval != 0 || _maxIdleBlockInterval != 0, "invalid max Idle Block Interval values");
+        require(_maxIdleBlockInterval != 0 || maxIdleBlockInterval != 0, "invalid max Idle Block Interval values");
         if (blocksPer == 0) {
             setUint(BLOCKS_PER_NAME, _blocksPer);
         }
@@ -664,7 +664,7 @@ contract EnvStorageImp is AEnvStorage, EnvConstants {
     function setMaxIdleBlockIntervalByBytes(bytes _value) public onlyGov { 
         setStakingMax(toUint(_value));
     }
-    
+
     function getTestInt() public view returns (int256) {
         return getInt(TEST_INT);
     }

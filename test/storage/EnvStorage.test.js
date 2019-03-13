@@ -146,12 +146,12 @@ contract('EnvStorage', accounts => {
       // console.log(`getTestString : ${_value}`);
     });
 
-    it('Canot Set block per variable(not govAddr)', async () => {
+    it('Canot Set blocks per variable(not govAddr)', async () => {
       await reverting(iEnvStorage.setBlocksPerByBytes(_blocksPerBytes), { value: 0, from: creator });
       await reverting(iEnvStorage.setBlocksPer(_blocksPerBytes), { value: 0, from: creator });
     });
 
-    it('Update block per String variable  with VariableChange Event', async () => {
+    it('Update blocks per String variable  with VariableChange Event', async () => {
       const _result = await iEnvStorage.setBlocksPerByBytes(_blocksPerBytes, { value: 0, from: govAddr });
       // truffleAssert.eventEmitted(_result, 'UintVarableChanged', (ev) => {
       //   return ev._name === web3.sha3('blocksPer') && ev._value == _blocksPer;
@@ -160,7 +160,7 @@ contract('EnvStorage', accounts => {
       _value.should.be.bignumber.equal(_blocksPer);
     });
 
-    it('Update block per uint variable  with VariableChange Event', async () => {
+    it('Update blocks per uint variable  with VariableChange Event', async () => {
       const _result = await iEnvStorage.setBlocksPer(_blocksPer, { value: 0, from: govAddr });
       // truffleAssert.eventEmitted(_result, 'UintVarableChanged', (ev) => {
       //   return ev._name === web3.sha3('blocksPer') && ev._value == _blocksPer;
