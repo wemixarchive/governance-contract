@@ -40,12 +40,12 @@ contract Gov is UpgradeabilityProxy, GovChecker {
     uint256 internal ballotInVoting;
 
     constructor() public {
-        _initialized = false;
-        memberLength = 0;
-        nodeLength = 0;
-        ballotLength = 0;
-        voteLength = 0;
-        ballotInVoting = 0;
+        //_initialized = false;
+        // memberLength = 0;
+        // nodeLength = 0;
+        // ballotLength = 0;
+        // voteLength = 0;
+        // ballotInVoting = 0;
     }
 
     function isMember(address addr) public view returns (bool) { return (memberIdx[addr] != 0); }
@@ -74,7 +74,7 @@ contract Gov is UpgradeabilityProxy, GovChecker {
         public onlyOwner
     {
         require(_initialized == false, "Already initialized");
-
+        require(lockAmount > 0, "lockAmount should be more then zero");
         setRegistry(registry);
         setImplementation(implementation);
 
