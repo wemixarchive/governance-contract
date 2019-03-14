@@ -264,6 +264,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
                 _ballotType,
                 _oldMemberAddress,
                 _newMemberAddress,
+                _newNodeName,
                 _newNodeId,
                 _newNodeIp,
                 _newNodePort
@@ -347,7 +348,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         //1. msg.sender가 member
         //2. actionType 범위 
         require((_decision == uint256(DecisionTypes.Accept))
-            || (_decision <= uint256(DecisionTypes.Reject)), "Invalid decision");
+            || (_decision == uint256(DecisionTypes.Reject)), "Invalid decision");
         
         //3. ballotId 존재 하는지 확인 
         require(ballotBasicMap[_ballotId].id == _ballotId, "not existed Ballot");
@@ -548,6 +549,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         uint256 _ballotType,
         address _oldMemberAddress,
         address _newMemberAddress,
+        bytes _newName,
         bytes _newNodeId, // admin.nodeInfo.id is 512 bit public key
         bytes _newNodeIp,
         uint _newNodePort
@@ -562,10 +564,12 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         if (_ballotType == uint256(BallotTypes.MemberRemoval)){
             require(_oldMemberAddress != address(0), "Invalid old member address");
             require(_newMemberAddress == address(0), "Invalid new member address");
+            require(_newName.length == 0, "Invalid new node name");
             require(_newNodeId.length == 0, "Invalid new node id");
             require(_newNodeIp.length == 0, "Invalid new node IP");
             require(_newNodePort == 0, "Invalid new node Port");
         }else {
+            require(_newName.length > 0, "Invalid new node name");
             require(_newNodeId.length == 64, "Invalid new node id");
             require(_newNodeIp.length > 0, "Invalid new node IP");
             require(_newNodePort > 0, "Invalid new node Port");
@@ -592,7 +596,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         returns(bool)
     {
         require(_ballotType == uint256(BallotTypes.EnvValChange), "Invalid Ballot Type");
-        require(_envVariableName.length > 0, "Invalid environment variable name");
+        require(_envVariableName > 0, "Invalid environment variable name");
         require(_envVariableType >= uint256(VariableTypes.Int), "Invalid environment variable Type");
         require(_envVariableType <= uint256(VariableTypes.String), "Invalid environment variable Type");
         require(_envVariableValue.length > 0, "Invalid environment variable value");
