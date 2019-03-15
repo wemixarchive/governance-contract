@@ -17,6 +17,7 @@ const metaTestnetConfig = config.get('metadiumTestnet');
 
 // eslint-disable-next-line max-len
 const enode = '0x6f8a80d14311c39f35f516fa664deaaaa13e85b2f7493f37f6144d86991ec012937307647bd3b9a82abe2974e1407241d54947bbb39763a4cac9f77166ad92a0';
+const name = 'miner';
 const ip = '127.0.0.1';
 const port = 8542;
 const memo = 'memo';
@@ -40,7 +41,7 @@ async function deploy (deployer, network, accounts) {
 
     // Initialize gov contract
     console.log('Initialize governance');
-    await contracts.gov.init(contracts.registry.address, contracts.govImp.address, amount, enode, ip, port);
+    await contracts.gov.init(contracts.registry.address, contracts.govImp.address, amount, name, enode, ip, port);
 
     //Initialize envStorage contract variables
     let iEnvStorage = EnvStorageImp.at(contracts.envStorage.address);
@@ -50,15 +51,17 @@ async function deploy (deployer, network, accounts) {
     const _defaultStakingMin = 4980000000000000000000000;
     const _defaultStakingMax = 39840000000000000000000000;
     const _defaultGasPrice = 80000000000;
-    
+    const _defaultMaxIdleBlockInterval =  5;
+
     await iEnvStorage.initialize(
       _defaultBlocksPer,
       _defaultBallotDurationMin,
       _defaultBallotDurationMax,
       _defaultStakingMin,
       _defaultStakingMax,
-      _defaultGasPrice);
-    
+      _defaultGasPrice,
+      _defaultMaxIdleBlockInterval
+      );
 
     // Write contract address to contract.json
     await writeToContractsJson(contracts);
@@ -68,13 +71,13 @@ async function deploy (deployer, network, accounts) {
 async function deployContracts (deployer, network, accounts) {
   // proxy create metaID instead user for now. Because users do not have enough fee.
   const contracts = {
-    'registry': Object,
-    'govImp': Object,
-    'gov': Object,
-    'staking': Object,
-    'ballotStorage': Object,
-    'envStorageImp': Object,
-    'envStorage': Object,
+    registry: Object,
+    govImp: Object,
+    gov: Object,
+    staking: Object,
+    ballotStorage: Object,
+    envStorageImp: Object,
+    envStorage: Object,
   };
 
   contracts.registry = await deployer.deploy(Registry);
