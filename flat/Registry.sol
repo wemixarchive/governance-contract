@@ -20,7 +20,7 @@ contract Ownable {
   /**
    * @return the address of the owner.
    */
-  function owner() public view returns (address) {
+  function owner() public view returns(address) {
     return _owner;
   }
 
@@ -35,7 +35,7 @@ contract Ownable {
   /**
    * @return true if `msg.sender` is the owner of the contract.
    */
-  function isOwner() public view returns (bool) {
+  function isOwner() public view returns(bool) {
     return msg.sender == _owner;
   }
 

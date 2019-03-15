@@ -1,7 +1,7 @@
 pragma solidity ^0.4.24;
 
 import "../GovChecker.sol";
-import "./EternalStorage.sol";
+import "../storage/EternalStorage.sol";
 
 contract AEnvStorage is EternalStorage, GovChecker {
     // struct Variable {

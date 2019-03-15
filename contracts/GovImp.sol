@@ -6,10 +6,10 @@ import "./abstract/EnvConstants.sol";
 import "./interface/IBallotStorage.sol";
 import "./interface/IEnvStorage.sol";
 import "./interface/IStaking.sol";
-import "./Gov.sol";
+import "./abstract/AGov.sol";
 
 
-contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
+contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
     using SafeMath for uint256;
 
     event MemberAdded(address indexed addr);
@@ -31,10 +31,10 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         returns (uint256 ballotIdx)
     {
         require(msg.sender != member, "Cannot add self");
-        // require(name.length > 0, "Invalid node name");
-        // require(ip.length > 0, "Invalid node IP");
-        // require(portNlockAmount[0] > 0, "Invalid node port");
-        // require(portNlockAmount[1] > 0, "Invalid lockAmmount");
+        require(name.length > 0, "Invalid node name");
+        require(ip.length > 0, "Invalid node IP");
+        require(portNlockAmount[0] > 0, "Invalid node port");
+        require(portNlockAmount[1] > 0, "Invalid lockAmmount");
         require(!isMember(member), "Already member");
 
         ballotIdx = ballotLength.add(1);
@@ -96,12 +96,12 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         onlyGovMem
         returns (uint256 ballotIdx)
     {
-        // require(targetNnewMember[0] != address(0), "Invalid old Address");
-        // require(targetNnewMember[1] != address(0), "Invalid new Address");
-        // require(nName.length > 0, "Invalid node name");
-        // require(nIp.length > 0, "Invalid node IP");
-        // require(portNlockAmount[0] > 0, "Invalid node port");
-        // require(portNlockAmount[1] > 0, "Invalid lockAmmount");
+        require(targetNnewMember[0] != address(0), "Invalid old Address");
+        require(targetNnewMember[1] != address(0), "Invalid new Address");
+        require(nName.length > 0, "Invalid node name");
+        require(nIp.length > 0, "Invalid node IP");
+        require(portNlockAmount[0] > 0, "Invalid node port");
+        require(portNlockAmount[1] > 0, "Invalid lockAmmount");
         require(isMember(targetNnewMember[0]), "Non-member");
 
         ballotIdx = ballotLength.add(1);

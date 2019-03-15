@@ -80,7 +80,7 @@ contract Ownable {
   /**
    * @return the address of the owner.
    */
-  function owner() public view returns (address) {
+  function owner() public view returns(address) {
     return _owner;
   }
 
@@ -95,7 +95,7 @@ contract Ownable {
   /**
    * @return true if `msg.sender` is the owner of the contract.
    */
-  function isOwner() public view returns (bool) {
+  function isOwner() public view returns(bool) {
     return msg.sender == _owner;
   }
 
@@ -144,6 +144,7 @@ contract GovChecker is Ownable {
      * @return A boolean that indicates if the operation was successful.
      */
     function setRegistry(address _addr) public onlyOwner {
+        require(_addr != address(0), "Address should be non-zero");
         reg = IRegistry(_addr);
     }
     
@@ -276,6 +277,7 @@ contract UpgradeabilityProxy is Proxy {
      * @param newImplementation address representing the new implementation to be set
      */
     function setImplementation(address newImplementation) internal {
+        require(newImplementation != address(0), "newImplementation should be non-zero");
         bytes32 position = IMPLEMENT_POSITION;
         assembly {
             sstore(position, newImplementation)
@@ -287,18 +289,18 @@ contract UpgradeabilityProxy is Proxy {
      * @param newImplementation representing the address of the new implementation to be set
      */
     function _upgradeTo(address newImplementation) internal {
+        require(newImplementation != address(0), "newImplementation should be non-zero");
         address currentImplementation = implementation();
-        require(currentImplementation != newImplementation);
+        require(currentImplementation != newImplementation, "newImplementation should be not same as currentImplementation");
         setImplementation(newImplementation);
         emit Upgraded(newImplementation);
     }
 }
 
-contract Gov is UpgradeabilityProxy, GovChecker {
-    // "Metadium Governance"
-    uint public magic = 0x4d6574616469756d20476f7665726e616e6365;
+contract AGov is UpgradeabilityProxy, GovChecker {
+
     uint public modifiedBlock;
-    bool private _initialized;
+  
 
     // For voting member
     mapping(uint256 => address) internal members;
@@ -328,12 +330,12 @@ contract Gov is UpgradeabilityProxy, GovChecker {
     uint256 internal ballotInVoting;
 
     constructor() public {
-        _initialized = false;
-        memberLength = 0;
-        nodeLength = 0;
-        ballotLength = 0;
-        voteLength = 0;
-        ballotInVoting = 0;
+        //_initialized = false;
+        // memberLength = 0;
+        // nodeLength = 0;
+        // ballotLength = 0;
+        // voteLength = 0;
+        // ballotInVoting = 0;
     }
 
     function isMember(address addr) public view returns (bool) { return (memberIdx[addr] != 0); }
@@ -349,7 +351,13 @@ contract Gov is UpgradeabilityProxy, GovChecker {
     }
 
     function getBallotInVoting() public view returns (uint256) { return ballotInVoting; }
+}
 
+contract Gov is AGov {
+    // "Metadium Governance"
+    uint public magic = 0x4d6574616469756d20476f7665726e616e6365;
+    bool private _initialized;
+    
     function init(
         address registry,
         address implementation,
@@ -362,7 +370,7 @@ contract Gov is UpgradeabilityProxy, GovChecker {
         public onlyOwner
     {
         require(_initialized == false, "Already initialized");
-
+        require(lockAmount > 0, "lockAmount should be more then zero");
         setRegistry(registry);
         setImplementation(implementation);
 
