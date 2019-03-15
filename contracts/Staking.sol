@@ -16,6 +16,7 @@ contract Staking is GovChecker, ReentrancyGuard {
     event Unstaked(address indexed payee, uint256 amount, uint256 total, uint256 available);
     event Locked(address indexed payee, uint256 amount, uint256 total, uint256 available);
     event Unlocked(address indexed payee, uint256 amount, uint256 total, uint256 available);
+    event TransferLocked(address indexed payee, uint256 amount, uint256 total, uint256 available);
 
     constructor(address registry, bytes data) public {
         _totalLockedBalance = 0;
@@ -69,7 +70,7 @@ contract Staking is GovChecker, ReentrancyGuard {
     * @param amount The amount of funds will be withdrawn and transferred to.
     */
     function withdraw(uint256 amount) external nonReentrant notRevoked {
-        require(amount <= availableBalanceOf(msg.sender), "Withdraw amount should be equal or less than balance");
+        require(amount > 0 && amount <= availableBalanceOf(msg.sender), "Withdraw amount should be equal or less than balance");
 
         _balance[msg.sender] = _balance[msg.sender].sub(amount);
         msg.sender.transfer(amount);
@@ -83,6 +84,7 @@ contract Staking is GovChecker, ReentrancyGuard {
     * @param lockAmount The amount of funds will be locked.
     */
     function lock(address payee, uint256 lockAmount) external onlyGov {
+        if(lockAmount == 0 ) return;
         require(_balance[payee] >= lockAmount, "Lock amount should be equal or less than balance");
         require(availableBalanceOf(payee) >= lockAmount, "Insufficient balance that can be locked");
 
@@ -98,10 +100,12 @@ contract Staking is GovChecker, ReentrancyGuard {
     * @param amount The amount of funds will be transfered.
     */
     function transferLocked(address from, uint256 amount) external onlyGov {
+        if(amount == 0) return;
         unlock(from, amount);
         _balance[from] = _balance[from].sub(amount);
         address rewardPool = getRewardPoolAddress();
         _balance[rewardPool] = _balance[rewardPool].add(amount);
+        emit TransferLocked(from, amount, _balance[from], availableBalanceOf(from));
     }
 
     /**
@@ -110,6 +114,7 @@ contract Staking is GovChecker, ReentrancyGuard {
     * @param unlockAmount The amount of funds will be unlocked.
     */
     function unlock(address payee, uint256 unlockAmount) public onlyGov {
+        if(unlockAmount == 0) return;
         // require(_lockedBalance[payee] >= unlockAmount, "Unlock amount should be equal or less than balance locked");
         _lockedBalance[payee] = _lockedBalance[payee].sub(unlockAmount);
         _totalLockedBalance = _totalLockedBalance.sub(unlockAmount);
