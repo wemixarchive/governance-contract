@@ -114,6 +114,7 @@ contract('Staking', function ([owner, fakeGov, rewardPool, user, user2, user3, u
       (await staking.balanceOf(rewardPool)).should.be.bignumber.equal(amount);
     });
   });
+
   describe('Revoke ', function () {
     beforeEach(async () => {
       await staking.deposit({ value: amount, from: user });
@@ -122,10 +123,9 @@ contract('Staking', function ([owner, fakeGov, rewardPool, user, user2, user3, u
     });
 
     it('cannot revoke Staking', async () => {
-      const pre = await ethGetBalance(owner);
-      await reverting( staking.revoke({ from: fakeGov }));
-      await reverting( staking.revoke({ from: user }));
-      await reverting( staking.revoke({ from: user2 }));
+      await reverting(staking.revoke({ from: fakeGov }));
+      await reverting(staking.revoke({ from: user }));
+      await reverting(staking.revoke({ from: user2 }));
     });
 
     it('can revoke Staking', async () => {
@@ -137,20 +137,20 @@ contract('Staking', function ([owner, fakeGov, rewardPool, user, user2, user3, u
       console.log(`post : ${post.toFormat()}`);
       post.should.be.bignumber.gt(pre);
       const isRevoked = await staking.isRevoked();
-      assert.equal(isRevoked, true,"not revoked");
+      assert.equal(isRevoked, true, "not revoked");
     });
 
     it('cannot deposit/withdraw after revoke ', async () => {
       await staking.revoke({ from: owner });
       const isRevoked = await staking.isRevoked();
-      assert.equal(isRevoked, true,"not revoked");
+      assert.equal(isRevoked, true, "not revoked");
       await reverting( staking.deposit({ value: amount, from: user3 }));
     });
 
-      it('cannot deposit/withdraw after revoke ', async () => {
+    it('cannot deposit/withdraw after revoke ', async () => {
       await staking.revoke({ from: owner });
       const isRevoked = await staking.isRevoked();
-      assert.equal(isRevoked, true,"not revoked");
+      assert.equal(isRevoked, true, "not revoked");
       await reverting( staking.withdraw(amount, { from: user3 }));
     });
   });
