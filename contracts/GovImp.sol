@@ -31,6 +31,11 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         returns (uint256 ballotIdx)
     {
         require(msg.sender != member, "Cannot add self");
+        require(name.length > 0, "Invalid node name");
+        require(ip.length > 0, "Invalid node IP");
+        require(port_lockAmount.length == 2, "Invalid params");
+        require(port_lockAmount[0] > 0, "Invalid node port");
+        require(port_lockAmount[1] > 0, "Invalid lockAmmount");
         require(!isMember(member), "Already member");
 
         ballotIdx = ballotLength.add(1);
@@ -59,6 +64,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         onlyGovMem
         returns (uint256 ballotIdx)
     {
+        require(member != address(0), "Invalid address");
         require(isMember(member), "Non-member");
         require(getMemberLength() > 1, "Cannot remove a sole member");
 
@@ -91,6 +97,14 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         onlyGovMem
         returns (uint256 ballotIdx)
     {
+        require(target_nMember.length == 2, "Invalid params");
+        require(target_nMember[0] != address(0), "Invalid old Address");
+        require(target_nMember[1] != address(0), "Invalid new Address");
+        require(nName.length > 0, "Invalid node name");
+        require(nIp.length > 0, "Invalid node IP");
+        require(port_lockAmount.length == 2, "Invalid params");
+        require(port_lockAmount[0] > 0, "Invalid node port");
+        require(port_lockAmount[1] > 0, "Invalid lockAmmount");
         require(isMember(target_nMember[0]), "Non-member");
 
         ballotIdx = ballotLength.add(1);
@@ -142,6 +156,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         onlyGovMem
         returns (uint256 ballotIdx)
     {
+        require(envName != 0, "Invalid name");
         require(uint256(VariableTypes.Int) <= envType && envType <= uint256(VariableTypes.String), "Invalid type");
 
         ballotIdx = ballotLength.add(1);
@@ -525,7 +540,9 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         if (locked > unlockAmount) {
             staking.transferLocked(addr, locked.sub(unlockAmount));
         }
-        staking.unlock(addr, unlockAmount);
+        if ( unlockAmount > 0) {
+            staking.unlock(addr, unlockAmount);
+        }
     }
     //------------------ Code reduction end
 }
