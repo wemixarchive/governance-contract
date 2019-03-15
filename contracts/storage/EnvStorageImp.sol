@@ -48,10 +48,10 @@ contract EnvStorageImp is AEnvStorage, EnvConstants {
             setUint(STAKING_MAX_NAME, _stakingMax);
         }
         if (gasPrice == 0) {
-            setUint(GAS_PRICE_NAME,_gasPrice);
+            setUint(GAS_PRICE_NAME, _gasPrice);
         }
         if (maxIdleBlockInterval == 0) {
-            setUint(MAX_IDLE_BLOCK_INTERVAL_NAME,_maxIdleBlockInterval);
+            setUint(MAX_IDLE_BLOCK_INTERVAL_NAME, _maxIdleBlockInterval);
         }
     }
 
@@ -78,6 +78,7 @@ contract EnvStorageImp is AEnvStorage, EnvConstants {
     function getGasPrice() public view returns (uint256) {
         return getUint(GAS_PRICE_NAME);
     }
+
     function getMaxIdleBlockInterval() public view returns (uint256) {
         return getUint(MAX_IDLE_BLOCK_INTERVAL_NAME);
     }

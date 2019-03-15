@@ -59,7 +59,6 @@ async function deploy (deployer, network, accounts) {
       _defaultStakingMax,
       _defaultGasPrice);
     
-
     // Write contract address to contract.json
     await writeToContractsJson(contracts);
   });

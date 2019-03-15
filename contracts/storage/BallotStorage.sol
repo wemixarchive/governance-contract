@@ -58,7 +58,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
 
     //For EnvValChange
     struct BallotVariable {
-    //Ballot ID
+        //Ballot ID
         uint256 id; 
         bytes32 envVariableName;
         uint256 envVariableType;
@@ -101,7 +101,8 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     event BallotCanceled ( 
         uint256 indexed ballotId
     );
-    event BallotUpdated ( 
+
+    event BallotUpdated (
         uint256 indexed ballotId,
         address indexed updatedBy
     );
@@ -117,6 +118,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     address internal previousBallotStorage;
 
     uint256 internal ballotCount = 0;
+
     constructor(address _registry) public {
         setRegistry(_registry);
     }
@@ -154,7 +156,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         return IEnvStorage(getEnvStorageAddress()).getBallotDurationMax();
     }
    
-    function getTime() public view returns(uint256) {
+    function getTime() public view returns (uint256) {
         return now;
     }
 
@@ -556,7 +558,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     )
         internal
         pure
-        returns(bool)
+        returns (bool)
     {
         require((_ballotType >= uint256(BallotTypes.MemberAdd))
             && (_ballotType <= uint256(BallotTypes.MemberChange)), "Invalid Ballot Type");
@@ -593,7 +595,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     )
         internal
         pure
-        returns(bool)
+        returns (bool)
     {
         require(_ballotType == uint256(BallotTypes.EnvValChange), "Invalid Ballot Type");
         require(_envVariableName > 0, "Invalid environment variable name");

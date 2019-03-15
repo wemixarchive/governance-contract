@@ -1,5 +1,6 @@
 pragma solidity ^0.4.24;
 
+
 contract EnvConstants {
     bytes32 public constant BLOCKS_PER_NAME = keccak256("blocksPer"); 
     uint256 public constant BLOCKS_PER_TYPE = uint256(VariableTypes.Uint);
@@ -21,7 +22,6 @@ contract EnvConstants {
 
     bytes32 public constant MAX_IDLE_BLOCK_INTERVAL_NAME = keccak256("MaxIdleBlockInterval"); 
     uint256 public constant MAX_IDLE_BLOCK_INTERVAL_TYPE = uint256(VariableTypes.Uint);
-
 
     enum VariableTypes {
         Invalid,

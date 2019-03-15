@@ -12,6 +12,8 @@ import "./Gov.sol";
 contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
     using SafeMath for uint256;
 
+    bytes private zeros = "";
+
     event MemberAdded(address indexed addr);
     event MemberRemoved(address indexed addr);
     event MemberChanged(address indexed oldAddr, address indexed newAddr);
@@ -23,7 +25,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         bytes name,
         bytes enode,
         bytes ip,
-        uint256[2] port_lockAmount,
+        uint256[2] portNlockAmount,
         bytes memo
     )
         external
@@ -33,9 +35,8 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         require(msg.sender != member, "Cannot add self");
         require(name.length > 0, "Invalid node name");
         require(ip.length > 0, "Invalid node IP");
-        require(port_lockAmount.length == 2, "Invalid params");
-        require(port_lockAmount[0] > 0, "Invalid node port");
-        require(port_lockAmount[1] > 0, "Invalid lockAmmount");
+        require(portNlockAmount[0] > 0, "Invalid node port");
+        require(portNlockAmount[1] > 0, "Invalid lockAmmount");
         require(!isMember(member), "Already member");
 
         ballotIdx = ballotLength.add(1);
@@ -48,9 +49,9 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
             name,
             enode, // new enode
             ip, // new ip
-            port_lockAmount[0] // new port
+            portNlockAmount[0] // new port
         );
-        updateBallotLock(ballotIdx, port_lockAmount[1]);
+        updateBallotLock(ballotIdx, portNlockAmount[1]);
         updateBallotMemo(ballotIdx, memo);
         ballotLength = ballotIdx;
     }
@@ -75,9 +76,9 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
             msg.sender, // creator
             member, // old member address
             address(0), // new member address
-            new bytes(0), // new name
-            new bytes(0), // new enode
-            new bytes(0), // new ip
+            zeros, // new name
+            zeros, // new enode
+            zeros, // new ip
             0 // new port
         );
         updateBallotLock(ballotIdx, lockAmount);
@@ -86,40 +87,38 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
     }
 
     function addProposalToChangeMember(
-        address[2] target_nMember,
+        address[2] targetNnewMember,
         bytes nName,
         bytes nEnode,
         bytes nIp,
-        uint256[2] port_lockAmount,
+        uint256[2] portNlockAmount,
         bytes memo
     )
         external
         onlyGovMem
         returns (uint256 ballotIdx)
     {
-        require(target_nMember.length == 2, "Invalid params");
-        require(target_nMember[0] != address(0), "Invalid old Address");
-        require(target_nMember[1] != address(0), "Invalid new Address");
+        require(targetNnewMember[0] != address(0), "Invalid old Address");
+        require(targetNnewMember[1] != address(0), "Invalid new Address");
         require(nName.length > 0, "Invalid node name");
         require(nIp.length > 0, "Invalid node IP");
-        require(port_lockAmount.length == 2, "Invalid params");
-        require(port_lockAmount[0] > 0, "Invalid node port");
-        require(port_lockAmount[1] > 0, "Invalid lockAmmount");
-        require(isMember(target_nMember[0]), "Non-member");
+        require(portNlockAmount[0] > 0, "Invalid node port");
+        require(portNlockAmount[1] > 0, "Invalid lockAmmount");
+        require(isMember(targetNnewMember[0]), "Non-member");
 
         ballotIdx = ballotLength.add(1);
         createBallotForMember(
             ballotIdx, // ballot id
             uint256(BallotTypes.MemberChange), // ballot type
             msg.sender, // creator
-            target_nMember[0], // old member address
-            target_nMember[1], // new member address
+            targetNnewMember[0], // old member address
+            targetNnewMember[1], // new member address
             nName, //new Name
             nEnode, // new enode
             nIp, // new ip
-            port_lockAmount[0] // new port
+            portNlockAmount[0] // new port
         );
-        updateBallotLock(ballotIdx, port_lockAmount[1]);
+        updateBallotLock(ballotIdx, portNlockAmount[1]);
         updateBallotMemo(ballotIdx, memo);
         ballotLength = ballotIdx;
     }
@@ -464,6 +463,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         }
 
         modifiedBlock = block.number;
+
         emit EnvChanged(envKey, envType, envVal);
     }
 
@@ -540,7 +540,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         if (locked > unlockAmount) {
             staking.transferLocked(addr, locked.sub(unlockAmount));
         }
-        if ( unlockAmount > 0) {
+        if (unlockAmount > 0) {
             staking.unlock(addr, unlockAmount);
         }
     }

@@ -80,7 +80,7 @@ contract Ownable {
   /**
    * @return the address of the owner.
    */
-  function owner() public view returns(address) {
+  function owner() public view returns (address) {
     return _owner;
   }
 
@@ -95,7 +95,7 @@ contract Ownable {
   /**
    * @return true if `msg.sender` is the owner of the contract.
    */
-  function isOwner() public view returns(bool) {
+  function isOwner() public view returns (bool) {
     return msg.sender == _owner;
   }
 
@@ -433,7 +433,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         return IEnvStorage(getEnvStorageAddress()).getBallotDurationMax();
     }
    
-    function getTime() public view returns(uint256) {
+    function getTime() public view returns (uint256) {
         return now;
     }
 
@@ -833,7 +833,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     )
         internal
         pure
-        returns(bool)
+        returns (bool)
     {
         require((_ballotType >= uint256(BallotTypes.MemberAdd))
             && (_ballotType <= uint256(BallotTypes.MemberChange)), "Invalid Ballot Type");
@@ -868,7 +868,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     )
         internal
         pure
-        returns(bool)
+        returns (bool)
     {
         require(_ballotType == uint256(BallotTypes.EnvValChange), "Invalid Ballot Type");
         require(_envVariableName.length > 0, "Invalid environment variable name");
