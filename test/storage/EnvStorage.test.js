@@ -118,33 +118,33 @@ contract('EnvStorage', accounts => {
       console.log(`gasPrice : ${maxIdleBlockInterval.toFormat()}`);
     });
 
-    it('Type Test', async () => {
-      let _result = await iEnvStorage.setTestIntByBytes(_testIntBytes, { value: 0, from: govAddr });
-      let _value = await iEnvStorage.getTestInt();
-      // console.log(`bytes32 : ${web3.sha3('stakingMax')}`);
-      _value.should.be.bignumber.equal(_testInt,"not pass test int");
-      // console.log(`getTestInt : ${_value} / ${_testIntBytes}`);
+    // it('Type Test', async () => {
+    //   let _result = await iEnvStorage.setTestIntByBytes(_testIntBytes, { value: 0, from: govAddr });
+    //   let _value = await iEnvStorage.getTestInt();
+    //   // console.log(`bytes32 : ${web3.sha3('stakingMax')}`);
+    //   _value.should.be.bignumber.equal(_testInt,"not pass test int");
+    //   // console.log(`getTestInt : ${_value} / ${_testIntBytes}`);
 
-      _result = await iEnvStorage.setTestAddressByBytes(_testaddress, { value: 0, from: govAddr });
-      _value = await iEnvStorage.getTestAddress();
-      assert.equal(web3Utils.toChecksumAddress(_value), _testaddress,"not pass test address");
-      // console.log(`getTestAddress : ${_value} `);
+    //   _result = await iEnvStorage.setTestAddressByBytes(_testaddress, { value: 0, from: govAddr });
+    //   _value = await iEnvStorage.getTestAddress();
+    //   assert.equal(web3Utils.toChecksumAddress(_value), _testaddress,"not pass test address");
+    //   // console.log(`getTestAddress : ${_value} `);
 
-      _result = await iEnvStorage.setTestBytes32ByBytes(_testBytes32, { value: 0, from: govAddr });
-      _value = await iEnvStorage.getTestBytes32();
-      assert.equal(_value, _testBytes32);
-      // console.log(`getTestBytes32 :  ${_value} / ${_testBytes32}`);
+    //   _result = await iEnvStorage.setTestBytes32ByBytes(_testBytes32, { value: 0, from: govAddr });
+    //   _value = await iEnvStorage.getTestBytes32();
+    //   assert.equal(_value, _testBytes32);
+    //   // console.log(`getTestBytes32 :  ${_value} / ${_testBytes32}`);
 
-      _result = await iEnvStorage.setTestBytesByBytes(_testBytes, { value: 0, from: govAddr });
-      _value = await iEnvStorage.getTestBytes();
-      assert.equal(_value, _testBytes);
-      // console.log(`getTestBytes : ${_value}`);
+    //   _result = await iEnvStorage.setTestBytesByBytes(_testBytes, { value: 0, from: govAddr });
+    //   _value = await iEnvStorage.getTestBytes();
+    //   assert.equal(_value, _testBytes);
+    //   // console.log(`getTestBytes : ${_value}`);
 
-      _result = await iEnvStorage.setTestStringByBytes(_testStringBytes, { value: 0, from: govAddr });
-      _value = await iEnvStorage.getTestString();
-      assert.equal(_value, _testString);
-      // console.log(`getTestString : ${_value}`);
-    });
+    //   _result = await iEnvStorage.setTestStringByBytes(_testStringBytes, { value: 0, from: govAddr });
+    //   _value = await iEnvStorage.getTestString();
+    //   assert.equal(_value, _testString);
+    //   // console.log(`getTestString : ${_value}`);
+    // });
 
     it('Canot Set blocks per variable(not govAddr)', async () => {
       await reverting(iEnvStorage.setBlocksPerByBytes(_blocksPerBytes), { value: 0, from: creator });

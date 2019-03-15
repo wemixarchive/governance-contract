@@ -12,8 +12,6 @@ import "./Gov.sol";
 contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
     using SafeMath for uint256;
 
-    bytes private zeros = "";
-
     event MemberAdded(address indexed addr);
     event MemberRemoved(address indexed addr);
     event MemberChanged(address indexed oldAddr, address indexed newAddr);
@@ -33,10 +31,10 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         returns (uint256 ballotIdx)
     {
         require(msg.sender != member, "Cannot add self");
-        require(name.length > 0, "Invalid node name");
-        require(ip.length > 0, "Invalid node IP");
-        require(portNlockAmount[0] > 0, "Invalid node port");
-        require(portNlockAmount[1] > 0, "Invalid lockAmmount");
+        // require(name.length > 0, "Invalid node name");
+        // require(ip.length > 0, "Invalid node IP");
+        // require(portNlockAmount[0] > 0, "Invalid node port");
+        // require(portNlockAmount[1] > 0, "Invalid lockAmmount");
         require(!isMember(member), "Already member");
 
         ballotIdx = ballotLength.add(1);
@@ -76,9 +74,9 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
             msg.sender, // creator
             member, // old member address
             address(0), // new member address
-            zeros, // new name
-            zeros, // new enode
-            zeros, // new ip
+            new bytes(0), // new name
+            new bytes(0), // new enode
+            new bytes(0), // new ip
             0 // new port
         );
         updateBallotLock(ballotIdx, lockAmount);
@@ -98,12 +96,12 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         onlyGovMem
         returns (uint256 ballotIdx)
     {
-        require(targetNnewMember[0] != address(0), "Invalid old Address");
-        require(targetNnewMember[1] != address(0), "Invalid new Address");
-        require(nName.length > 0, "Invalid node name");
-        require(nIp.length > 0, "Invalid node IP");
-        require(portNlockAmount[0] > 0, "Invalid node port");
-        require(portNlockAmount[1] > 0, "Invalid lockAmmount");
+        // require(targetNnewMember[0] != address(0), "Invalid old Address");
+        // require(targetNnewMember[1] != address(0), "Invalid new Address");
+        // require(nName.length > 0, "Invalid node name");
+        // require(nIp.length > 0, "Invalid node IP");
+        // require(portNlockAmount[0] > 0, "Invalid node port");
+        // require(portNlockAmount[1] > 0, "Invalid lockAmmount");
         require(isMember(targetNnewMember[0]), "Non-member");
 
         ballotIdx = ballotLength.add(1);
@@ -155,7 +153,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         onlyGovMem
         returns (uint256 ballotIdx)
     {
-        require(envName != 0, "Invalid name");
+        // require(envName != 0, "Invalid name");
         require(uint256(VariableTypes.Int) <= envType && envType <= uint256(VariableTypes.String), "Invalid type");
 
         ballotIdx = ballotLength.add(1);
@@ -183,10 +181,10 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
 
         // Finalize
         (, uint256 accept, uint256 reject) = getBallotVotingInfo(ballotIdx);
-        if (accept < getThreshould() && reject < getThreshould()) {
-            return;
+        uint256 threshold = getThreshould();
+        if (accept >= threshold || reject >= threshold) {
+            finalizeVote(ballotIdx, ballotType, accept > reject);
         }
-        finalizeVote(ballotIdx, ballotType, accept > reject);
     }
 
     function getMinStaking() public view returns (uint256) {
@@ -421,7 +419,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
             transferLockedAndUnlock(addr, lockAmount);
 
             emit MemberChanged(addr, nAddr);
-        }else{
+        } else {
             emit MemberUpdated(addr);
         }
     }
@@ -446,19 +444,20 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         ) = IBallotStorage(getBallotStorageAddress()).getBallotVariable(ballotIdx);
 
         IEnvStorage envStorage = IEnvStorage(getEnvStorageAddress());
-        if (envKey == BLOCKS_PER_NAME && envType == BLOCKS_PER_TYPE) {
+        uint256 uintType = uint256(VariableTypes.Uint);
+        if (envKey == BLOCKS_PER_NAME && envType == uintType) {
             envStorage.setBlocksPerByBytes(envVal);
-        } else if (envKey == BALLOT_DURATION_MIN_NAME && envType == BALLOT_DURATION_MIN_TYPE) {
+        } else if (envKey == BALLOT_DURATION_MIN_NAME && envType == uintType) {
             envStorage.setBallotDurationMinByBytes(envVal);
-        } else if (envKey == BALLOT_DURATION_MAX_NAME && envType == BALLOT_DURATION_MAX_TYPE) {
+        } else if (envKey == BALLOT_DURATION_MAX_NAME && envType == uintType) {
             envStorage.setBallotDurationMaxByBytes(envVal);
-        } else if (envKey == STAKING_MIN_NAME && envType == STAKING_MIN_TYPE) {
+        } else if (envKey == STAKING_MIN_NAME && envType == uintType) {
             envStorage.setStakingMinByBytes(envVal);
-        } else if (envKey == STAKING_MAX_NAME && envType == STAKING_MAX_TYPE) {
+        } else if (envKey == STAKING_MAX_NAME && envType == uintType) {
             envStorage.setStakingMaxByBytes(envVal);
-        } else if (envKey == GAS_PRICE_NAME && envType == GAS_PRICE_TYPE) {
+        } else if (envKey == GAS_PRICE_NAME && envType == uintType) {
             envStorage.setGasPriceByBytes(envVal);
-        } else if (envKey == MAX_IDLE_BLOCK_INTERVAL_NAME && envType == MAX_IDLE_BLOCK_INTERVAL_TYPE) {
+        } else if (envKey == MAX_IDLE_BLOCK_INTERVAL_NAME && envType == uintType) {
             envStorage.setMaxIdleBlockIntervalByBytes(envVal);
         }
 
@@ -540,9 +539,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         if (locked > unlockAmount) {
             staking.transferLocked(addr, locked.sub(unlockAmount));
         }
-        if (unlockAmount > 0) {
-            staking.unlock(addr, unlockAmount);
-        }
+        staking.unlock(addr, unlockAmount);
     }
     //------------------ Code reduction end
 }
