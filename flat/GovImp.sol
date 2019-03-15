@@ -171,6 +171,7 @@ contract GovChecker is Ownable {
      * @return A boolean that indicates if the operation was successful.
      */
     function setRegistry(address _addr) public onlyOwner {
+        require(_addr != address(0), "Address should be non-zero");
         reg = IRegistry(_addr);
     }
     
@@ -242,26 +243,25 @@ contract BallotEnums {
 
 contract EnvConstants {
     bytes32 public constant BLOCKS_PER_NAME = keccak256("blocksPer"); 
-    uint256 public constant BLOCKS_PER_TYPE = uint256(VariableTypes.Uint);
+    // uint256 public constant BLOCKS_PER_TYPE = uint256(VariableTypes.Uint);
 
     bytes32 public constant BALLOT_DURATION_MIN_NAME = keccak256("ballotDurationMin"); 
-    uint256 public constant BALLOT_DURATION_MIN_TYPE = uint256(VariableTypes.Uint);
+    // uint256 public constant BALLOT_DURATION_MIN_TYPE = uint256(VariableTypes.Uint);
 
     bytes32 public constant BALLOT_DURATION_MAX_NAME = keccak256("ballotDurationMax"); 
-    uint256 public constant BALLOT_DURATION_MAX_TYPE = uint256(VariableTypes.Uint);
+    // uint256 public constant BALLOT_DURATION_MAX_TYPE = uint256(VariableTypes.Uint);
 
     bytes32 public constant STAKING_MIN_NAME = keccak256("stakingMin"); 
-    uint256 public constant STAKING_MIN_TYPE = uint256(VariableTypes.Uint);
+    // uint256 public constant STAKING_MIN_TYPE = uint256(VariableTypes.Uint);
 
     bytes32 public constant STAKING_MAX_NAME = keccak256("stakingMax"); 
-    uint256 public constant STAKING_MAX_TYPE = uint256(VariableTypes.Uint);
+    // uint256 public constant STAKING_MAX_TYPE = uint256(VariableTypes.Uint);
 
     bytes32 public constant GAS_PRICE_NAME = keccak256("gasPrice"); 
-    uint256 public constant GAS_PRICE_TYPE = uint256(VariableTypes.Uint);
+    // uint256 public constant GAS_PRICE_TYPE = uint256(VariableTypes.Uint);
 
     bytes32 public constant MAX_IDLE_BLOCK_INTERVAL_NAME = keccak256("MaxIdleBlockInterval"); 
-    uint256 public constant MAX_IDLE_BLOCK_INTERVAL_TYPE = uint256(VariableTypes.Uint);
-
+    // uint256 public constant MAX_IDLE_BLOCK_INTERVAL_TYPE = uint256(VariableTypes.Uint);
 
     enum VariableTypes {
         Invalid,
@@ -272,12 +272,12 @@ contract EnvConstants {
         Bytes,
         String
     }
-    
-    bytes32 internal constant TEST_INT = keccak256("TEST_INT"); 
-    bytes32 internal constant TEST_ADDRESS = keccak256("TEST_ADDRESS"); 
-    bytes32 internal constant TEST_BYTES32 = keccak256("TEST_BYTES32"); 
-    bytes32 internal constant TEST_BYTES = keccak256("TEST_BYTES"); 
-    bytes32 internal constant TEST_STRING = keccak256("TEST_STRING"); 
+
+    // bytes32 internal constant TEST_INT = keccak256("TEST_INT");
+    // bytes32 internal constant TEST_ADDRESS = keccak256("TEST_ADDRESS");
+    // bytes32 internal constant TEST_BYTES32 = keccak256("TEST_BYTES32");
+    // bytes32 internal constant TEST_BYTES = keccak256("TEST_BYTES");
+    // bytes32 internal constant TEST_STRING = keccak256("TEST_STRING");
 }
 
 interface IBallotStorage {
@@ -413,6 +413,7 @@ contract UpgradeabilityProxy is Proxy {
      * @param newImplementation address representing the new implementation to be set
      */
     function setImplementation(address newImplementation) internal {
+        require(newImplementation != address(0), "newImplementation should be non-zero");
         bytes32 position = IMPLEMENT_POSITION;
         assembly {
             sstore(position, newImplementation)
@@ -424,18 +425,18 @@ contract UpgradeabilityProxy is Proxy {
      * @param newImplementation representing the address of the new implementation to be set
      */
     function _upgradeTo(address newImplementation) internal {
+        require(newImplementation != address(0), "newImplementation should be non-zero");
         address currentImplementation = implementation();
-        require(currentImplementation != newImplementation);
+        require(currentImplementation != newImplementation, "newImplementation should be not same as currentImplementation");
         setImplementation(newImplementation);
         emit Upgraded(newImplementation);
     }
 }
 
-contract Gov is UpgradeabilityProxy, GovChecker {
-    // "Metadium Governance"
-    uint public magic = 0x4d6574616469756d20476f7665726e616e6365;
+contract AGov is UpgradeabilityProxy, GovChecker {
+
     uint public modifiedBlock;
-    bool private _initialized;
+  
 
     // For voting member
     mapping(uint256 => address) internal members;
@@ -465,12 +466,12 @@ contract Gov is UpgradeabilityProxy, GovChecker {
     uint256 internal ballotInVoting;
 
     constructor() public {
-        _initialized = false;
-        memberLength = 0;
-        nodeLength = 0;
-        ballotLength = 0;
-        voteLength = 0;
-        ballotInVoting = 0;
+        //_initialized = false;
+        // memberLength = 0;
+        // nodeLength = 0;
+        // ballotLength = 0;
+        // voteLength = 0;
+        // ballotInVoting = 0;
     }
 
     function isMember(address addr) public view returns (bool) { return (memberIdx[addr] != 0); }
@@ -486,132 +487,9 @@ contract Gov is UpgradeabilityProxy, GovChecker {
     }
 
     function getBallotInVoting() public view returns (uint256) { return ballotInVoting; }
-
-    function init(
-        address registry,
-        address implementation,
-        uint256 lockAmount,
-        bytes name,
-        bytes enode,
-        bytes ip,
-        uint port
-    )
-        public onlyOwner
-    {
-        require(_initialized == false, "Already initialized");
-
-        setRegistry(registry);
-        setImplementation(implementation);
-
-        // Lock
-        IStaking staking = IStaking(getStakingAddress());
-        require(staking.availableBalanceOf(msg.sender) >= lockAmount, "Insufficient staking");
-        staking.lock(msg.sender, lockAmount);
-
-        // Add voting member
-        memberLength = 1;
-        members[memberLength] = msg.sender;
-        memberIdx[msg.sender] = memberLength;
-
-        // Add reward member
-        rewards[memberLength] = msg.sender;
-        rewardIdx[msg.sender] = memberLength;
-
-        // Add node
-        nodeLength = 1;
-        Node storage node = nodes[nodeLength];
-        node.name = name;
-        node.enode = enode;
-        node.ip = ip;
-        node.port = port;
-        nodeIdxFromMember[msg.sender] = nodeLength;
-        nodeToMember[nodeLength] = msg.sender;
-
-        _initialized = true;
-        modifiedBlock = block.number;
-    }
-
-    function initOnce(
-        address registry,
-        address implementation,
-        bytes data
-    )
-        public onlyOwner
-    {
-        require(_initialized == false, "Already initialized");
-
-        setRegistry(registry);
-        setImplementation(implementation);
-
-        _initialized = true;
-        modifiedBlock = block.number;
-
-        // []{uint addr, bytes name, bytes enode, bytes ip, uint port}
-        // 32 bytes, [32 bytes, <data>] * 3, 32 bytes
-        address addr;
-        bytes memory name;
-        bytes memory enode;
-        bytes memory ip;
-        uint port;
-        uint idx = 0;
-
-        uint ix;
-        uint eix;
-        assembly {
-            ix := add(data, 0x20)
-        }
-        eix = ix + data.length;
-        while (ix < eix) {
-            assembly {
-                port := mload(ix)
-            }
-            addr = address(port);
-            ix += 0x20;
-            require(ix < eix);
-
-            assembly {
-                name := ix
-            }
-            ix += 0x20 + name.length;
-            require(ix < eix);
-
-            assembly {
-                enode := ix
-            }
-            ix += 0x20 + enode.length;
-            require(ix < eix);
-
-            assembly {
-                ip := ix
-            }
-            ix += 0x20 + ip.length;
-            require(ix < eix);
-
-            assembly {
-                port := mload(ix)
-            }
-            ix += 0x20;
-
-            idx += 1;
-            members[idx] = addr;
-            memberIdx[addr] = idx;
-            rewards[idx] = addr;
-            rewardIdx[addr] = idx;
-
-            Node storage node = nodes[idx];
-            node.name = name;
-            node.enode = enode;
-            node.ip = ip;
-            node.port = port;
-            nodeToMember[idx] = addr;
-            nodeIdxFromMember[addr] = idx;
-        }
-        memberLength = idx;
-        nodeLength = idx;
-    }
 }
 
-contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
+contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
     using SafeMath for uint256;
 
     event MemberAdded(address indexed addr);
@@ -625,7 +503,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         bytes name,
         bytes enode,
         bytes ip,
-        uint256[2] port_lockAmount,
+        uint256[2] portNlockAmount,
         bytes memo
     )
         external
@@ -633,6 +511,10 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         returns (uint256 ballotIdx)
     {
         require(msg.sender != member, "Cannot add self");
+        require(name.length > 0, "Invalid node name");
+        require(ip.length > 0, "Invalid node IP");
+        require(portNlockAmount[0] > 0, "Invalid node port");
+        require(portNlockAmount[1] > 0, "Invalid lockAmmount");
         require(!isMember(member), "Already member");
 
         ballotIdx = ballotLength.add(1);
@@ -645,9 +527,9 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
             name,
             enode, // new enode
             ip, // new ip
-            port_lockAmount[0] // new port
+            portNlockAmount[0] // new port
         );
-        updateBallotLock(ballotIdx, port_lockAmount[1]);
+        updateBallotLock(ballotIdx, portNlockAmount[1]);
         updateBallotMemo(ballotIdx, memo);
         ballotLength = ballotIdx;
     }
@@ -661,6 +543,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         onlyGovMem
         returns (uint256 ballotIdx)
     {
+        require(member != address(0), "Invalid address");
         require(isMember(member), "Non-member");
         require(getMemberLength() > 1, "Cannot remove a sole member");
 
@@ -682,32 +565,38 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
     }
 
     function addProposalToChangeMember(
-        address[2] target_nMember,
+        address[2] targetNnewMember,
         bytes nName,
         bytes nEnode,
         bytes nIp,
-        uint256[2] port_lockAmount,
+        uint256[2] portNlockAmount,
         bytes memo
     )
         external
         onlyGovMem
         returns (uint256 ballotIdx)
     {
-        require(isMember(target_nMember[0]), "Non-member");
+        require(targetNnewMember[0] != address(0), "Invalid old Address");
+        require(targetNnewMember[1] != address(0), "Invalid new Address");
+        require(nName.length > 0, "Invalid node name");
+        require(nIp.length > 0, "Invalid node IP");
+        require(portNlockAmount[0] > 0, "Invalid node port");
+        require(portNlockAmount[1] > 0, "Invalid lockAmmount");
+        require(isMember(targetNnewMember[0]), "Non-member");
 
         ballotIdx = ballotLength.add(1);
         createBallotForMember(
             ballotIdx, // ballot id
             uint256(BallotTypes.MemberChange), // ballot type
             msg.sender, // creator
-            target_nMember[0], // old member address
-            target_nMember[1], // new member address
+            targetNnewMember[0], // old member address
+            targetNnewMember[1], // new member address
             nName, //new Name
             nEnode, // new enode
             nIp, // new ip
-            port_lockAmount[0] // new port
+            portNlockAmount[0] // new port
         );
-        updateBallotLock(ballotIdx, port_lockAmount[1]);
+        updateBallotLock(ballotIdx, portNlockAmount[1]);
         updateBallotMemo(ballotIdx, memo);
         ballotLength = ballotIdx;
     }
@@ -744,6 +633,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         onlyGovMem
         returns (uint256 ballotIdx)
     {
+        // require(envName != 0, "Invalid name");
         require(uint256(VariableTypes.Int) <= envType && envType <= uint256(VariableTypes.String), "Invalid type");
 
         ballotIdx = ballotLength.add(1);
@@ -771,10 +661,10 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
 
         // Finalize
         (, uint256 accept, uint256 reject) = getBallotVotingInfo(ballotIdx);
-        if (accept < getThreshould() && reject < getThreshould()) {
-            return;
+        uint256 threshold = getThreshould();
+        if (accept >= threshold || reject >= threshold) {
+            finalizeVote(ballotIdx, ballotType, accept > reject);
         }
-        finalizeVote(ballotIdx, ballotType, accept > reject);
     }
 
     function getMinStaking() public view returns (uint256) {
@@ -1009,7 +899,7 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
             transferLockedAndUnlock(addr, lockAmount);
 
             emit MemberChanged(addr, nAddr);
-        }else{
+        } else {
             emit MemberUpdated(addr);
         }
     }
@@ -1034,23 +924,25 @@ contract GovImp is Gov, ReentrancyGuard, BallotEnums, EnvConstants {
         ) = IBallotStorage(getBallotStorageAddress()).getBallotVariable(ballotIdx);
 
         IEnvStorage envStorage = IEnvStorage(getEnvStorageAddress());
-        if (envKey == BLOCKS_PER_NAME && envType == BLOCKS_PER_TYPE) {
+        uint256 uintType = uint256(VariableTypes.Uint);
+        if (envKey == BLOCKS_PER_NAME && envType == uintType) {
             envStorage.setBlocksPerByBytes(envVal);
-        } else if (envKey == BALLOT_DURATION_MIN_NAME && envType == BALLOT_DURATION_MIN_TYPE) {
+        } else if (envKey == BALLOT_DURATION_MIN_NAME && envType == uintType) {
             envStorage.setBallotDurationMinByBytes(envVal);
-        } else if (envKey == BALLOT_DURATION_MAX_NAME && envType == BALLOT_DURATION_MAX_TYPE) {
+        } else if (envKey == BALLOT_DURATION_MAX_NAME && envType == uintType) {
             envStorage.setBallotDurationMaxByBytes(envVal);
-        } else if (envKey == STAKING_MIN_NAME && envType == STAKING_MIN_TYPE) {
+        } else if (envKey == STAKING_MIN_NAME && envType == uintType) {
             envStorage.setStakingMinByBytes(envVal);
-        } else if (envKey == STAKING_MAX_NAME && envType == STAKING_MAX_TYPE) {
+        } else if (envKey == STAKING_MAX_NAME && envType == uintType) {
             envStorage.setStakingMaxByBytes(envVal);
-        } else if (envKey == GAS_PRICE_NAME && envType == GAS_PRICE_TYPE) {
+        } else if (envKey == GAS_PRICE_NAME && envType == uintType) {
             envStorage.setGasPriceByBytes(envVal);
-        } else if (envKey == MAX_IDLE_BLOCK_INTERVAL_NAME && envType == MAX_IDLE_BLOCK_INTERVAL_TYPE) {
+        } else if (envKey == MAX_IDLE_BLOCK_INTERVAL_NAME && envType == uintType) {
             envStorage.setMaxIdleBlockIntervalByBytes(envVal);
         }
 
         modifiedBlock = block.number;
+
         emit EnvChanged(envKey, envType, envVal);
     }
 

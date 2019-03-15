@@ -171,6 +171,7 @@ contract GovChecker is Ownable {
      * @return A boolean that indicates if the operation was successful.
      */
     function setRegistry(address _addr) public onlyOwner {
+        require(_addr != address(0), "Address should be non-zero");
         reg = IRegistry(_addr);
     }
     
@@ -220,11 +221,14 @@ contract Staking is GovChecker, ReentrancyGuard {
     mapping(address => uint256) private _balance;
     mapping(address => uint256) private _lockedBalance;
     uint256 private _totalLockedBalance;
+    bool private revoked = false;
     
     event Staked(address indexed payee, uint256 amount, uint256 total, uint256 available);
     event Unstaked(address indexed payee, uint256 amount, uint256 total, uint256 available);
     event Locked(address indexed payee, uint256 amount, uint256 total, uint256 available);
     event Unlocked(address indexed payee, uint256 amount, uint256 total, uint256 available);
+    event TransferLocked(address indexed payee, uint256 amount, uint256 total, uint256 available);
+    event Revoked(address indexed owner, uint256 amount);
 
     constructor(address registry, bytes data) public {
         _totalLockedBalance = 0;
@@ -248,7 +252,7 @@ contract Staking is GovChecker, ReentrancyGuard {
             }
             addr = address(amount);
             ix += 0x20;
-            require (ix < eix);
+            require(ix < eix);
             assembly {
                 amount := mload(ix)
             }
@@ -278,6 +282,7 @@ contract Staking is GovChecker, ReentrancyGuard {
     * @param amount The amount of funds will be withdrawn and transferred to.
     */
     function withdraw(uint256 amount) external nonReentrant notRevoked {
+        require(amount > 0, "Amount should be bigger than zero");
         require(amount <= availableBalanceOf(msg.sender), "Withdraw amount should be equal or less than balance");
 
         _balance[msg.sender] = _balance[msg.sender].sub(amount);
@@ -292,6 +297,7 @@ contract Staking is GovChecker, ReentrancyGuard {
     * @param lockAmount The amount of funds will be locked.
     */
     function lock(address payee, uint256 lockAmount) external onlyGov {
+        if (lockAmount == 0) return;
         require(_balance[payee] >= lockAmount, "Lock amount should be equal or less than balance");
         require(availableBalanceOf(payee) >= lockAmount, "Insufficient balance that can be locked");
 
@@ -307,10 +313,13 @@ contract Staking is GovChecker, ReentrancyGuard {
     * @param amount The amount of funds will be transfered.
     */
     function transferLocked(address from, uint256 amount) external onlyGov {
+        if (amount == 0) return;
         unlock(from, amount);
         _balance[from] = _balance[from].sub(amount);
         address rewardPool = getRewardPoolAddress();
         _balance[rewardPool] = _balance[rewardPool].add(amount);
+
+        emit TransferLocked(from, amount, _balance[from], availableBalanceOf(from));
     }
 
     /**
@@ -319,6 +328,7 @@ contract Staking is GovChecker, ReentrancyGuard {
     * @param unlockAmount The amount of funds will be unlocked.
     */
     function unlock(address payee, uint256 unlockAmount) public onlyGov {
+        if (unlockAmount == 0) return;
         // require(_lockedBalance[payee] >= unlockAmount, "Unlock amount should be equal or less than balance locked");
         _lockedBalance[payee] = _lockedBalance[payee].sub(unlockAmount);
         _totalLockedBalance = _totalLockedBalance.sub(unlockAmount);
@@ -359,15 +369,15 @@ contract Staking is GovChecker, ReentrancyGuard {
         return _lockedBalance[payee].mul(factor).div(_totalLockedBalance);
     }
 
-    bool private revoked = false;
-    function isRevoked() public view returns (bool){
+    function isRevoked() public view returns (bool) {
         return revoked;
     }
+
     modifier notRevoked(){
         require(!revoked, "Is revoked");
         _;
     }
-    event Revoked(address indexed owner, uint256 amount);
+
     /**
     * @notice Allows the owner to revoke the staking. Coins already staked
     * staked funds are returned to the owner.
@@ -375,12 +385,13 @@ contract Staking is GovChecker, ReentrancyGuard {
     function revoke() public onlyOwner notRevoked{
         address contractOwner = owner();
         uint256 balance = address(this).balance;
-        
-        require(balance > 0 );
+
+        require(balance > 0);
 
         contractOwner.transfer(balance);
         revoked = true;
-        emit Revoked(contractOwner,balance);
+
+        emit Revoked(contractOwner, balance);
     }
 }
 

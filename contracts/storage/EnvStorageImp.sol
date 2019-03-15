@@ -2,7 +2,7 @@ pragma solidity ^0.4.24;
 
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "../abstract/EnvConstants.sol";
-import "./AEnvStorage.sol";
+import "../abstract/AEnvStorage.sol";
 //import "./Conversion.sol";
 
 
@@ -48,10 +48,10 @@ contract EnvStorageImp is AEnvStorage, EnvConstants {
             setUint(STAKING_MAX_NAME, _stakingMax);
         }
         if (gasPrice == 0) {
-            setUint(GAS_PRICE_NAME,_gasPrice);
+            setUint(GAS_PRICE_NAME, _gasPrice);
         }
         if (maxIdleBlockInterval == 0) {
-            setUint(MAX_IDLE_BLOCK_INTERVAL_NAME,_maxIdleBlockInterval);
+            setUint(MAX_IDLE_BLOCK_INTERVAL_NAME, _maxIdleBlockInterval);
         }
     }
 
@@ -78,6 +78,7 @@ contract EnvStorageImp is AEnvStorage, EnvConstants {
     function getGasPrice() public view returns (uint256) {
         return getUint(GAS_PRICE_NAME);
     }
+
     function getMaxIdleBlockInterval() public view returns (uint256) {
         return getUint(MAX_IDLE_BLOCK_INTERVAL_NAME);
     }
@@ -138,45 +139,45 @@ contract EnvStorageImp is AEnvStorage, EnvConstants {
         setStakingMax(toUint(_value));
     }
 
-    function getTestInt() public view returns (int256) {
-        return getInt(TEST_INT);
-    }
+    // function getTestInt() public view returns (int256) {
+    //     return getInt(TEST_INT);
+    // }
 
-    function getTestAddress() public view returns (address) {
-        return getAddress(TEST_ADDRESS);
-    }
+    // function getTestAddress() public view returns (address) {
+    //     return getAddress(TEST_ADDRESS);
+    // }
 
-    function getTestBytes32() public view returns (bytes32) {
-        return getBytes32(TEST_BYTES32);
-    }
+    // function getTestBytes32() public view returns (bytes32) {
+    //     return getBytes32(TEST_BYTES32);
+    // }
 
-    function getTestBytes() public view returns (bytes) {
-        return getBytes(TEST_BYTES);
-    }
+    // function getTestBytes() public view returns (bytes) {
+    //     return getBytes(TEST_BYTES);
+    // }
 
-    function getTestString() public view returns (string) {
-        return getString(TEST_STRING);
-    }
+    // function getTestString() public view returns (string) {
+    //     return getString(TEST_STRING);
+    // }
 
-    function setTestIntByBytes(bytes _value) public onlyGov { 
-        setInt(TEST_INT, toInt(_value));
-    }
+    // function setTestIntByBytes(bytes _value) public onlyGov { 
+    //     setInt(TEST_INT, toInt(_value));
+    // }
 
-    function setTestAddressByBytes(bytes _value) public onlyGov { 
-        setAddress(TEST_ADDRESS, toAddress(_value));
-    }
+    // function setTestAddressByBytes(bytes _value) public onlyGov { 
+    //     setAddress(TEST_ADDRESS, toAddress(_value));
+    // }
 
-    function setTestBytes32ByBytes(bytes _value) public onlyGov { 
-        setBytes32(TEST_BYTES32, toBytes32(_value));
-    }
+    // function setTestBytes32ByBytes(bytes _value) public onlyGov { 
+    //     setBytes32(TEST_BYTES32, toBytes32(_value));
+    // }
 
-    function setTestBytesByBytes(bytes _value) public onlyGov { 
-        setBytes(TEST_BYTES, _value);
-    }
+    // function setTestBytesByBytes(bytes _value) public onlyGov { 
+    //     setBytes(TEST_BYTES, _value);
+    // }
 
-    function setTestStringByBytes(bytes _value) public onlyGov { 
-        setString(TEST_STRING, string(_value));
-    }
+    // function setTestStringByBytes(bytes _value) public onlyGov { 
+    //     setString(TEST_STRING, string(_value));
+    // }
 
     function toBytes32(bytes memory _input) internal pure returns (bytes32 _output) {
         assembly {
@@ -191,7 +192,6 @@ contract EnvStorageImp is AEnvStorage, EnvConstants {
     }
 
     function toUint(bytes memory _input) internal pure returns (uint256 _output) {
-        
         assembly {
             _output := mload(add(_input, 32))
         }

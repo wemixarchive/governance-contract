@@ -144,6 +144,7 @@ contract GovChecker is Ownable {
      * @return A boolean that indicates if the operation was successful.
      */
     function setRegistry(address _addr) public onlyOwner {
+        require(_addr != address(0), "Address should be non-zero");
         reg = IRegistry(_addr);
     }
     
@@ -215,26 +216,25 @@ contract BallotEnums {
 
 contract EnvConstants {
     bytes32 public constant BLOCKS_PER_NAME = keccak256("blocksPer"); 
-    uint256 public constant BLOCKS_PER_TYPE = uint256(VariableTypes.Uint);
+    // uint256 public constant BLOCKS_PER_TYPE = uint256(VariableTypes.Uint);
 
     bytes32 public constant BALLOT_DURATION_MIN_NAME = keccak256("ballotDurationMin"); 
-    uint256 public constant BALLOT_DURATION_MIN_TYPE = uint256(VariableTypes.Uint);
+    // uint256 public constant BALLOT_DURATION_MIN_TYPE = uint256(VariableTypes.Uint);
 
     bytes32 public constant BALLOT_DURATION_MAX_NAME = keccak256("ballotDurationMax"); 
-    uint256 public constant BALLOT_DURATION_MAX_TYPE = uint256(VariableTypes.Uint);
+    // uint256 public constant BALLOT_DURATION_MAX_TYPE = uint256(VariableTypes.Uint);
 
     bytes32 public constant STAKING_MIN_NAME = keccak256("stakingMin"); 
-    uint256 public constant STAKING_MIN_TYPE = uint256(VariableTypes.Uint);
+    // uint256 public constant STAKING_MIN_TYPE = uint256(VariableTypes.Uint);
 
     bytes32 public constant STAKING_MAX_NAME = keccak256("stakingMax"); 
-    uint256 public constant STAKING_MAX_TYPE = uint256(VariableTypes.Uint);
+    // uint256 public constant STAKING_MAX_TYPE = uint256(VariableTypes.Uint);
 
     bytes32 public constant GAS_PRICE_NAME = keccak256("gasPrice"); 
-    uint256 public constant GAS_PRICE_TYPE = uint256(VariableTypes.Uint);
+    // uint256 public constant GAS_PRICE_TYPE = uint256(VariableTypes.Uint);
 
     bytes32 public constant MAX_IDLE_BLOCK_INTERVAL_NAME = keccak256("MaxIdleBlockInterval"); 
-    uint256 public constant MAX_IDLE_BLOCK_INTERVAL_TYPE = uint256(VariableTypes.Uint);
-
+    // uint256 public constant MAX_IDLE_BLOCK_INTERVAL_TYPE = uint256(VariableTypes.Uint);
 
     enum VariableTypes {
         Invalid,
@@ -245,12 +245,12 @@ contract EnvConstants {
         Bytes,
         String
     }
-    
-    bytes32 internal constant TEST_INT = keccak256("TEST_INT"); 
-    bytes32 internal constant TEST_ADDRESS = keccak256("TEST_ADDRESS"); 
-    bytes32 internal constant TEST_BYTES32 = keccak256("TEST_BYTES32"); 
-    bytes32 internal constant TEST_BYTES = keccak256("TEST_BYTES"); 
-    bytes32 internal constant TEST_STRING = keccak256("TEST_STRING"); 
+
+    // bytes32 internal constant TEST_INT = keccak256("TEST_INT");
+    // bytes32 internal constant TEST_ADDRESS = keccak256("TEST_ADDRESS");
+    // bytes32 internal constant TEST_BYTES32 = keccak256("TEST_BYTES32");
+    // bytes32 internal constant TEST_BYTES = keccak256("TEST_BYTES");
+    // bytes32 internal constant TEST_STRING = keccak256("TEST_STRING");
 }
 
 interface IEnvStorage {
@@ -337,7 +337,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
 
     //For EnvValChange
     struct BallotVariable {
-    //Ballot ID
+        //Ballot ID
         uint256 id; 
         bytes32 envVariableName;
         uint256 envVariableType;
@@ -380,7 +380,8 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     event BallotCanceled ( 
         uint256 indexed ballotId
     );
-    event BallotUpdated ( 
+
+    event BallotUpdated (
         uint256 indexed ballotId,
         address indexed updatedBy
     );
@@ -396,6 +397,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     address internal previousBallotStorage;
 
     uint256 internal ballotCount = 0;
+
     constructor(address _registry) public {
         setRegistry(_registry);
     }
@@ -433,7 +435,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         return IEnvStorage(getEnvStorageAddress()).getBallotDurationMax();
     }
    
-    function getTime() public view returns(uint256) {
+    function getTime() public view returns (uint256) {
         return now;
     }
 
@@ -543,6 +545,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
                 _ballotType,
                 _oldMemberAddress,
                 _newMemberAddress,
+                _newNodeName,
                 _newNodeId,
                 _newNodeIp,
                 _newNodePort
@@ -626,7 +629,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         //1. msg.sender가 member
         //2. actionType 범위 
         require((_decision == uint256(DecisionTypes.Accept))
-            || (_decision <= uint256(DecisionTypes.Reject)), "Invalid decision");
+            || (_decision == uint256(DecisionTypes.Reject)), "Invalid decision");
         
         //3. ballotId 존재 하는지 확인 
         require(ballotBasicMap[_ballotId].id == _ballotId, "not existed Ballot");
@@ -827,13 +830,14 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         uint256 _ballotType,
         address _oldMemberAddress,
         address _newMemberAddress,
+        bytes _newName,
         bytes _newNodeId, // admin.nodeInfo.id is 512 bit public key
         bytes _newNodeIp,
         uint _newNodePort
     )
         internal
         pure
-        returns(bool)
+        returns (bool)
     {
         require((_ballotType >= uint256(BallotTypes.MemberAdd))
             && (_ballotType <= uint256(BallotTypes.MemberChange)), "Invalid Ballot Type");
@@ -841,10 +845,12 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         if (_ballotType == uint256(BallotTypes.MemberRemoval)){
             require(_oldMemberAddress != address(0), "Invalid old member address");
             require(_newMemberAddress == address(0), "Invalid new member address");
+            require(_newName.length == 0, "Invalid new node name");
             require(_newNodeId.length == 0, "Invalid new node id");
             require(_newNodeIp.length == 0, "Invalid new node IP");
             require(_newNodePort == 0, "Invalid new node Port");
         }else {
+            require(_newName.length > 0, "Invalid new node name");
             require(_newNodeId.length == 64, "Invalid new node id");
             require(_newNodeIp.length > 0, "Invalid new node IP");
             require(_newNodePort > 0, "Invalid new node Port");
@@ -868,10 +874,10 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     )
         internal
         pure
-        returns(bool)
+        returns (bool)
     {
         require(_ballotType == uint256(BallotTypes.EnvValChange), "Invalid Ballot Type");
-        require(_envVariableName.length > 0, "Invalid environment variable name");
+        require(_envVariableName > 0, "Invalid environment variable name");
         require(_envVariableType >= uint256(VariableTypes.Int), "Invalid environment variable Type");
         require(_envVariableType <= uint256(VariableTypes.String), "Invalid environment variable Type");
         require(_envVariableValue.length > 0, "Invalid environment variable value");

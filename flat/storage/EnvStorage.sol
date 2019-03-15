@@ -84,6 +84,7 @@ contract GovChecker is Ownable {
      * @return A boolean that indicates if the operation was successful.
      */
     function setRegistry(address _addr) public onlyOwner {
+        require(_addr != address(0), "Address should be non-zero");
         reg = IRegistry(_addr);
     }
     
@@ -203,6 +204,7 @@ contract UpgradeabilityProxy is Proxy {
      * @param newImplementation address representing the new implementation to be set
      */
     function setImplementation(address newImplementation) internal {
+        require(newImplementation != address(0), "newImplementation should be non-zero");
         bytes32 position = IMPLEMENT_POSITION;
         assembly {
             sstore(position, newImplementation)
@@ -214,8 +216,9 @@ contract UpgradeabilityProxy is Proxy {
      * @param newImplementation representing the address of the new implementation to be set
      */
     function _upgradeTo(address newImplementation) internal {
+        require(newImplementation != address(0), "newImplementation should be non-zero");
         address currentImplementation = implementation();
-        require(currentImplementation != newImplementation);
+        require(currentImplementation != newImplementation, "newImplementation should be not same as currentImplementation");
         setImplementation(newImplementation);
         emit Upgraded(newImplementation);
     }
@@ -519,13 +522,12 @@ contract EnvStorage is UpgradeabilityProxy, AEnvStorage {
     }
 
     constructor(address _registry, address _implementation) public {
+        require(_registry != _implementation, "registry should not be same as implementation"); 
         setRegistry(_registry);
         setImplementation(_implementation);
     }
 
     function upgradeTo(address newImplementation) public onlyGovOrOwner {
-        require(newImplementation != address(0), "Implementation cannot be zero");
-        require(newImplementation != implementation(), "Same contract address");
         _upgradeTo(newImplementation);
     }
 }

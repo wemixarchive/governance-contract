@@ -428,7 +428,7 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
                 creator, // creator
                 addMem, // oldMemberAddress
                 ZERO_ADDRESS, // newMemberAddress
-                _nodeName, // newNodeName
+                '0x', // newNodeName
                 '0x', // newNodeId
                 '', // newNodeIp
                 0, // newNodePort
@@ -449,7 +449,8 @@ contract('BallotStorage', function ([deployer, creator, addMem, addMem2, govAddr
 
               assert.equal(ballotDetailInfo[BallotMemberParams.oldMemberAddress], addMem);
               assert.equal(ballotDetailInfo[BallotMemberParams.newMemberAddress], ZERO_ADDRESS);
-              assert.equal(web3Utils.toUtf8(ballotDetailInfo[BallotMemberParams.newNodeName]), _nodeName);
+              //assert.equal(web3Utils.toUtf8(ballotDetailInfo[BallotMemberParams.newNodeName]), _nodeName);
+              assert.equal(ballotDetailInfo[BallotMemberParams.newNodeName], '0x');
               assert.equal(ballotDetailInfo[BallotMemberParams.newNodeId], '0x');
               assert.equal(web3Utils.toUtf8(ballotDetailInfo[BallotMemberParams.newNodeIp]), '');
               assert.equal(ballotDetailInfo[BallotMemberParams.newNodePort], 0);
