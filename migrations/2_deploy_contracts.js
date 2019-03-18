@@ -32,9 +32,18 @@ async function deploy (deployer, network, accounts) {
     // Deploy contracts
     contracts = await deployContracts(deployer, network, accounts);
 
+    const [owner,authority1,authrity2,mainternance,rewardpool] = accounts;
+
     // Setup contracts
     await basicRegistrySetup(contracts);
 
+    //Registry Maintenance / RewardPool Address
+    console.log('registry Maintenance address :',mainternance );
+    await contracts.registry.setContractDomain('Maintenance', mainternance,{from: owner});
+    
+    console.log('registry RewardPool address :',rewardpool );
+    await contracts.registry.setContractDomain('RewardPool', rewardpool,{from: owner});
+    
     // Initialize staking contract
     console.log('Initialize staking');
     await contracts.staking.deposit({ value: amount, from: accounts[0].toString() });
