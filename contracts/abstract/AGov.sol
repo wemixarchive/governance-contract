@@ -7,9 +7,7 @@ import "../GovChecker.sol";
 
 
 contract AGov is UpgradeabilityProxy, GovChecker {
-
     uint public modifiedBlock;
-  
 
     // For voting member
     mapping(uint256 => address) internal members;
