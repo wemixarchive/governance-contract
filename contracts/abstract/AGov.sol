@@ -36,14 +36,7 @@ contract AGov is UpgradeabilityProxy, GovChecker {
     uint256 public voteLength;
     uint256 internal ballotInVoting;
 
-    constructor() public {
-        //_initialized = false;
-        // memberLength = 0;
-        // nodeLength = 0;
-        // ballotLength = 0;
-        // voteLength = 0;
-        // ballotInVoting = 0;
-    }
+    constructor() public {}
 
     function isMember(address addr) public view returns (bool) { return (memberIdx[addr] != 0); }
     function getMember(uint256 idx) public view returns (address) { return members[idx]; }
