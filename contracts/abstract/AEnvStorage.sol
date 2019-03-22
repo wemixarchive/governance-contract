@@ -3,13 +3,8 @@ pragma solidity ^0.4.24;
 import "../GovChecker.sol";
 import "../storage/EternalStorage.sol";
 
+
 contract AEnvStorage is EternalStorage, GovChecker {
-    // struct Variable {
-    //     bytes32 _name;
-    //     uint256 _type;
-    //     string _value;
-    // }
-   
     event StringVarableChanged ( 
         bytes32 indexed _name,
         string _value
@@ -47,60 +42,60 @@ contract AEnvStorage is EternalStorage, GovChecker {
     );
    
     /**
-    * @dev Allows the owner to set a value for a int variable.
-    * @param h The keccak256 hash of the variable name
-    * @param v The value to be stored
-    */
+     * @dev Allows the owner to set a value for a int variable
+     * @param h The keccak256 hash of the variable name
+     * @param v The value to be stored
+     */
     function setInt(bytes32 h, int256 v) internal {
         _setInt(h, v);
         emit IntVarableChanged(h, v);
     }
 
     /**
-    * @dev Allows the owner to set a value for a boolean variable.
-    * @param h The keccak256 hash of the variable name
-    * @param v The value to be stored
-    */
+     * @dev Allows the owner to set a value for a boolean variable
+     * @param h The keccak256 hash of the variable name
+     * @param v The value to be stored
+     */
     function setUint(bytes32 h, uint256 v) internal {
         _setUint(h, v);
         emit UintVarableChanged(h, v);
     }
 
     /**
-    * @dev Allows the owner to set a value for a address variable.
-    * @param h The keccak256 hash of the variable name
-    * @param v The value to be stored
-    */
+     * @dev Allows the owner to set a value for a address variable
+     * @param h The keccak256 hash of the variable name
+     * @param v The value to be stored
+     */
     function setAddress(bytes32 h, address v) internal {
         _setAddress(h, v);
         emit AddressVarableChanged(h, v);
     }
 
     /**
-    * @dev Allows the owner to set a value for a string variable.
-    * @param h The keccak256 hash of the variable name
-    * @param v The value to be stored
-    */
+     * @dev Allows the owner to set a value for a string variable
+     * @param h The keccak256 hash of the variable name
+     * @param v The value to be stored
+     */
     function setString(bytes32 h, string v) internal  {
         _setString(h, v);
         emit StringVarableChanged(h, v);
     }
 
     /**
-    * @dev Allows the owner to set a value for a bytes variable.
-    * @param h The keccak256 hash of the variable name
-    * @param v The value to be stored
-    */
+     * @dev Allows the owner to set a value for a bytes variable
+     * @param h The keccak256 hash of the variable name
+     * @param v The value to be stored
+     */
     function setBytes(bytes32 h, bytes v) internal {
         _setBytes(h, v);
         emit BytesVarableChanged(h, v);
     }
 
     /**
-    * @dev Allows the owner to set a value for a bytes32 variable.
-    * @param h The keccak256 hash of the variable name
-    * @param v The value to be stored
-    */
+     * @dev Allows the owner to set a value for a bytes32 variable
+     * @param h The keccak256 hash of the variable name
+     * @param v The value to be stored
+     */
     function setBytes32(bytes32 h, bytes32 v) internal {
         _setBytes32(h, v);
         emit Bytes32VarableChanged(h, v);

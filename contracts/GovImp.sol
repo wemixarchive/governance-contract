@@ -213,9 +213,6 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
                 if (endTime < block.timestamp) {
                     finalizeBallot(ballotInVoting, uint256(BallotStates.Rejected));
                     ballotInVoting = 0;
-                    if (ballotIdx == ballotInVoting) {
-                        return;
-                    }
                 } else if (ballotIdx != ballotInVoting) {
                     revert("Now in voting with different ballot");
                 }

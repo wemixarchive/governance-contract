@@ -54,16 +54,9 @@ module.exports = {
     development: {
       host: 'localhost',
       port: 8545,
-      network_id: '*', // Match any network id
+      network_id: '*',
       gas: 7984452,
       gasPrice: 2000000000,
-    },
-    ganache: {
-      host: 'localhost',
-      port: 9545,
-      network_id: '101', // Match any network id
-//      gas: 268435456,
-      gasPrice: 20000000000,
     },
     coverage: {
       host: 'localhost',

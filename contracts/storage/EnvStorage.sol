@@ -5,7 +5,6 @@ import "../proxy/UpgradeabilityProxy.sol";
 
 
 contract EnvStorage is UpgradeabilityProxy, AEnvStorage {
-
     modifier onlyGovOrOwner() {
         require((getGovAddress() == msg.sender) || isOwner(), "No Permission");
         _;
