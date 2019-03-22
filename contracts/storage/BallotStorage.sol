@@ -347,31 +347,24 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         notDisabled
         returns (uint256)
     {
-        //1. msg.sender가 member
-        //2. actionType 범위 
+        // Check decision type
         require((_decision == uint256(DecisionTypes.Accept))
             || (_decision == uint256(DecisionTypes.Reject)), "Invalid decision");
-        
-        //3. ballotId 존재 하는지 확인 
+        // Check if ballot exists
         require(ballotBasicMap[_ballotId].id == _ballotId, "not existed Ballot");
-        //4. voteId 존재 확인
+        // Check if vote exists
         require(voteMap[_voteId].voteId != _voteId, "already existed voteId");
-        //5. 이미 vote 했는지 확인 
+        // Check if voted
         require(!hasVotedMap[_ballotId][_voter], "already voted");
         require(ballotBasicMap[_ballotId].state
             == uint256(BallotStates.InProgress), "Not InProgress State");
 
-        //1. 생성
         voteMap[_voteId] = Vote(_voteId, _ballotId, _voter, _decision, _power, getTime());
-        
-        //2. 투표 업데이트 
         _updateBallotForVote(_ballotId, _voter, _decision, _power);
 
-        //3. event 처리 
         emit Voted(_voteId, _ballotId, _voter, _decision);
     }
 
-    //start/end /state 
     function startBallot(
         uint256 _ballotId,
         uint256 _startTime,
@@ -385,6 +378,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         require(ballotBasicMap[_ballotId].id == _ballotId, "not existed Ballot");
         require(ballotBasicMap[_ballotId].isFinalized == false, "already finalized");
         require(ballotBasicMap[_ballotId].state == uint256(BallotStates.Ready), "Not Ready State");
+
         BallotBasic storage _ballot = ballotBasicMap[_ballotId];
         _ballot.startTime = _startTime;
         _ballot.endTime = _endTime;
@@ -442,17 +436,18 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         emit BallotUpdated (_ballotId, msg.sender);
     }
 
-    // cancel ballot info.
+    // cancel ballot info
     function cancelBallot(uint256 _ballotId) public onlyGovOrCreator(_ballotId) notDisabled {
         require(ballotBasicMap[_ballotId].id == _ballotId, "not existed Ballot");
         require(ballotBasicMap[_ballotId].isFinalized == false, "already finalized");
+    
         require(ballotBasicMap[_ballotId].state == uint256(BallotStates.Ready), "Not Ready State");
         BallotBasic storage _ballot = ballotBasicMap[_ballotId];
         _ballot.state = uint256(BallotStates.Canceled);
         emit BallotCanceled (_ballotId);
     }
 
-    // finalize ballot info.
+    // finalize ballot info
     function finalizeBallot(uint256 _ballotId, uint256 _ballotState) public onlyGov notDisabled {
         require(ballotBasicMap[_ballotId].id == _ballotId, "not existed Ballot");
         require(ballotBasicMap[_ballotId].isFinalized == false, "already finalized");
