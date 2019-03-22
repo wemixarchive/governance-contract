@@ -132,11 +132,11 @@ contract EnvStorageImp is AEnvStorage, EnvConstants {
     }
 
     function setGasPriceByBytes(bytes _value) public onlyGov { 
-        setStakingMax(toUint(_value));
+        setGasPrice(toUint(_value));
     }
 
     function setMaxIdleBlockIntervalByBytes(bytes _value) public onlyGov { 
-        setStakingMax(toUint(_value));
+        setMaxIdleBlockInterval(toUint(_value));
     }
 
     // function getTestInt() public view returns (int256) {
