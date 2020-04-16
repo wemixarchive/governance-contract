@@ -23,6 +23,16 @@ contract BallotEnums {
         MemberRemoval, // old Member Address
         MemberChange,     // Old Member Address, New Member Address, new Node id, New Node ip, new Node port
         GovernanceChange, // new Governace Impl Address
-        EnvValChange    // Env variable name, type , value
+        EnvValChange,   // Env variable name, type , value
+        // Permission related ballot types
+        PermissionChange,
+        PermssionGroupAdd,
+        PermssionGroupRemoval,
+        PermssionGroupChange,
+        PermssionAccountAdd,
+        PermssionAccountRemoval,
+        PermssionNodeAdd,
+        PermssionNodeRemoval,
+        PermssionNodeChange
     }
 }
