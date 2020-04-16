@@ -3,55 +3,54 @@ pragma solidity ^0.4.24;
 import "../proxy/UpgradeabilityProxy.sol";
 
 contract APerm is UpgradeabilityProxy {
-    uint public modifiedBlock;
-
-    struct Group {
-        uint256 id;
+    struct PermissionGroup {
+        uint256 gid;
         uint256 perm;
     }
 
-    struct Acct {
+    struct PermissionAccount {
         address addr;
-        uint256 group;
+        uint256 gid;
     }
 
-    struct Node {
-        bytes   id;
+    struct PermissionNode {
+        bytes32 nid;
         uint256 perm;
     }
 
     // group: index <-> group id
-    mapping(uint256 => Group) internal groups;
-    mapping(uint256 => uint256) internal groupsIdx;
-    uint256 internal groupLength;
+    mapping(uint256 => PermissionGroup) internal permissionGroups;
+    mapping(uint256 => uint256) internal permissionGroupsIdx;
+    uint256 internal permissionGroupLength;
 
     // accounts: index <-> address
-    mapping(uint256 => Acct) internal accounts;
-    mapping(address => uint256) internal accountsIdx;
-    uint256 internal accountLength;
+    mapping(uint256 => PermissionAccount) internal permissionAccounts;
+    mapping(address => uint256) internal permissionAccountsIdx;
+    uint256 internal permissionAccountLength;
 
     // nodes: index <-> enode
-    mapping(uint256 => Node) internal nodes;
-    mapping(bytes => uint256) internal nodesIdx;
-    uint256 internal nodeLength;
+    mapping(uint256 => PermissionNode) internal permissionNodes;
+    mapping(bytes32 => uint256) internal permissionNodesIdx;
+    uint256 internal permissionNodeLength;
 
-    constructor() public {}
-
-    function getGroupLength() public view returns (uint256) { return groupLength; }
-    function getGroup(uint256 idx) public view returns (uint256, uint256) {
-        Group memory g = groups[idx];
-        return (g.id, g.perm);
+    function isPermissionGroup(uint256 id) public view returns (bool) { return permissionGroupsIdx[id] != 0; }
+    function getPermissionGroupLength() public view returns (uint256) { return permissionGroupLength; }
+    function getPermissionGroup(uint256 idx) public view returns (uint256, uint256) {
+        PermissionGroup memory g = permissionGroups[idx];
+        return (g.gid, g.perm);
     }
 
-    function getAccountLength() public view returns (uint256) { return accountLength; }
-    function getAccount(uint256 idx) public view returns (address, uint256) {
-        Acct memory acct = accounts[idx];
-        return (acct.addr, acct.group);
+    function isPermissionAccount(address addr) public view returns (bool) { return permissionAccountsIdx[addr] != 0; }
+    function getPermissionAccountLength() public view returns (uint256) { return permissionAccountLength; }
+    function getPermissionAccount(uint256 idx) public view returns (address, uint256) {
+        PermissionAccount memory acct = permissionAccounts[idx];
+        return (acct.addr, acct.gid);
     }
 
-    function getNodeLength() public view returns (uint256) { return nodeLength; }
-    function getNode(uint256 idx) public view returns (bytes, uint256) {
-        Node memory node = nodes[idx];
-        return (node.id, node.perm);
+    function isPermissionNode(bytes32 id) public view returns (bool) { return permissionNodesIdx[id] != 0; }
+    function getPermissionNodeLength() public view returns (uint256) { return permissionNodeLength; }
+    function getPermissionNode(uint256 idx) public view returns (bytes32, uint256) {
+        PermissionNode memory node = permissionNodes[idx];
+        return (node.nid, node.perm);
     }
 }

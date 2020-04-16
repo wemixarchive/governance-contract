@@ -7,9 +7,10 @@ import "./interface/IBallotStorage.sol";
 import "./interface/IEnvStorage.sol";
 import "./interface/IStaking.sol";
 import "./abstract/AGov.sol";
+import "./abstract/APerm.sol";
 
 
-contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
+contract GovImp is AGov, APerm, ReentrancyGuard, BallotEnums, EnvConstants {
     using SafeMath for uint256;
 
     event MemberAdded(address indexed addr);
@@ -17,7 +18,17 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
     event MemberChanged(address indexed oldAddr, address indexed newAddr);
     event EnvChanged(bytes32 envName, uint256 envType, bytes envVal);
     event MemberUpdated(address indexed addr);
-    
+
+    event PermissionGroupAdded(uint256 id, uint256 perm);
+    event PermissionGroupChanged(uint256 id, uint256 perm1, uint256 perm2);
+    event PermissionGroupRemoved(uint256 id);
+    event PermissionAccountAdded(address addr, uint256 id);
+    event PermissionAccountChanged(address addr, uint256 id1, uint256 id2);
+    event PermissionAccountRemoved(address addr);
+    event PermissionNodeAdded(bytes32 id, uint256 perm);
+    event PermissionNodeChanged(bytes32 id, uint256 perm1, uint256 perm2);
+    event PermissionNodeRemoved(bytes32 id);
+
     function addProposalToAddMember(
         address member,
         bytes name,
@@ -169,6 +180,65 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
         ballotLength = ballotIdx;
     }
 
+    function addProposalToAddPermissionGroup(
+        uint256 id,
+        uint256 perm
+    )
+        external
+        onlyGovMem
+        returns (uint256 ballotIdx)
+    {
+        require(isPermissionGroup(id), "Invalid Group Id");
+
+        ballotIdx = ballotLength.add(1);
+        IBallotStorage(getBallotStorageAddress()).createBallotForPermissionGroup(
+            ballotIdx,
+            uint256(BallotTypes.PermissionGroupAdd),
+            msg.sender,
+            id,
+            perm);
+        ballotLength = ballotIdx;
+    }
+
+    function addProposalToRemovePermissionGroup(
+        uint256 id
+    )
+        external
+        onlyGovMem
+        returns (uint256 ballotIdx)
+    {
+        require(!isPermissionGroup(id), "Invalid Group Id");
+
+        ballotIdx = ballotLength.add(1);
+        IBallotStorage(getBallotStorageAddress()).createBallotForPermissionGroup(
+            ballotIdx,
+            uint256(BallotTypes.PermissionGroupRemove),
+            msg.sender,
+            id,
+            0);
+        ballotLength = ballotIdx;
+    }
+
+    function addProposalToChangePermissionGroup(
+        uint256 id,
+        uint256 perm
+    )
+        external
+        onlyGovMem
+        returns (uint256 ballotIdx)
+    {
+        require(!isPermissionGroup(id), "Invalid Group Id");
+
+        ballotIdx = ballotLength.add(1);
+        IBallotStorage(getBallotStorageAddress()).createBallotForPermissionGroup(
+            ballotIdx,
+            uint256(BallotTypes.PermissionGroupChange),
+            msg.sender,
+            id,
+            perm);
+        ballotLength = ballotIdx;
+    }
+
     function vote(uint256 ballotIdx, bool approval) external onlyGovMem nonReentrant {
         // Check if some ballot is in progress
         checkUnfinalized(ballotIdx);
@@ -198,7 +268,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
     function getMinVotingDuration() public view returns (uint256) {
         return IEnvStorage(getEnvStorageAddress()).getBallotDurationMin();
     }
-    
+
     function getMaxVotingDuration() public view returns (uint256) {
         return IEnvStorage(getEnvStorageAddress()).getBallotDurationMax();
     }
@@ -276,6 +346,24 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
                 changeGov(ballotIdx);
             } else if (ballotType == uint256(BallotTypes.EnvValChange)) {
                 applyEnv(ballotIdx);
+            } else if (ballotType == uint256(BallotTypes.PermissionGroupAdd)) {
+                addPermissionGroup(ballotIdx);
+            } else if (ballotType == uint256(BallotTypes.PermissionGroupChange)) {
+                changePermissionGroup(ballotIdx);
+            } else if (ballotType == uint256(BallotTypes.PermissionGroupRemove)) {
+                removePermissionGroup(ballotIdx);
+            } else if (ballotType == uint256(BallotTypes.PermissionAccountAdd)) {
+                addPermissionAccount(ballotIdx);
+            } else if (ballotType == uint256(BallotTypes.PermissionAccountChange)) {
+                changePermissionAccount(ballotIdx);
+            } else if (ballotType == uint256(BallotTypes.PermissionAccountRemove)) {
+                removePermissionAccount(ballotIdx);
+            } else if (ballotType == uint256(BallotTypes.PermissionNodeAdd)) {
+                addPermissionNode(ballotIdx);
+            } else if (ballotType == uint256(BallotTypes.PermissionNodeChange)) {
+                changePermissionNode(ballotIdx);
+            } else if (ballotType == uint256(BallotTypes.PermissionNodeRemove)) {
+                removePermissionNode(ballotIdx);
             }
             ballotState = uint256(BallotStates.Accepted);
         }
@@ -372,7 +460,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
 
     function changeMember(uint256 ballotIdx) private {
         fromValidBallot(ballotIdx, uint256(BallotTypes.MemberChange));
-        
+
         (
             address addr,
             address nAddr,
@@ -461,6 +549,164 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
         modifiedBlock = block.number;
 
         emit EnvChanged(envKey, envType, envVal);
+    }
+
+    // Permissons
+    function addPermissionGroup(uint256 ballotIdx) private {
+        fromValidBallot(ballotIdx, uint256(BallotTypes.PermissionGroupAdd));
+        (uint256 gid, uint256 perm) = IBallotStorage(getBallotStorageAddress()).getBallotPermissionGroup(ballotIdx);
+        if (isPermissionGroup(gid)) {
+            return;
+        }
+
+        uint256 ix = permissionGroupLength.add(1);
+        PermissionGroup storage g = permissionGroups[ix];
+        g.gid = gid;
+        g.perm = perm;
+        permissionGroupLength = ix;
+
+        modifiedBlock = block.number;
+        emit PermissionGroupAdded(gid, perm);
+    }
+
+    function removePermissionGroup(uint256 ballotIdx) private {
+        fromValidBallot(ballotIdx, uint256(BallotTypes.PermissionGroupRemove));
+        (uint256 id, ) = IBallotStorage(getBallotStorageAddress()).getBallotPermissionGroup(ballotIdx);
+        if (!isPermissionGroup(id)) {
+            return;
+        }
+
+        // TODO: check member count
+
+        if (permissionGroupsIdx[id] != permissionGroupLength) {
+            PermissionGroup memory t = permissionGroups[permissionGroupsIdx[id]];
+            permissionGroups[permissionGroupsIdx[id]] = permissionGroups[permissionGroupLength];
+            permissionGroups[permissionGroupLength] = t;
+        }
+        delete permissionGroups[permissionGroupLength];
+        permissionGroupsIdx[id] = 0;
+        permissionGroupLength = permissionGroupLength.sub(1);
+
+        modifiedBlock = block.number;
+        emit PermissionGroupRemoved(id);
+    }
+
+    function changePermissionGroup(uint256 ballotIdx) private {
+        fromValidBallot(ballotIdx, uint256(BallotTypes.PermissionGroupChange));
+        (uint256 id, uint256 perm) = IBallotStorage(getBallotStorageAddress()).getBallotPermissionGroup(ballotIdx);
+        if (!isPermissionGroup(id)) {
+            return;
+        }
+
+        uint256 operm = permissionGroups[permissionGroupsIdx[id]].perm;
+        permissionGroups[permissionGroupsIdx[id]].perm = perm;
+
+        modifiedBlock = block.number;
+        emit PermissionGroupChanged(id, operm, perm);
+    }
+
+    function addPermissionAccount(uint256 ballotIdx) private {
+        fromValidBallot(ballotIdx, uint256(BallotTypes.PermissionAccountAdd));
+        (address addr, uint256 gid) = IBallotStorage(getBallotStorageAddress()).getBallotPermissionAccount(ballotIdx);
+        if (isPermissionAccount(addr)) {
+            return;
+        }
+
+        uint256 ix = permissionAccountLength.add(1);
+        PermissionAccount storage a = permissionAccounts[ix];
+        a.addr = addr;
+        a.gid = gid;
+        permissionAccountLength = ix;
+
+        modifiedBlock = block.number;
+        emit PermissionAccountAdded(addr, gid);
+    }
+
+    function removePermissionAccount(uint256 ballotIdx) private {
+        fromValidBallot(ballotIdx, uint256(BallotTypes.PermissionAccountRemove));
+        (address addr, ) = IBallotStorage(getBallotStorageAddress()).getBallotPermissionAccount(ballotIdx);
+        if (!isPermissionAccount(addr)) {
+            return;
+        }
+
+        if (permissionAccountsIdx[addr] != permissionAccountLength) {
+            PermissionAccount memory t = permissionAccounts[permissionAccountsIdx[addr]];
+            permissionAccounts[permissionAccountsIdx[addr]] = permissionAccounts[permissionAccountLength];
+            permissionAccounts[permissionAccountLength] = t;
+        }
+        delete permissionAccounts[permissionAccountLength];
+        permissionAccountsIdx[addr] = 0;
+        permissionAccountLength = permissionAccountLength.sub(1);
+
+        modifiedBlock = block.number;
+        emit PermissionAccountRemoved(addr);
+    }
+
+    function changePermissionAccount(uint256 ballotIdx) private {
+        fromValidBallot(ballotIdx, uint256(BallotTypes.PermissionAccountChange));
+        (address addr, uint256 gid) = IBallotStorage(getBallotStorageAddress()).getBallotPermissionAccount(ballotIdx);
+        if (!isPermissionAccount(addr)) {
+            return;
+        }
+
+        uint256 ogid = permissionAccounts[permissionAccountsIdx[addr]].gid;
+        permissionAccounts[permissionAccountsIdx[addr]].gid = gid;
+
+        modifiedBlock = block.number;
+        emit PermissionAccountChanged(addr, ogid, gid);
+    }
+
+    function addPermissionNode(uint256 ballotIdx) private {
+        fromValidBallot(ballotIdx, uint256(BallotTypes.PermissionNodeAdd));
+        (bytes32 nid, uint256 perm) = IBallotStorage(getBallotStorageAddress()).getBallotPermissionNode(ballotIdx);
+        if (isPermissionNode(nid)) {
+            return;
+        }
+
+        uint256 ix = permissionNodeLength.add(1);
+        PermissionNode storage g = permissionNodes[ix];
+        g.nid = nid;
+        g.perm = perm;
+        permissionNodeLength = ix;
+
+        modifiedBlock = block.number;
+        emit PermissionNodeAdded(nid, perm);
+    }
+
+    function removePermissionNode(uint256 ballotIdx) private {
+        fromValidBallot(ballotIdx, uint256(BallotTypes.PermissionNodeRemove));
+        (bytes32 nid, ) = IBallotStorage(getBallotStorageAddress()).getBallotPermissionNode(ballotIdx);
+        if (!isPermissionNode(nid)) {
+            return;
+        }
+
+        // TODO: check member count
+
+        if (permissionNodesIdx[nid] != permissionNodeLength) {
+            PermissionNode memory t = permissionNodes[permissionNodesIdx[nid]];
+            permissionNodes[permissionNodesIdx[nid]] = permissionNodes[permissionNodeLength];
+            permissionNodes[permissionNodeLength] = t;
+        }
+        delete permissionNodes[permissionNodeLength];
+        permissionNodesIdx[nid] = 0;
+        permissionNodeLength = permissionNodeLength.sub(1);
+
+        modifiedBlock = block.number;
+        emit PermissionNodeRemoved(nid);
+    }
+
+    function changePermissionNode(uint256 ballotIdx) private {
+        fromValidBallot(ballotIdx, uint256(BallotTypes.PermissionNodeChange));
+        (bytes32 nid, uint256 perm) = IBallotStorage(getBallotStorageAddress()).getBallotPermissionNode(ballotIdx);
+        if (!isPermissionNode(nid)) {
+            return;
+        }
+
+        uint256 operm = permissionNodes[permissionNodesIdx[nid]].perm;
+        permissionNodes[permissionNodesIdx[nid]].perm = perm;
+
+        modifiedBlock = block.number;
+        emit PermissionNodeChanged(nid, operm, perm);
     }
 
     //------------------ Code reduction for creation gas

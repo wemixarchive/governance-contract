@@ -26,13 +26,14 @@ contract BallotEnums {
         EnvValChange,   // Env variable name, type , value
         // Permission related ballot types
         PermissionChange,
-        PermssionGroupAdd,
-        PermssionGroupRemoval,
-        PermssionGroupChange,
-        PermssionAccountAdd,
-        PermssionAccountRemoval,
-        PermssionNodeAdd,
-        PermssionNodeRemoval,
-        PermssionNodeChange
+        PermissionGroupAdd,
+        PermissionGroupChange,
+        PermissionGroupRemove,
+        PermissionAccountAdd,
+        PermissionAccountChange,
+        PermissionAccountRemove,
+        PermissionNodeAdd,
+        PermissionNodeChange,
+        PermissionNodeRemove
     }
 }
