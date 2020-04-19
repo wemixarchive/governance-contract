@@ -25,9 +25,9 @@ contract GovImp is AGov, APerm, ReentrancyGuard, BallotEnums, EnvConstants {
     event PermissionAccountAdded(address addr, uint256 id);
     event PermissionAccountChanged(address addr, uint256 id1, uint256 id2);
     event PermissionAccountRemoved(address addr);
-    event PermissionNodeAdded(bytes32 id, uint256 perm);
-    event PermissionNodeChanged(bytes32 id, uint256 perm1, uint256 perm2);
-    event PermissionNodeRemoved(bytes32 id);
+    event PermissionNodeAdded(bytes id, uint256 perm);
+    event PermissionNodeChanged(bytes id, uint256 perm1, uint256 perm2);
+    event PermissionNodeRemoved(bytes id);
 
     function addProposalToAddMember(
         address member,
@@ -188,8 +188,7 @@ contract GovImp is AGov, APerm, ReentrancyGuard, BallotEnums, EnvConstants {
         onlyGovMem
         returns (uint256 ballotIdx)
     {
-        require(isPermissionGroup(id), "Invalid Group Id");
-
+        require(!isPermissionGroup(id), "Invalid Group Id");
         ballotIdx = ballotLength.add(1);
         IBallotStorage(getBallotStorageAddress()).createBallotForPermissionGroup(
             ballotIdx,
@@ -658,7 +657,7 @@ contract GovImp is AGov, APerm, ReentrancyGuard, BallotEnums, EnvConstants {
 
     function addPermissionNode(uint256 ballotIdx) private {
         fromValidBallot(ballotIdx, uint256(BallotTypes.PermissionNodeAdd));
-        (bytes32 nid, uint256 perm) = IBallotStorage(getBallotStorageAddress()).getBallotPermissionNode(ballotIdx);
+        (bytes memory nid, uint256 perm) = IBallotStorage(getBallotStorageAddress()).getBallotPermissionNode(ballotIdx);
         if (isPermissionNode(nid)) {
             return;
         }
@@ -675,7 +674,7 @@ contract GovImp is AGov, APerm, ReentrancyGuard, BallotEnums, EnvConstants {
 
     function removePermissionNode(uint256 ballotIdx) private {
         fromValidBallot(ballotIdx, uint256(BallotTypes.PermissionNodeRemove));
-        (bytes32 nid, ) = IBallotStorage(getBallotStorageAddress()).getBallotPermissionNode(ballotIdx);
+        (bytes memory nid, ) = IBallotStorage(getBallotStorageAddress()).getBallotPermissionNode(ballotIdx);
         if (!isPermissionNode(nid)) {
             return;
         }
@@ -697,7 +696,7 @@ contract GovImp is AGov, APerm, ReentrancyGuard, BallotEnums, EnvConstants {
 
     function changePermissionNode(uint256 ballotIdx) private {
         fromValidBallot(ballotIdx, uint256(BallotTypes.PermissionNodeChange));
-        (bytes32 nid, uint256 perm) = IBallotStorage(getBallotStorageAddress()).getBallotPermissionNode(ballotIdx);
+        (bytes memory nid, uint256 perm) = IBallotStorage(getBallotStorageAddress()).getBallotPermissionNode(ballotIdx);
         if (!isPermissionNode(nid)) {
             return;
         }
@@ -707,6 +706,123 @@ contract GovImp is AGov, APerm, ReentrancyGuard, BallotEnums, EnvConstants {
 
         modifiedBlock = block.number;
         emit PermissionNodeChanged(nid, operm, perm);
+    }
+
+    // temporary shortcuts
+    function permSetGroup(uint256 gid, uint256 perm) public onlyGovMem {
+        if (perm != 0) {
+            perm = 1;
+        }
+        uint256 ix = permissionGroupsIdx[gid];
+        if (ix > 0) {
+            uint256 operm = permissionGroups[ix].perm;
+            permissionGroups[ix].perm = perm;
+            emit PermissionGroupChanged(gid, operm, perm);
+        } else {
+            ix = permissionGroupLength.add(1);
+            PermissionGroup storage g = permissionGroups[ix];
+            g.gid = gid;
+            g.perm = perm;
+            permissionGroupLength = ix;
+            permissionGroupsIdx[gid] = ix;
+            emit PermissionGroupAdded(gid, perm);
+        }
+        modifiedBlock = block.number;
+    }
+
+    function permRemoveGroup(uint256 gid) public onlyGovMem {
+        uint256 ix = permissionGroupsIdx[gid];
+        require(ix > 0, "Invalid group id");
+
+        if (ix != permissionGroupLength) {
+            PermissionGroup memory t = permissionGroups[ix];
+            permissionGroups[ix] = permissionGroups[permissionGroupLength];
+            permissionGroups[permissionGroupLength] = t;
+        }
+        delete permissionGroups[permissionGroupLength];
+        permissionGroupsIdx[gid] = 0;
+        permissionGroupLength = permissionGroupLength.sub(1);
+
+        modifiedBlock = block.number;
+        emit PermissionGroupRemoved(gid);
+    }
+
+    function permSetAccount(address addr, uint256 gid) public onlyGovMem {
+        require(addr != 0, "Invalid Account");
+        require(isPermissionGroup(gid), "Invalid Group Id");
+
+        uint256 ix = permissionAccountsIdx[addr];
+        if (ix > 0) {
+            uint256 ogid = permissionAccounts[ix].gid;
+            permissionAccounts[ix].gid = gid;
+            emit PermissionAccountChanged(addr, ogid, gid);
+        } else {
+            ix = permissionAccountLength.add(1);
+            PermissionAccount storage a = permissionAccounts[ix];
+            a.addr = addr;
+            a.gid = gid;
+            permissionAccountLength = ix;
+            permissionAccountsIdx[addr] = ix;
+            emit PermissionAccountAdded(addr, gid);
+        }
+        modifiedBlock = block.number;
+    }
+
+    function permRemoveAccount(address addr) public onlyGovMem {
+        uint256 ix = permissionAccountsIdx[addr];
+        require(ix > 0, "Invalid account address");
+
+        if (ix != permissionAccountLength) {
+            PermissionAccount memory t = permissionAccounts[ix];
+            permissionAccounts[ix] = permissionAccounts[permissionAccountLength];
+            permissionAccounts[permissionAccountLength] = t;
+        }
+        delete permissionAccounts[permissionAccountLength];
+        permissionAccountsIdx[addr] = 0;
+        permissionAccountLength = permissionAccountLength.sub(1);
+
+        modifiedBlock = block.number;
+        emit PermissionAccountRemoved(addr);
+    }
+
+    function permSetNode(bytes nid, uint256 perm) public onlyGovMem {
+        require(nid.length == 64, "Invalid enode id");
+
+        if (perm != 0) {
+            perm = 1;
+        }
+        uint256 ix = permissionNodesIdx[nid];
+        if (ix > 0) {
+            uint256 operm = permissionNodes[ix].perm;
+            permissionNodes[ix].perm = perm;
+            emit PermissionNodeChanged(nid, operm, perm);
+        } else {
+            ix = permissionNodeLength.add(1);
+            PermissionNode storage n = permissionNodes[ix];
+            n.nid = nid;
+            n.perm = perm;
+            permissionNodeLength = ix;
+            permissionNodesIdx[nid] = ix;
+            emit PermissionNodeAdded(nid, perm);
+        }
+        modifiedBlock = block.number;
+    }
+
+    function permRemoveNode(bytes nid) public onlyGovMem {
+        uint256 ix = permissionNodesIdx[nid];
+        require(ix > 0, "Invalid node id");
+
+        if (ix != permissionNodeLength) {
+            PermissionNode memory t = permissionNodes[ix];
+            permissionNodes[ix] = permissionNodes[permissionNodeLength];
+            permissionNodes[permissionNodeLength] = t;
+        }
+        delete permissionNodes[permissionNodeLength];
+        permissionNodesIdx[nid] = 0;
+        permissionNodeLength = permissionNodeLength.sub(1);
+
+        modifiedBlock = block.number;
+        emit PermissionNodeRemoved(nid);
     }
 
     //------------------ Code reduction for creation gas

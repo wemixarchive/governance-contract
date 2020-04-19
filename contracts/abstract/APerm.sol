@@ -14,7 +14,7 @@ contract APerm is UpgradeabilityProxy {
     }
 
     struct PermissionNode {
-        bytes32 nid;
+        bytes nid;
         uint256 perm;
     }
 
@@ -30,7 +30,7 @@ contract APerm is UpgradeabilityProxy {
 
     // nodes: index <-> enode
     mapping(uint256 => PermissionNode) internal permissionNodes;
-    mapping(bytes32 => uint256) internal permissionNodesIdx;
+    mapping(bytes => uint256) internal permissionNodesIdx;
     uint256 internal permissionNodeLength;
 
     function isPermissionGroup(uint256 id) public view returns (bool) { return permissionGroupsIdx[id] != 0; }
@@ -47,9 +47,9 @@ contract APerm is UpgradeabilityProxy {
         return (acct.addr, acct.gid);
     }
 
-    function isPermissionNode(bytes32 id) public view returns (bool) { return permissionNodesIdx[id] != 0; }
+    function isPermissionNode(bytes id) public view returns (bool) { return permissionNodesIdx[id] != 0; }
     function getPermissionNodeLength() public view returns (uint256) { return permissionNodeLength; }
-    function getPermissionNode(uint256 idx) public view returns (bytes32, uint256) {
+    function getPermissionNode(uint256 idx) public view returns (bytes, uint256) {
         PermissionNode memory node = permissionNodes[idx];
         return (node.nid, node.perm);
     }

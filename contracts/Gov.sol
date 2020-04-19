@@ -4,13 +4,14 @@ pragma solidity ^0.4.24;
 // import "./proxy/UpgradeabilityProxy.sol";
 // import "./interface/IStaking.sol";
 import "./abstract/AGov.sol";
+import "./abstract/APerm.sol";
 
 
-contract Gov is AGov {
+contract Gov is AGov, APerm {
     // "Metadium Governance"
     uint public magic = 0x4d6574616469756d20476f7665726e616e6365;
     bool private _initialized;
-    
+
     function init(
         address registry,
         address implementation,

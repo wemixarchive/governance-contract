@@ -79,7 +79,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
 
     struct BallotPermissionNode {
         uint256 id;
-        bytes32 nid;
+        bytes nid;
         uint256 perm;
     }
 
@@ -283,7 +283,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     }
 
     function getBallotPermissionNode(uint256 _id) public view returns (
-        bytes32 nid,
+        bytes nid,
         uint256 perm
     )
     {
@@ -399,7 +399,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         returns (uint256)
     {
         require(_ballotType >= uint256(BallotTypes.PermissionGroupAdd) &&
-                _ballotType <= uint256(BallotTypes.PermissionGroupChange),
+                _ballotType <= uint256(BallotTypes.PermissionGroupRemove),
                 "Invalid Ballot Type");
         if (_ballotType == uint256(BallotTypes.PermissionGroupAdd) ||
             _ballotType == uint256(BallotTypes.PermissionGroupChange)) {
@@ -412,6 +412,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         b.gid = _gid;
         b.perm = _perm;
         ballotPermissionGroupMap[_id] = b;
+        return _id;
     }
 
     function createBallotForPermissionAccount(
@@ -426,7 +427,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         returns (uint256)
     {
         require(_ballotType >= uint256(BallotTypes.PermissionAccountAdd) &&
-                _ballotType <= uint256(BallotTypes.PermissionAccountChange),
+                _ballotType <= uint256(BallotTypes.PermissionAccountRemove),
                 "Invalid Ballot Type");
         if (_ballotType == uint256(BallotTypes.PermissionAccountAdd) ||
             _ballotType == uint256(BallotTypes.PermissionAccountChange)) {
@@ -439,13 +440,14 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         b.addr = _addr;
         b.gid = _gid;
         ballotPermissionAccountMap[_id] = b;
+        return _id;
     }
 
     function createBallotForPermissionNode(
         uint256 _id,
         uint256 _ballotType,
         address _creator,
-        bytes32 _nid,
+        bytes _nid,
         uint256 _perm
     )
         public onlyGov
@@ -453,7 +455,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         returns (uint256)
     {
         require(_ballotType >= uint256(BallotTypes.PermissionNodeAdd) &&
-                _ballotType <= uint256(BallotTypes.PermissionNodeChange),
+                _ballotType <= uint256(BallotTypes.PermissionNodeRemove),
                 "Invalid Ballot Type");
         if (_ballotType == uint256(BallotTypes.PermissionNodeAdd) ||
             _ballotType == uint256(BallotTypes.PermissionNodeChange)) {
@@ -466,6 +468,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         b.nid = _nid;
         b.perm = _perm;
         ballotPermissionNodeMap[_id] = b;
+        return _id;
     }
 
     function createVote(

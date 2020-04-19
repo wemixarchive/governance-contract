@@ -11,7 +11,7 @@ interface IBallotStorage {
 
     function createBallotForPermissionGroup(uint256, uint256, address, uint256, uint256) external returns (uint256);
     function createBallotForPermissionAccount(uint256, uint256, address, address, uint256) external returns (uint256);
-    function createBallotForPermissionNode(uint256, uint256, address, bytes32, uint256) external returns (uint256);
+    function createBallotForPermissionNode(uint256, uint256, address, bytes, uint256) external returns (uint256);
 
     function createVote(uint256, uint256, address, uint256, uint256) external returns (uint256);
     function finalizeBallot(uint256, uint256) external;
@@ -34,5 +34,5 @@ interface IBallotStorage {
 
     function getBallotPermissionGroup(uint256) external view returns (uint256, uint256);
     function getBallotPermissionAccount(uint256) external view returns (address, uint256);
-    function getBallotPermissionNode(uint256) external view returns (bytes32, uint256);
+    function getBallotPermissionNode(uint256) external view returns (bytes, uint256);
 }
