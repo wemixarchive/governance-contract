@@ -837,7 +837,7 @@ contract GovImp is AGov, APerm, ReentrancyGuard, BallotEnums, EnvConstants {
     }
 
     // temporary shortcuts
-    function permSetGroup(uint256 gid, uint256 perm) public onlyGovMem {
+    function permSetGroup(uint256 gid, uint256 perm) internal onlyGovMem {
         if (perm != 0) {
             perm = 1;
         }
@@ -858,7 +858,7 @@ contract GovImp is AGov, APerm, ReentrancyGuard, BallotEnums, EnvConstants {
         modifiedBlock = block.number;
     }
 
-    function permRemoveGroup(uint256 gid) public onlyGovMem {
+    function permRemoveGroup(uint256 gid) internal onlyGovMem {
         uint256 ix = permissionGroupsIdx[gid];
         require(ix > 0, "Invalid group id");
 
@@ -875,7 +875,7 @@ contract GovImp is AGov, APerm, ReentrancyGuard, BallotEnums, EnvConstants {
         emit PermissionGroupRemoved(gid);
     }
 
-    function permSetAccount(address addr, uint256 gid) public onlyGovMem {
+    function permSetAccount(address addr, uint256 gid) internal onlyGovMem {
         require(addr != 0, "Invalid Account");
         require(isPermissionGroup(gid), "Invalid Group Id");
 
@@ -896,7 +896,7 @@ contract GovImp is AGov, APerm, ReentrancyGuard, BallotEnums, EnvConstants {
         modifiedBlock = block.number;
     }
 
-    function permRemoveAccount(address addr) public onlyGovMem {
+    function permRemoveAccount(address addr) internal onlyGovMem {
         uint256 ix = permissionAccountsIdx[addr];
         require(ix > 0, "Invalid account address");
 
@@ -913,7 +913,7 @@ contract GovImp is AGov, APerm, ReentrancyGuard, BallotEnums, EnvConstants {
         emit PermissionAccountRemoved(addr);
     }
 
-    function permSetNode(bytes nid, uint256 perm) public onlyGovMem {
+    function permSetNode(bytes nid, uint256 perm) internal onlyGovMem {
         require(nid.length == 64, "Invalid enode id");
 
         if (perm != 0) {
@@ -936,7 +936,7 @@ contract GovImp is AGov, APerm, ReentrancyGuard, BallotEnums, EnvConstants {
         modifiedBlock = block.number;
     }
 
-    function permRemoveNode(bytes nid) public onlyGovMem {
+    function permRemoveNode(bytes nid) internal onlyGovMem {
         uint256 ix = permissionNodesIdx[nid];
         require(ix > 0, "Invalid node id");
 
