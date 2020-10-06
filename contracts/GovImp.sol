@@ -189,6 +189,7 @@ contract GovImp is AGov, APerm, ReentrancyGuard, BallotEnums, EnvConstants {
         returns (uint256 ballotIdx)
     {
         require(!isPermissionGroup(id), "Invalid Group Id");
+        require(perm == 0 || perm == 1, "Invalid Permission");
         ballotIdx = ballotLength.add(1);
         IBallotStorage(getBallotStorageAddress()).createBallotForPermissionGroup(
             ballotIdx,
@@ -206,7 +207,7 @@ contract GovImp is AGov, APerm, ReentrancyGuard, BallotEnums, EnvConstants {
         onlyGovMem
         returns (uint256 ballotIdx)
     {
-        require(!isPermissionGroup(id), "Invalid Group Id");
+        require(isPermissionGroup(id), "Invalid Group Id");
 
         ballotIdx = ballotLength.add(1);
         IBallotStorage(getBallotStorageAddress()).createBallotForPermissionGroup(
@@ -226,7 +227,8 @@ contract GovImp is AGov, APerm, ReentrancyGuard, BallotEnums, EnvConstants {
         onlyGovMem
         returns (uint256 ballotIdx)
     {
-        require(!isPermissionGroup(id), "Invalid Group Id");
+        require(isPermissionGroup(id), "Invalid Group Id");
+        require(perm == 0 || perm == 1, "Invalid Permission");
 
         ballotIdx = ballotLength.add(1);
         IBallotStorage(getBallotStorageAddress()).createBallotForPermissionGroup(
@@ -234,6 +236,125 @@ contract GovImp is AGov, APerm, ReentrancyGuard, BallotEnums, EnvConstants {
             uint256(BallotTypes.PermissionGroupChange),
             msg.sender,
             id,
+            perm);
+        ballotLength = ballotIdx;
+    }
+
+    function addProposalToAddPermissionAccount(
+        address addr,
+        uint256 gid
+    )
+        external
+        onlyGovMem
+        returns (uint256 ballotIdx)
+    {
+        require(isPermissionGroup(gid), "Invalid Group");
+        require(!isPermissionAccount(addr), "Invalid Account");
+        ballotIdx = ballotLength.add(1);
+        IBallotStorage(getBallotStorageAddress()).createBallotForPermissionAccount(
+            ballotIdx,
+            uint256(BallotTypes.PermissionAccountAdd),
+            msg.sender,
+            addr,
+            gid);
+        ballotLength = ballotIdx;
+    }
+
+    function addProposalToRemovePermissionAccount(
+        address addr
+    )
+        external
+        onlyGovMem
+        returns (uint256 ballotIdx)
+    {
+        require(isPermissionAccount(addr), "Invalid Account");
+
+        ballotIdx = ballotLength.add(1);
+        IBallotStorage(getBallotStorageAddress()).createBallotForPermissionAccount(
+            ballotIdx,
+            uint256(BallotTypes.PermissionAccountRemove),
+            msg.sender,
+            addr,
+            0);
+        ballotLength = ballotIdx;
+    }
+
+    function addProposalToChangePermissionAccount(
+        address addr,
+        uint256 gid
+    )
+        external
+        onlyGovMem
+        returns (uint256 ballotIdx)
+    {
+        require(isPermissionGroup(gid), "Invalid Group");
+        require(isPermissionAccount(addr), "Invalid Account");
+
+        ballotIdx = ballotLength.add(1);
+        IBallotStorage(getBallotStorageAddress()).createBallotForPermissionAccount(
+            ballotIdx,
+            uint256(BallotTypes.PermissionAccountChange),
+            msg.sender,
+            addr,
+            gid);
+        ballotLength = ballotIdx;
+    }
+
+    function addProposalToAddPermissionNode(
+        bytes nid,
+        uint256 perm
+    )
+        external
+        onlyGovMem
+        returns (uint256 ballotIdx)
+    {
+        require(nid.length == 64 && !isPermissionNode(nid), "Invalid enode id");
+        require(perm == 0 || perm == 1, "Invalid Permission");
+        ballotIdx = ballotLength.add(1);
+        IBallotStorage(getBallotStorageAddress()).createBallotForPermissionNode(
+            ballotIdx,
+            uint256(BallotTypes.PermissionNodeAdd),
+            msg.sender,
+            nid,
+            perm);
+        ballotLength = ballotIdx;
+    }
+
+    function addProposalToRemovePermissionNode(
+        bytes nid
+    )
+        external
+        onlyGovMem
+        returns (uint256 ballotIdx)
+    {
+        require(nid.length == 64 && isPermissionNode(nid), "Invalid enode id");
+        ballotIdx = ballotLength.add(1);
+        IBallotStorage(getBallotStorageAddress()).createBallotForPermissionNode(
+            ballotIdx,
+            uint256(BallotTypes.PermissionNodeRemove),
+            msg.sender,
+            nid,
+            0);
+        ballotLength = ballotIdx;
+    }
+
+    function addProposalToChangePermissionNode(
+        bytes nid,
+        uint256 perm
+    )
+        external
+        onlyGovMem
+        returns (uint256 ballotIdx)
+    {
+        require(nid.length == 64 && isPermissionNode(nid), "Invalid enode id");
+        require(perm == 0 || perm == 1, "Invalid Permission");
+
+        ballotIdx = ballotLength.add(1);
+        IBallotStorage(getBallotStorageAddress()).createBallotForPermissionNode(
+            ballotIdx,
+            uint256(BallotTypes.PermissionNodeChange),
+            msg.sender,
+            nid,
             perm);
         ballotLength = ballotIdx;
     }
@@ -563,6 +684,7 @@ contract GovImp is AGov, APerm, ReentrancyGuard, BallotEnums, EnvConstants {
         g.gid = gid;
         g.perm = perm;
         permissionGroupLength = ix;
+        permissionGroupsIdx[gid] = ix;
 
         modifiedBlock = block.number;
         emit PermissionGroupAdded(gid, perm);
@@ -577,10 +699,12 @@ contract GovImp is AGov, APerm, ReentrancyGuard, BallotEnums, EnvConstants {
 
         // TODO: check member count
 
-        if (permissionGroupsIdx[id] != permissionGroupLength) {
-            PermissionGroup memory t = permissionGroups[permissionGroupsIdx[id]];
-            permissionGroups[permissionGroupsIdx[id]] = permissionGroups[permissionGroupLength];
+        uint256 ix = permissionGroupsIdx[id];
+        if (ix != permissionGroupLength) {
+            PermissionGroup memory t = permissionGroups[ix];
+            permissionGroups[ix] = permissionGroups[permissionGroupLength];
             permissionGroups[permissionGroupLength] = t;
+            permissionGroupsIdx[permissionGroups[ix].gid] = ix;
         }
         delete permissionGroups[permissionGroupLength];
         permissionGroupsIdx[id] = 0;
@@ -616,6 +740,7 @@ contract GovImp is AGov, APerm, ReentrancyGuard, BallotEnums, EnvConstants {
         a.addr = addr;
         a.gid = gid;
         permissionAccountLength = ix;
+        permissionAccountsIdx[addr] = ix;
 
         modifiedBlock = block.number;
         emit PermissionAccountAdded(addr, gid);
@@ -628,10 +753,12 @@ contract GovImp is AGov, APerm, ReentrancyGuard, BallotEnums, EnvConstants {
             return;
         }
 
-        if (permissionAccountsIdx[addr] != permissionAccountLength) {
-            PermissionAccount memory t = permissionAccounts[permissionAccountsIdx[addr]];
-            permissionAccounts[permissionAccountsIdx[addr]] = permissionAccounts[permissionAccountLength];
+        uint256 ix = permissionAccountsIdx[addr];
+        if (ix != permissionAccountLength) {
+            PermissionAccount memory t = permissionAccounts[ix];
+            permissionAccounts[ix] = permissionAccounts[permissionAccountLength];
             permissionAccounts[permissionAccountLength] = t;
+            permissionAccountsIdx[permissionAccounts[ix].addr] = ix;
         }
         delete permissionAccounts[permissionAccountLength];
         permissionAccountsIdx[addr] = 0;
@@ -667,6 +794,7 @@ contract GovImp is AGov, APerm, ReentrancyGuard, BallotEnums, EnvConstants {
         g.nid = nid;
         g.perm = perm;
         permissionNodeLength = ix;
+        permissionNodesIdx[nid] = ix;
 
         modifiedBlock = block.number;
         emit PermissionNodeAdded(nid, perm);
@@ -679,12 +807,12 @@ contract GovImp is AGov, APerm, ReentrancyGuard, BallotEnums, EnvConstants {
             return;
         }
 
-        // TODO: check member count
-
-        if (permissionNodesIdx[nid] != permissionNodeLength) {
-            PermissionNode memory t = permissionNodes[permissionNodesIdx[nid]];
-            permissionNodes[permissionNodesIdx[nid]] = permissionNodes[permissionNodeLength];
+        uint256 ix = permissionNodesIdx[nid];
+        if (ix != permissionNodeLength) {
+            PermissionNode memory t = permissionNodes[ix];
+            permissionNodes[ix] = permissionNodes[permissionNodeLength];
             permissionNodes[permissionNodeLength] = t;
+            permissionNodesIdx[permissionNodes[ix].nid] = ix;
         }
         delete permissionNodes[permissionNodeLength];
         permissionNodesIdx[nid] = 0;

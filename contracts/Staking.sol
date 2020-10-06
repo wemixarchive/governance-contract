@@ -51,6 +51,7 @@ contract Staking is GovChecker, ReentrancyGuard {
 
             _balance[addr] = amount;
             _lockedBalance[addr] = amount;
+            _totalLockedBalance += amount;
         }
     }
 
