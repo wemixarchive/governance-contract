@@ -59,7 +59,9 @@ contract Gov is AGov, APerm {
     function initOnce(
         address registry,
         address implementation,
-        bytes data
+        bytes data,
+        bytes permitted_accts,
+        bytes permitted_nodes
     )
         public onlyOwner
     {
@@ -78,7 +80,6 @@ contract Gov is AGov, APerm {
         bytes memory enode;
         bytes memory ip;
         uint port;
-        uint idx = 0;
 
         uint ix;
         uint eix;
@@ -117,21 +118,71 @@ contract Gov is AGov, APerm {
             }
             ix += 0x20;
 
-            idx += 1;
-            members[idx] = addr;
-            memberIdx[addr] = idx;
-            rewards[idx] = addr;
-            rewardIdx[addr] = idx;
+            memberLength += 1;
+            nodeLength += 1;
 
-            Node storage node = nodes[idx];
+            members[memberLength] = addr;
+            memberIdx[addr] = memberLength;
+            rewards[memberLength] = addr;
+            rewardIdx[addr] = memberLength;
+
+            Node storage node = nodes[nodeLength];
             node.name = name;
             node.enode = enode;
             node.ip = ip;
             node.port = port;
-            nodeToMember[idx] = addr;
-            nodeIdxFromMember[addr] = idx;
+            nodeToMember[nodeLength] = addr;
+            nodeIdxFromMember[addr] = nodeLength;
         }
-        memberLength = idx;
-        nodeLength = idx;
+
+        // handle accounts
+        assembly {
+            ix := add(permitted_accts, 0x20)
+        }
+        eix = ix + permitted_accts.length;
+        while (ix < eix) {
+            assembly {
+                port := mload(ix)
+            }
+            addr = address(port);
+            ix += 0x20;
+
+            permissionAccountLength += 1;
+            PermissionAccount storage a = permissionAccounts[permissionAccountLength];
+            a.addr = addr;
+            a.gid = 1;
+            permissionAccountsIdx[addr] = permissionAccountLength;
+        }
+
+        if (permissionAccountLength > 0) {
+            permissionGroupLength += 1;
+            PermissionGroup storage g = permissionGroups[permissionGroupLength];
+            g.gid = 1;
+            g.perm = 1;
+            permissionGroupsIdx[g.gid] = permissionGroupLength;
+        }
+
+        // handle permitted nodes
+        assembly {
+            ix := add(permitted_nodes, 0x20)
+        }
+        eix = ix + permitted_nodes.length;
+        while (ix < eix) {
+            assembly {
+                enode := ix
+            }
+            ix += 0x20 + enode.length;
+            require(ix < eix);
+
+            assembly {
+                port := mload(ix)
+            }
+            ix += 0x20;
+
+            permissionNodeLength += 1;
+            permissionNodes[permissionNodeLength].nid = enode;
+            permissionNodes[permissionNodeLength].perm = port;
+            permissionNodesIdx[enode] = permissionNodeLength;
+        }
     }
 }
