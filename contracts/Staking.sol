@@ -24,6 +24,7 @@ contract Staking is GovChecker, ReentrancyGuard {
         _totalLockedBalance = 0;
         setRegistry(registry);
 
+        // data is only for test purpose
         if (data.length == 0)
             return;
 
@@ -49,6 +50,7 @@ contract Staking is GovChecker, ReentrancyGuard {
             ix += 0x20;
 
             _balance[addr] = amount;
+            _lockedBalance[addr] = amount;
         }
     }
 
@@ -57,8 +59,8 @@ contract Staking is GovChecker, ReentrancyGuard {
     }
 
     /**
-    * @dev Deposit from a sender.
-    */
+     * @dev Deposit from a sender.
+     */
     function deposit() external nonReentrant notRevoked payable {
         require(msg.value > 0, "Deposit amount should be greater than zero");
 
@@ -68,9 +70,9 @@ contract Staking is GovChecker, ReentrancyGuard {
     }
 
     /**
-    * @dev Withdraw for a sender.
-    * @param amount The amount of funds will be withdrawn and transferred to.
-    */
+     * @dev Withdraw for a sender.
+     * @param amount The amount of funds will be withdrawn and transferred to.
+     */
     function withdraw(uint256 amount) external nonReentrant notRevoked {
         require(amount > 0, "Amount should be bigger than zero");
         require(amount <= availableBalanceOf(msg.sender), "Withdraw amount should be equal or less than balance");
@@ -82,10 +84,10 @@ contract Staking is GovChecker, ReentrancyGuard {
     }
 
     /**
-    * @dev Lock fund
-    * @param payee The address whose funds will be locked.
-    * @param lockAmount The amount of funds will be locked.
-    */
+     * @dev Lock fund
+     * @param payee The address whose funds will be locked.
+     * @param lockAmount The amount of funds will be locked.
+     */
     function lock(address payee, uint256 lockAmount) external onlyGov {
         if (lockAmount == 0) return;
         require(_balance[payee] >= lockAmount, "Lock amount should be equal or less than balance");
@@ -98,10 +100,10 @@ contract Staking is GovChecker, ReentrancyGuard {
     }
 
     /**
-    * @dev Transfer locked funds to governance
-    * @param from The address whose funds will be transfered.
-    * @param amount The amount of funds will be transfered.
-    */
+     * @dev Transfer locked funds to governance
+     * @param from The address whose funds will be transfered.
+     * @param amount The amount of funds will be transfered.
+     */
     function transferLocked(address from, uint256 amount) external onlyGov {
         if (amount == 0) return;
         unlock(from, amount);
@@ -113,10 +115,10 @@ contract Staking is GovChecker, ReentrancyGuard {
     }
 
     /**
-    * @dev Unlock fund
-    * @param payee The address whose funds will be unlocked.
-    * @param unlockAmount The amount of funds will be unlocked.
-    */
+     * @dev Unlock fund
+     * @param payee The address whose funds will be unlocked.
+     * @param unlockAmount The amount of funds will be unlocked.
+     */
     function unlock(address payee, uint256 unlockAmount) public onlyGov {
         if (unlockAmount == 0) return;
         // require(_lockedBalance[payee] >= unlockAmount, "Unlock amount should be equal or less than balance locked");
@@ -139,21 +141,21 @@ contract Staking is GovChecker, ReentrancyGuard {
     }
 
     /**
-    * @dev Calculate voting weight which range between 0 and 100.
-    * @param payee The address whose funds were locked.
-    */
+     * @dev Calculate voting weight which range between 0 and 100.
+     * @param payee The address whose funds were locked.
+     */
     function calcVotingWeight(address payee) public view returns (uint256) {
         return calcVotingWeightWithScaleFactor(payee, 1e2);
     }
 
     /**
-    * @dev Calculate voting weight with a scale factor.
-    * @param payee The address whose funds were locked.
-    * @param factor The scale factor for weight. For instance:
-    *               if 1e1, result range is between 0 ~ 10
-    *               if 1e2, result range is between 0 ~ 100
-    *               if 1e3, result range is between 0 ~ 1000
-    */
+     * @dev Calculate voting weight with a scale factor.
+     * @param payee The address whose funds were locked.
+     * @param factor The scale factor for weight. For instance:
+     *               if 1e1, result range is between 0 ~ 10
+     *               if 1e2, result range is between 0 ~ 100
+     *               if 1e3, result range is between 0 ~ 1000
+     */
     function calcVotingWeightWithScaleFactor(address payee, uint32 factor) public view returns (uint256) {
         if (_lockedBalance[payee] == 0 || factor == 0) return 0;
         return _lockedBalance[payee].mul(factor).div(_totalLockedBalance);
@@ -169,10 +171,9 @@ contract Staking is GovChecker, ReentrancyGuard {
     }
 
     /**
-    * @notice Allows the owner to revoke the staking. Coins already staked
-    * staked funds are returned to the owner.
-    */
-    function revoke() public onlyOwner notRevoked{
+     * @dev Allows the owner to revoke the staking. Funds already staked are returned to the owner
+     */
+    function revoke() public onlyOwner notRevoked {
         address contractOwner = owner();
         uint256 balance = address(this).balance;
 

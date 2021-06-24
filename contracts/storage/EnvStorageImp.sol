@@ -3,7 +3,6 @@ pragma solidity ^0.4.24;
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "../abstract/EnvConstants.sol";
 import "../abstract/AEnvStorage.sol";
-//import "./Conversion.sol";
 
 
 contract EnvStorageImp is AEnvStorage, EnvConstants {

@@ -9,10 +9,13 @@
 
 ifeq ($(shell uname -s), Linux)
     PASSWD_OPT=-u $(shell id -u):$(shell id -g) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro
+    CURDIR_SOLC=$(shell pwd)
+else
+    CURDIR_SOLC=/tmp
 endif
 
 #DOCKER_OPT=--network bobthe
-TRUFFLE_IMAGE=metadium/meta-web3:0.2
+TRUFFLE_IMAGE=metadium/bobthe:latest
 DOCKER_RUN=docker run $(DOCKER_OPT) $(PASSWD_OPT) -it --rm -e "HOME=/tmp" -v $(shell pwd):/data -w /data $(TRUFFLE_IMAGE)
 
 ifdef NETWORK
@@ -39,7 +42,7 @@ gov: MetadiumGovernance.js
 MetadiumGovernance.js: build/MetadiumGovernance.js
 
 build/MetadiumGovernance.js: build_dir npm build/solc build/solc.sh build/gov.sol
-	PATH=${PWD}/build:${PATH} ${PWD}/build/solc.sh -r gov=${PWD}/contracts -r openzeppelin-solidity=${PWD}/node_modules/openzeppelin-solidity build/gov.sol $@
+	PATH=$(shell pwd)/build:$${PATH} build/solc.sh -r gov=$(CURDIR_SOLC)/contracts -r openzeppelin-solidity=$(CURDIR_SOLC)/node_modules/openzeppelin-solidity build/gov.sol $@
 
 build/gov.sol:
 	@if [ ! -f build/gov.sol ]; then \
