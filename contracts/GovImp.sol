@@ -40,7 +40,6 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
         require(name.length > 0, "Invalid node name");
         require(ip.length > 0, "Invalid node IP");
         require(portNlockAmount[0] > 0, "Invalid node port");
-        // require(portNlockAmount[1] > 0, "Invalid lockAmmount");
         require(!isMember(member), "Already member");
         require( portNlockAmount[1] >= getMinStaking() && portNlockAmount[1] <= getMaxStaking(),"Invalid lock Amount.");
 
@@ -108,9 +107,8 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
         require(nName.length > 0, "Invalid node name");
         require(nIp.length > 0, "Invalid node IP");
         require(portNlockAmount[0] > 0, "Invalid node port");
-        require(portNlockAmount[1] > 0, "Invalid lockAmmount");
         require(isMember(targetNnewMember[0]), "Non-member");
-        // require( portNlockAmount[1] >= getMinStaking() && portNlockAmount[1] <= getMaxStaking(), "Invalid lock Amount");
+        require( portNlockAmount[1] >= getMinStaking() && portNlockAmount[1] <= getMaxStaking(), "Invalid lock Amount");
 
         ballotIdx = ballotLength.add(1);
         createBallotForMember(
@@ -322,7 +320,6 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
         }
 
         // Lock
-        // require(getMinStaking() <= lockAmount && lockAmount <= getMaxStaking(), "Invalid lock amount");
         if( lockAmount < getMinStaking() || getMaxStaking() < lockAmount ){
             emit NotApplicable(ballotIdx, "Invalid lock amount");
             return false;
@@ -373,8 +370,6 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
         address endAddr = members[memberLength];
         
         if (memberIdx[addr] != memberLength) {
-            // uint256 removeMemIdx = memberIdx[addr];
-            // address endMemAddr = members[memberLength];
             (members[removeIdx], members[memberLength],memberIdx[addr], memberIdx[endAddr] ) = (members[memberLength],address(0), 0, memberIdx[addr]);
             removeIdx = rewardIdx[addr];
             endAddr = rewards[memberLength];
@@ -387,13 +382,6 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
         }
         memberLength = memberLength.sub(1);
         // Remove node
-        // if (nodeIdxFromMember[addr] != nodeLength) {
-        //     Node storage node = nodes[nodeIdxFromMember[addr]];
-        //     node.name = nodes[nodeLength].name;
-        //     node.enode = nodes[nodeLength].enode;
-        //     node.ip = nodes[nodeLength].ip;
-        //     node.port = nodes[nodeLength].port;
-        // }
         if (nodeIdxFromMember[addr] != nodeLength) {
             removeIdx = nodeIdxFromMember[addr];
             endAddr = nodeToMember[nodeLength];
@@ -441,13 +429,10 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
                 return false; // already member. it is abnormal case.
             }
             // Lock
-            // require(getMinStaking() <= lockAmount && lockAmount <= getMaxStaking(), "Invalid lock amount");
-
             if( lockAmount < getMinStaking() || getMaxStaking() < lockAmount ){
                 emit NotApplicable(ballotIdx, "Invalid lock amount");
                 return false;
             }
-            
             if(availableBalanceOf(nAddr) < lockAmount){
                 emit NotApplicable(ballotIdx, "Insufficient balance that can be locked");
                 return false;
