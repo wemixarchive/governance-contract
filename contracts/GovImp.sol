@@ -17,6 +17,12 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
     event MemberChanged(address indexed oldAddr, address indexed newAddr);
     event EnvChanged(bytes32 envName, uint256 envType, bytes envVal);
     event MemberUpdated(address indexed addr);
+    // added for case that ballot's result could not be applicable.
+    event NotApplicable(uint256 indexed ballotId, string reason); 
+
+    function () public payable {
+        revert();
+    }
     
     function addProposalToAddMember(
         address member,
@@ -30,12 +36,12 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
         onlyGovMem
         returns (uint256 ballotIdx)
     {
-        require(msg.sender != member, "Cannot add self");
+        require(member != address(0), "Invalid address");
         require(name.length > 0, "Invalid node name");
         require(ip.length > 0, "Invalid node IP");
         require(portNlockAmount[0] > 0, "Invalid node port");
-        require(portNlockAmount[1] > 0, "Invalid lockAmmount");
         require(!isMember(member), "Already member");
+        require( portNlockAmount[1] >= getMinStaking() && portNlockAmount[1] <= getMaxStaking(),"Invalid lock Amount.");
 
         ballotIdx = ballotLength.add(1);
         createBallotForMember(
@@ -66,7 +72,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
         require(member != address(0), "Invalid address");
         require(isMember(member), "Non-member");
         require(getMemberLength() > 1, "Cannot remove a sole member");
-
+        require(lockedBalanceOf(member) >= lockAmount,"Insufficient balance that can be unlocked." );
         ballotIdx = ballotLength.add(1);
         createBallotForMember(
             ballotIdx, // ballot id
@@ -101,8 +107,8 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
         require(nName.length > 0, "Invalid node name");
         require(nIp.length > 0, "Invalid node IP");
         require(portNlockAmount[0] > 0, "Invalid node port");
-        require(portNlockAmount[1] > 0, "Invalid lockAmmount");
         require(isMember(targetNnewMember[0]), "Non-member");
+        require( portNlockAmount[1] >= getMinStaking() && portNlockAmount[1] <= getMaxStaking(), "Invalid lock Amount");
 
         ballotIdx = ballotLength.add(1);
         createBallotForMember(
@@ -181,7 +187,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
 
         // Finalize
         (, uint256 accept, uint256 reject) = getBallotVotingInfo(ballotIdx);
-        uint256 threshold = getThreshould();
+        uint256 threshold = getThreshold();
         if (accept >= threshold || reject >= threshold) {
             finalizeVote(ballotIdx, ballotType, accept > reject);
         }
@@ -203,7 +209,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
         return IEnvStorage(getEnvStorageAddress()).getBallotDurationMax();
     }
 
-    function getThreshould() public pure returns (uint256) { return 5100; } // 51% from 5100 of 10000
+    function getThreshold() public pure returns (uint256) { return 5100; } // 51% from 5100 of 10000
 
     function checkUnfinalized(uint256 ballotIdx) private {
         if (ballotInVoting != 0) {
@@ -225,11 +231,11 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
         if (state == uint256(BallotStates.Ready)) {
             (, , uint256 duration) = getBallotPeriod(ballotIdx);
             if (duration < getMinVotingDuration()) {
-                startBallot(ballotIdx, block.timestamp, block.timestamp + getMinVotingDuration());
+                startBallot(ballotIdx, block.timestamp, block.timestamp.add(getMinVotingDuration()));
             } else if (getMaxVotingDuration() < duration) {
-                startBallot(ballotIdx, block.timestamp, block.timestamp + getMaxVotingDuration());
+                startBallot(ballotIdx, block.timestamp, block.timestamp.add(getMaxVotingDuration()));
             } else {
-                startBallot(ballotIdx, block.timestamp, block.timestamp + duration);
+                startBallot(ballotIdx, block.timestamp, block.timestamp.add(duration));
             }
             ballotInVoting = ballotIdx;
         } else if (state == uint256(BallotStates.InProgress)) {
@@ -266,18 +272,24 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
     function finalizeVote(uint256 ballotIdx, uint256 ballotType, bool isAccepted) private {
         uint256 ballotState = uint256(BallotStates.Rejected);
         if (isAccepted) {
+            ballotState = uint256(BallotStates.Accepted);
+
             if (ballotType == uint256(BallotTypes.MemberAdd)) {
-                addMember(ballotIdx);
+                if (!addMember(ballotIdx)) {
+                    ballotState = uint256(BallotStates.Rejected);
+                }
             } else if (ballotType == uint256(BallotTypes.MemberRemoval)) {
                 removeMember(ballotIdx);
             } else if (ballotType == uint256(BallotTypes.MemberChange)) {
-                changeMember(ballotIdx);
+                if (!changeMember(ballotIdx)) {
+                    ballotState = uint256(BallotStates.Rejected);
+                }
             } else if (ballotType == uint256(BallotTypes.GovernanceChange)) {
                 changeGov(ballotIdx);
             } else if (ballotType == uint256(BallotTypes.EnvValChange)) {
                 applyEnv(ballotIdx);
             }
-            ballotState = uint256(BallotStates.Accepted);
+            
         }
         finalizeBallot(ballotIdx, ballotState);
         ballotInVoting = 0;
@@ -288,10 +300,10 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
         require(ballotType == targetType, "Invalid voting type");
         require(state == uint(BallotStates.InProgress), "Invalid voting state");
         (, uint256 accept, uint256 reject) = getBallotVotingInfo(ballotIdx);
-        require(accept >= getThreshould() || reject >= getThreshould(), "Not yet finalized");
+        require(accept >= getThreshold() || reject >= getThreshold(), "Not yet finalized");
     }
 
-    function addMember(uint256 ballotIdx) private {
+    function addMember(uint256 ballotIdx) private returns (bool) {
         fromValidBallot(ballotIdx, uint256(BallotTypes.MemberAdd));
 
         (
@@ -303,11 +315,21 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
             uint256 lockAmount
         ) = getBallotMember(ballotIdx);
         if (isMember(addr)) {
-            return; // Already member. it is abnormal case
+            emit NotApplicable(ballotIdx, "Already a member");
+            return true; // Already member. it is abnormal case, but passed. 
         }
 
         // Lock
-        require(getMinStaking() <= lockAmount && lockAmount <= getMaxStaking(), "Invalid lock amount");
+        if( lockAmount < getMinStaking() || getMaxStaking() < lockAmount ){
+            emit NotApplicable(ballotIdx, "Invalid lock amount");
+            return false;
+        }
+        
+        if(availableBalanceOf(addr) < lockAmount){
+            emit NotApplicable(ballotIdx, "Insufficient balance that can be locked");
+            return false;
+        }
+
         lock(addr, lockAmount);
 
         // Add voting and reward member
@@ -331,6 +353,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
         nodeLength = nNodeIdx;
         modifiedBlock = block.number;
         emit MemberAdded(addr);
+        return true;
     }
 
     function removeMember(uint256 ballotIdx) private {
@@ -338,30 +361,43 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
 
         (address addr, , , , , , uint256 unlockAmount) = getBallotMember(ballotIdx);
         if (!isMember(addr)) {
-            return; // Non-member. it is abnormal case
+            emit NotApplicable(ballotIdx, "Not already a member");
+            return; // Non-member. it is abnormal case, but passed
         }
 
         // Remove voting and reward member
+        uint256 removeIdx = memberIdx[addr];
+        address endAddr = members[memberLength];
+        
         if (memberIdx[addr] != memberLength) {
-            (members[memberIdx[addr]], members[memberLength]) = (members[memberLength], members[memberIdx[addr]]);
-            (rewards[memberIdx[addr]], rewards[memberLength]) = (rewards[memberLength], rewards[memberIdx[addr]]);
+            (members[removeIdx], members[memberLength],memberIdx[addr], memberIdx[endAddr] ) = (members[memberLength],address(0), 0, memberIdx[addr]);
+            removeIdx = rewardIdx[addr];
+            endAddr = rewards[memberLength];
+            (rewards[removeIdx], rewards[memberLength],rewardIdx[addr], rewardIdx[endAddr]) = (rewards[memberLength], address(0),0, rewardIdx[addr]);
+        } else {
+            members[memberLength] = address(0);
+            memberIdx[addr] = 0;
+            rewards[memberLength] = address(0);
+            rewardIdx[addr] = 0;
         }
-        members[memberLength] = address(0);
-        memberIdx[addr] = 0;
-        rewards[memberLength] = address(0);
-        rewardIdx[rewards[memberLength]] = 0;
         memberLength = memberLength.sub(1);
-
         // Remove node
         if (nodeIdxFromMember[addr] != nodeLength) {
-            Node storage node = nodes[nodeIdxFromMember[addr]];
+            removeIdx = nodeIdxFromMember[addr];
+            endAddr = nodeToMember[nodeLength];
+
+            Node storage node = nodes[removeIdx];
             node.name = nodes[nodeLength].name;
             node.enode = nodes[nodeLength].enode;
             node.ip = nodes[nodeLength].ip;
             node.port = nodes[nodeLength].port;
+
+            nodeToMember[removeIdx] = endAddr;
+            nodeIdxFromMember[endAddr]=removeIdx;
         }
         nodeToMember[nodeLength] = address(0);
         nodeIdxFromMember[addr] = 0;
+        delete nodes[nodeLength];
         nodeLength = nodeLength.sub(1);
         modifiedBlock = block.number;
         // Unlock and transfer remained to governance
@@ -370,7 +406,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
         emit MemberRemoved(addr);
     }
 
-    function changeMember(uint256 ballotIdx) private {
+    function changeMember(uint256 ballotIdx) private returns (bool) {
         fromValidBallot(ballotIdx, uint256(BallotTypes.MemberChange));
         
         (
@@ -383,12 +419,24 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
             uint256 lockAmount
         ) = getBallotMember(ballotIdx);
         if (!isMember(addr)) {
-            return; // Non-member. it is abnormal case
+            emit NotApplicable(ballotIdx, "Old address is not a member");
+            return false; // Non-member. it is abnormal case. 
         }
 
         if (addr != nAddr) {
+            if (isMember(nAddr)) {
+                emit NotApplicable(ballotIdx, "new address is already a member");
+                return false; // already member. it is abnormal case.
+            }
             // Lock
-            require(getMinStaking() <= lockAmount && lockAmount <= getMaxStaking(), "Invalid lock amount");
+            if( lockAmount < getMinStaking() || getMaxStaking() < lockAmount ){
+                emit NotApplicable(ballotIdx, "Invalid lock amount");
+                return false;
+            }
+            if(availableBalanceOf(nAddr) < lockAmount){
+                emit NotApplicable(ballotIdx, "Insufficient balance that can be locked");
+                return false;
+            }
             lock(nAddr, lockAmount);
 
             // Change member
@@ -419,6 +467,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
         } else {
             emit MemberUpdated(addr);
         }
+        return true;
     }
 
     function changeGov(uint256 ballotIdx) private {
@@ -534,9 +583,20 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
         IStaking staking = IStaking(getStakingAddress());
         uint256 locked = staking.lockedBalanceOf(addr);
         if (locked > unlockAmount) {
-            staking.transferLocked(addr, locked.sub(unlockAmount));
+           staking.transferLocked(addr, locked.sub(unlockAmount));
+           unlock(addr, unlockAmount);
+        } 
+        else {
+           unlock(addr, locked); 
         }
-        staking.unlock(addr, unlockAmount);
     }
+    function lockedBalanceOf(address addr) private view returns (uint256) {
+        // IStaking staking = IStaking(getStakingAddress()).lockedBalanceOf(addr);
+        return IStaking(getStakingAddress()).lockedBalanceOf(addr);
+    }
+    function availableBalanceOf(address addr) private view returns (uint256) {
+        return IStaking(getStakingAddress()).availableBalanceOf(addr);
+    }
+  
     //------------------ Code reduction end
 }
