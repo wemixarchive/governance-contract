@@ -1,6 +1,6 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.8.0;
 
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../abstract/EnvConstants.sol";
 import "../abstract/BallotEnums.sol";
 import "../GovChecker.sol";
@@ -157,7 +157,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     }
    
     function getTime() public view returns (uint256) {
-        return now;
+        return block.timestamp;
     }
 
     function getPreviousBallotStorage() public view returns (address) {
@@ -177,7 +177,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         uint256 endTime,
         uint256 ballotType,
         address creator,
-        bytes memo,
+        bytes memory memo,
         uint256 totalVoters,
         uint256 powerOfAccepts,
         uint256 powerOfRejects,
@@ -203,9 +203,9 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     function getBallotMember(uint256 _id) public view returns (
         address oldMemberAddress,
         address newMemberAddress,
-        bytes newNodeName, // name
-        bytes newNodeId, // admin.nodeInfo.id is 512 bit public key
-        bytes newNodeIp,
+        bytes memory newNodeName, // name
+        bytes memory newNodeId, // admin.nodeInfo.id is 512 bit public key
+        bytes memory newNodeIp,
         uint256 newNodePort,
         uint256 lockAmount
     )
@@ -231,7 +231,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     function getBallotVariable(uint256 _id) public view returns (
         bytes32 envVariableName,
         uint256 envVariableType,
-        bytes envVariableValue 
+        bytes memory envVariableValue 
     )
     {
         BallotVariable storage tBallot = ballotVariableMap[_id];
@@ -252,9 +252,9 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         address _creator,
         address _oldMemberAddress,
         address _newMemberAddress,
-        bytes _newNodeName, // name
-        bytes _newNodeId, // admin.nodeInfo.id is 512 bit public key
-        bytes _newNodeIp,
+        bytes memory _newNodeName, // name
+        bytes memory _newNodeId, // admin.nodeInfo.id is 512 bit public key
+        bytes memory _newNodeIp,
         uint _newNodePort
     )
         public
@@ -314,7 +314,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         address _creator,
         bytes32 _envVariableName,
         uint256 _envVariableType,
-        bytes _envVariableValue 
+        bytes memory _envVariableValue 
     )
         public
         onlyGov
@@ -388,7 +388,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
 
     function updateBallotMemo(
         uint256 _ballotId,
-        bytes _memo
+        bytes memory _memo
     )
         public
         onlyGovOrCreator(_ballotId)
@@ -546,9 +546,9 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         uint256 _ballotType,
         address _oldMemberAddress,
         address _newMemberAddress,
-        bytes _newName,
-        bytes _newNodeId, // admin.nodeInfo.id is 512 bit public key
-        bytes _newNodeIp,
+        bytes memory _newName,
+        bytes memory _newNodeId, // admin.nodeInfo.id is 512 bit public key
+        bytes memory _newNodeIp,
         uint _newNodePort
     )
         internal
@@ -586,7 +586,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         uint256 _ballotType,
         bytes32 _envVariableName,
         uint256 _envVariableType,
-        bytes _envVariableValue 
+        bytes memory _envVariableValue 
     )
         internal
         pure

@@ -1,6 +1,7 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.8.0;
 
-import "openzeppelin-solidity/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+
 import "./abstract/BallotEnums.sol";
 import "./abstract/EnvConstants.sol";
 import "./interface/IBallotStorage.sol";
@@ -20,17 +21,20 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
     // added for case that ballot's result could not be applicable.
     event NotApplicable(uint256 indexed ballotId, string reason); 
 
-    function () public payable {
-        revert();
+    constructor(
+        address _logic,
+        address admin_,
+        bytes memory _data
+    ) payable AGov(_logic, admin_, _data) {
     }
     
     function addProposalToAddMember(
         address member,
-        bytes name,
-        bytes enode,
-        bytes ip,
-        uint256[2] portNlockAmount,
-        bytes memo
+        bytes memory name,
+        bytes memory enode,
+        bytes memory ip,
+        uint256[2] memory portNlockAmount,
+        bytes memory memo
     )
         external
         onlyGovMem
@@ -63,7 +67,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
     function addProposalToRemoveMember(
         address member,
         uint256 lockAmount,
-        bytes memo
+        bytes memory memo
     )
         external
         onlyGovMem
@@ -91,12 +95,12 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
     }
 
     function addProposalToChangeMember(
-        address[2] targetNnewMember,
-        bytes nName,
-        bytes nEnode,
-        bytes nIp,
-        uint256[2] portNlockAmount,
-        bytes memo
+        address[2] memory targetNnewMember,
+        bytes memory nName,
+        bytes memory nEnode,
+        bytes memory nIp,
+        uint256[2] memory portNlockAmount,
+        bytes memory memo
     )
         external
         onlyGovMem
@@ -129,14 +133,14 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
 
     function addProposalToChangeGov(
         address newGovAddr,
-        bytes memo
+        bytes memory memo
     )
         external
         onlyGovMem
         returns (uint256 ballotIdx)
     {
         require(newGovAddr != address(0), "Implementation cannot be zero");
-        require(newGovAddr != implementation(), "Same contract address");
+        require(newGovAddr != _implementation(), "Same contract address");
 
         ballotIdx = ballotLength.add(1);
         IBallotStorage(getBallotStorageAddress()).createBallotForAddress(
@@ -152,8 +156,8 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
     function addProposalToChangeEnv(
         bytes32 envName,
         uint256 envType,
-        bytes envVal,
-        bytes memo
+        bytes memory envVal,
+        bytes memory memo
     )
         external
         onlyGovMem
@@ -475,7 +479,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
 
         address newImp = IBallotStorage(getBallotStorageAddress()).getBallotAddress(ballotIdx);
         if (newImp != address(0)) {
-            setImplementation(newImp);
+            _upgradeTo(newImp);
             modifiedBlock = block.number;
         }
     }
@@ -519,9 +523,9 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
         address creator,
         address oAddr,
         address nAddr,
-        bytes name,
-        bytes enode,
-        bytes ip,
+        bytes memory name,
+        bytes memory enode,
+        bytes memory ip,
         uint port
     )
         private
@@ -543,7 +547,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
         IBallotStorage(getBallotStorageAddress()).updateBallotMemberLockAmount(id, amount);
     }
 
-    function updateBallotMemo(uint256 id, bytes memo) private {
+    function updateBallotMemo(uint256 id, bytes memory memo) private {
         IBallotStorage(getBallotStorageAddress()).updateBallotMemo(id, memo);
     }
 
@@ -567,7 +571,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
         return IBallotStorage(getBallotStorageAddress()).getBallotVotingInfo(id);
     }
 
-    function getBallotMember(uint256 id) private view returns (address, address, bytes, bytes, bytes, uint256, uint256) {
+    function getBallotMember(uint256 id) private view returns (address, address, bytes memory, bytes memory, bytes memory, uint256, uint256) {
         return IBallotStorage(getBallotStorageAddress()).getBallotMember(id);
     }
 

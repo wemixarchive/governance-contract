@@ -1,6 +1,6 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.8.0;
 
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../abstract/EnvConstants.sol";
 import "../abstract/AEnvStorage.sol";
 
@@ -110,31 +110,31 @@ contract EnvStorageImp is AEnvStorage, EnvConstants {
         setUint(MAX_IDLE_BLOCK_INTERVAL_NAME, _value);
     }
 
-    function setBlocksPerByBytes(bytes _value) public onlyGov { 
+    function setBlocksPerByBytes(bytes memory _value ) public onlyGov { 
         setBlocksPer(toUint(_value));
     }
 
-    function setBallotDurationMinByBytes(bytes _value) public onlyGov { 
+    function setBallotDurationMinByBytes(bytes memory _value ) public onlyGov { 
         setBallotDurationMin(toUint(_value));
     }
 
-    function setBallotDurationMaxByBytes(bytes _value) public onlyGov { 
+    function setBallotDurationMaxByBytes(bytes memory _value ) public onlyGov { 
         setBallotDurationMax(toUint(_value));
     }
 
-    function setStakingMinByBytes(bytes _value) public onlyGov { 
+    function setStakingMinByBytes(bytes memory _value ) public onlyGov { 
         setStakingMin(toUint(_value));
     }
 
-    function setStakingMaxByBytes(bytes _value) public onlyGov { 
+    function setStakingMaxByBytes(bytes memory _value ) public onlyGov { 
         setStakingMax(toUint(_value));
     }
 
-    function setGasPriceByBytes(bytes _value) public onlyGov { 
+    function setGasPriceByBytes(bytes memory _value ) public onlyGov { 
         setGasPrice(toUint(_value));
     }
 
-    function setMaxIdleBlockIntervalByBytes(bytes _value) public onlyGov { 
+    function setMaxIdleBlockIntervalByBytes(bytes memory _value ) public onlyGov { 
         setMaxIdleBlockInterval(toUint(_value));
     }
 
@@ -158,23 +158,23 @@ contract EnvStorageImp is AEnvStorage, EnvConstants {
     //     return getString(TEST_STRING);
     // }
 
-    // function setTestIntByBytes(bytes _value) public onlyGov { 
+    // function setTestIntByBytes(bytes memory _value ) public onlyGov { 
     //     setInt(TEST_INT, toInt(_value));
     // }
 
-    // function setTestAddressByBytes(bytes _value) public onlyGov { 
+    // function setTestAddressByBytes(bytes memory _value ) public onlyGov { 
     //     setAddress(TEST_ADDRESS, toAddress(_value));
     // }
 
-    // function setTestBytes32ByBytes(bytes _value) public onlyGov { 
+    // function setTestBytes32ByBytes(bytes memory _value ) public onlyGov { 
     //     setBytes32(TEST_BYTES32, toBytes32(_value));
     // }
 
-    // function setTestBytesByBytes(bytes _value) public onlyGov { 
+    // function setTestBytesByBytes(bytes memory _value ) public onlyGov { 
     //     setBytes(TEST_BYTES, _value);
     // }
 
-    // function setTestStringByBytes(bytes _value) public onlyGov { 
+    // function setTestStringByBytes(bytes memory _value ) public onlyGov { 
     //     setString(TEST_STRING, string(_value));
     // }
 

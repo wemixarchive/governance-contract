@@ -1,12 +1,12 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.8.0;
 
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "../proxy/UpgradeabilityProxy.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import "../interface/IStaking.sol";
 import "../GovChecker.sol";
 
 
-contract AGov is UpgradeabilityProxy, GovChecker {
+abstract contract AGov is TransparentUpgradeableProxy, GovChecker {
     uint public modifiedBlock;
 
     // For voting member
@@ -36,7 +36,12 @@ contract AGov is UpgradeabilityProxy, GovChecker {
     uint256 public voteLength;
     uint256 internal ballotInVoting;
 
-    constructor() public {}
+    constructor(
+        address _logic,
+        address admin_,
+        bytes memory _data
+    ) payable TransparentUpgradeableProxy(_logic, admin_, _data) {
+    }
 
     function isMember(address addr) public view returns (bool) { return (memberIdx[addr] != 0); }
     function getMember(uint256 idx) public view returns (address) { return members[idx]; }
@@ -46,7 +51,7 @@ contract AGov is UpgradeabilityProxy, GovChecker {
     function getMemberFromNodeIdx(uint256 idx) public view returns (address) { return nodeToMember[idx]; }
     function getNodeLength() public view returns (uint256) { return nodeLength; }
 
-    function getNode(uint256 idx) public view returns (bytes name, bytes enode, bytes ip, uint port) {
+    function getNode(uint256 idx) public view returns (bytes memory name, bytes memory enode, bytes memory ip, uint port) {
         return (nodes[idx].name, nodes[idx].enode, nodes[idx].ip, nodes[idx].port);
     }
 

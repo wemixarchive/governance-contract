@@ -1,6 +1,6 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.8.0;
 
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 
 /**
@@ -13,7 +13,7 @@ contract EternalStorage {
         mapping(bytes32 => bool) _bool;
         mapping(bytes32 => int256) _int;
         mapping(bytes32 => uint256) _uint;
-        mapping(bytes32 => string) _string;
+        mapping(bytes32 => string)_string;
         mapping(bytes32 => address) _address;
         mapping(bytes32 => bytes) _bytes;
         mapping(bytes32 => bytes32) _bytes32;
@@ -57,7 +57,7 @@ contract EternalStorage {
      * @dev Get the value stored of a string variable by the hash name
      * @param h The keccak256 hash of the variable name
      */
-    function getString(bytes32 h) public view returns (string) {
+    function getString(bytes32 h) public view returns (string memory){
         return s._string[h];
     }
 
@@ -65,7 +65,7 @@ contract EternalStorage {
      * @dev Get the value stored of a bytes variable by the hash name
      * @param h The keccak256 hash of the variable name
      */
-    function getBytes(bytes32 h) public view returns (bytes) {
+    function getBytes(bytes32 h) public view returns (bytes memory) {
         return s._bytes[h];
     }
 
@@ -118,7 +118,7 @@ contract EternalStorage {
      * @param h The keccak256 hash of the variable name
      * @param v The value to be stored
      */
-    function _setString(bytes32 h, string v) internal {
+    function _setString(bytes32 h, string memory v) internal {
         s._string[h] = v;
     }
 
@@ -127,7 +127,7 @@ contract EternalStorage {
      * @param h The keccak256 hash of the variable name
      * @param v The value to be stored
      */
-    function _setBytes(bytes32 h, bytes v) internal {
+    function _setBytes(bytes32 h, bytes memory v) internal {
         s._bytes[h] = v;
     }
 

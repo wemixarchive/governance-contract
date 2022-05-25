@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.8.0;
 
 import "./Proxy.sol";
 
@@ -17,16 +17,11 @@ contract UpgradeabilityProxy is Proxy {
     // Storage position of the address of the current implementation
     bytes32 private constant IMPLEMENT_POSITION = keccak256("org.metadium.proxy.implementation");
 
-    /**
-     * @dev Constructor function
-     */
-    constructor() public {}
-
-    /**
+    /*
      * @dev Tells the address of the current implementation
      * @return address of the current implementation
      */
-    function implementation() public view returns (address impl) {
+    function implementation() public override view returns (address impl) {
         bytes32 position = IMPLEMENT_POSITION;
         assembly {
             impl := sload(position)
@@ -37,7 +32,7 @@ contract UpgradeabilityProxy is Proxy {
      * @dev Sets the address of the current implementation
      * @param newImplementation address representing the new implementation to be set
      */
-    function setImplementation(address newImplementation) internal {
+    function _setImplementation(address newImplementation) internal {
         require(newImplementation != address(0), "newImplementation should be non-zero");
         bytes32 position = IMPLEMENT_POSITION;
         assembly {
@@ -53,7 +48,7 @@ contract UpgradeabilityProxy is Proxy {
         require(newImplementation != address(0), "newImplementation should be non-zero");
         address currentImplementation = implementation();
         require(currentImplementation != newImplementation, "newImplementation should be not same as currentImplementation");
-        setImplementation(newImplementation);
+        _upgradeTo(newImplementation);
         emit Upgraded(newImplementation);
     }
 }

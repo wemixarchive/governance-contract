@@ -1,12 +1,12 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.8.0;
 
-//import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+//import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 // import "./proxy/UpgradeabilityProxy.sol";
 // import "./interface/IStaking.sol";
 import "./abstract/AGov.sol";
 
 
-contract Gov is AGov {
+abstract contract Gov is AGov {
     // "Metadium Governance"
     uint public magic = 0x4d6574616469756d20476f7665726e616e6365;
     bool private _initialized;
@@ -15,9 +15,9 @@ contract Gov is AGov {
         address registry,
         address implementation,
         uint256 lockAmount,
-        bytes name,
-        bytes enode,
-        bytes ip,
+        bytes memory name,
+        bytes memory enode,
+        bytes memory ip,
         uint port
     )
         public onlyOwner
@@ -25,7 +25,7 @@ contract Gov is AGov {
         require(_initialized == false, "Already initialized");
         require(lockAmount > 0, "lockAmount should be more then zero");
         setRegistry(registry);
-        setImplementation(implementation);
+        _upgradeTo(implementation);
 
         // Lock
         IStaking staking = IStaking(getStakingAddress());
@@ -58,14 +58,14 @@ contract Gov is AGov {
     function initOnce(
         address registry,
         address implementation,
-        bytes data
+        bytes memory data
     )
         public onlyOwner
     {
         require(_initialized == false, "Already initialized");
 
         setRegistry(registry);
-        setImplementation(implementation);
+        _upgradeTo(implementation);
 
         _initialized = true;
         modifiedBlock = block.number;
@@ -87,9 +87,9 @@ contract Gov is AGov {
         eix = ix + data.length;
         while (ix < eix) {
             assembly {
-                port := mload(ix)
+                addr := mload(ix)
             }
-            addr = address(port);
+            // addr = address(port);
             ix += 0x20;
             require(ix < eix);
 

@@ -1,6 +1,6 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.8.0;
 
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 
 /**
@@ -21,7 +21,7 @@ contract Registry is Ownable {
     event SetContractDomain(address setter, bytes32 indexed name, address indexed addr);
     event SetPermission(bytes32 indexed _contract, address indexed granted, bool status);
 
-    /**
+    /*
      * @dev Function to set contract(can be general address) domain
      *      Only owner can use this function
      * @param _name name
@@ -37,7 +37,7 @@ contract Registry is Ownable {
         return true;
     }
 
-    /**
+    /*
      * @dev Function to get contract(can be general address) address
      *      Anyone can use this function
      * @param _name _name
@@ -48,7 +48,7 @@ contract Registry is Ownable {
         return contracts[_name];
     }
     
-    /**
+    /*
      * @dev Function to set permission on contract
      *      using modifier 'permissioned' references mapping variable 'permissions'
      *      Only owner can use this function
@@ -66,7 +66,7 @@ contract Registry is Ownable {
         return true;
     }
 
-    /**
+    /*
      * @dev Function to get permission on contract
      *      using modifier 'permissioned' references mapping variable 'permissions'
      * @param _contract contract name

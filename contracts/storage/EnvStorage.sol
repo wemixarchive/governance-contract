@@ -1,22 +1,22 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.8.0;
 
 import "../abstract/AEnvStorage.sol";
-import "../proxy/UpgradeabilityProxy.sol";
+import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
 
-contract EnvStorage is UpgradeabilityProxy, AEnvStorage {
+contract EnvStorage is ProxyAdmin, AEnvStorage {
     modifier onlyGovOrOwner() {
-        require((getGovAddress() == msg.sender) || isOwner(), "No Permission");
+        require((getGovAddress() == msg.sender) || owner() == msg.sender, "No Permission");
         _;
     }
 
     constructor(address _registry, address _implementation) public {
         require(_registry != _implementation, "registry should not be same as implementation"); 
         setRegistry(_registry);
-        setImplementation(_implementation);
+        upgradeTo(_implementation);
     }
 
     function upgradeTo(address newImplementation) public onlyGovOrOwner {
-        _upgradeTo(newImplementation);
+        upgradeTo(newImplementation);
     }
 }

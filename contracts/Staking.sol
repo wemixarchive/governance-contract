@@ -1,7 +1,7 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.8.0;
 
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "openzeppelin-solidity/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./GovChecker.sol";
 
 
@@ -20,7 +20,7 @@ contract Staking is GovChecker, ReentrancyGuard {
     event TransferLocked(address indexed payee, uint256 amount, uint256 total, uint256 available);
     event Revoked(address indexed owner, uint256 amount);
 
-    constructor(address registry, bytes data) public {
+    constructor(address registry, bytes memory data) public {
         _totalLockedBalance = 0;
         setRegistry(registry);
 
@@ -39,9 +39,9 @@ contract Staking is GovChecker, ReentrancyGuard {
         eix = ix + data.length;
         while (ix < eix) {
             assembly {
-                amount := mload(ix)
+                addr := mload(ix)
             }
-            addr = address(amount);
+            // addr = address(amount);
             ix += 0x20;
             require(ix < eix);
             assembly {
@@ -54,7 +54,7 @@ contract Staking is GovChecker, ReentrancyGuard {
         }
     }
 
-    function () external payable {
+    receive() external payable {
         revert();
     }
 
@@ -78,7 +78,7 @@ contract Staking is GovChecker, ReentrancyGuard {
         require(amount <= availableBalanceOf(msg.sender), "Withdraw amount should be equal or less than balance");
 
         _balance[msg.sender] = _balance[msg.sender].sub(amount);
-        msg.sender.transfer(amount);
+        payable(msg.sender).transfer(amount);
 
         emit Unstaked(msg.sender, amount, _balance[msg.sender], availableBalanceOf(msg.sender));
     }
@@ -179,7 +179,7 @@ contract Staking is GovChecker, ReentrancyGuard {
 
         require(balance > 0);
 
-        contractOwner.transfer(balance);
+        payable(contractOwner).transfer(balance);
         revoked = true;
 
         emit Revoked(contractOwner, balance);
