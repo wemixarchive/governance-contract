@@ -1,6 +1,6 @@
 pragma solidity ^0.8.0;
 
-
+import "hardhat/console.sol";
 /**
  * @title Proxy
  * @dev Gives the possibility to delegate any call to a foreign implementation.
@@ -10,7 +10,8 @@ abstract contract Proxy {
      * @dev Fallback function allowing to perform a delegatecall to the given implementation.
      *      This function will return whatever the implementation call returns
      */
-    receive () external payable {
+    function _fallback () internal {
+        
         address _impl = implementation();
         require(_impl != address(0));
 
@@ -25,6 +26,16 @@ abstract contract Proxy {
             case 0 { revert(ptr, size) }
             default { return(ptr, size) }
         }
+    }
+
+    
+
+    fallback() external payable virtual {
+        _fallback();
+    }
+
+    receive() external payable virtual {
+        _fallback();
     }
 
     /**

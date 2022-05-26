@@ -4,6 +4,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../abstract/EnvConstants.sol";
 import "../abstract/AEnvStorage.sol";
 
+import "hardhat/console.sol";
 
 contract EnvStorageImp is AEnvStorage, EnvConstants {
     using SafeMath for uint256;

@@ -20,38 +20,47 @@ contract Staking is GovChecker, ReentrancyGuard {
     event TransferLocked(address indexed payee, uint256 amount, uint256 total, uint256 available);
     event Revoked(address indexed owner, uint256 amount);
 
-    constructor(address registry, bytes memory data) public {
+    struct ConstractorInfo{
+        address addr;
+        uint amount;
+    }
+
+    constructor(address registry, ConstractorInfo[] memory infos) {
         _totalLockedBalance = 0;
         setRegistry(registry);
 
         // data is only for test purpose
-        if (data.length == 0)
+        if (infos.length == 0)
             return;
 
         // []{address, amount}
-        address addr;
-        uint amount;
-        uint ix;
-        uint eix;
-        assembly {
-            ix := add(data, 0x20)
+        // address addr;
+        // uint amount;
+        // uint ix;
+        // uint eix;
+        for(uint i = 0;i<infos.length;i++){
+            _balance[infos[i].addr] = infos[i].amount;
+            _lockedBalance[infos[i].addr] = infos[i].amount;
         }
-        eix = ix + data.length;
-        while (ix < eix) {
-            assembly {
-                addr := mload(ix)
-            }
-            // addr = address(amount);
-            ix += 0x20;
-            require(ix < eix);
-            assembly {
-                amount := mload(ix)
-            }
-            ix += 0x20;
+        // assembly {
+        //     ix := add(data, 0x20)
+        // }
+        // eix = ix + data.length;
+        // while (ix < eix) {
+        //     assembly {
+        //         addr := mload(ix)
+        //     }
+        //     // addr = address(amount);
+        //     ix += 0x20;
+        //     require(ix < eix);
+        //     assembly {
+        //         amount := mload(ix)
+        //     }
+        //     ix += 0x20;
 
-            _balance[addr] = amount;
-            _lockedBalance[addr] = amount;
-        }
+        //     _balance[addr] = amount;
+        //     _lockedBalance[addr] = amount;
+        // }
     }
 
     receive() external payable {

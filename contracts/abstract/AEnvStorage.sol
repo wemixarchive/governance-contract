@@ -4,7 +4,7 @@ import "../GovChecker.sol";
 import "../storage/EternalStorage.sol";
 
 
-contract AEnvStorage is EternalStorage, GovChecker {
+abstract contract AEnvStorage is EternalStorage, GovChecker {
     event StringVarableChanged ( 
         bytes32 indexed _name,
         string _value

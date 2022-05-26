@@ -48,7 +48,7 @@ contract UpgradeabilityProxy is Proxy {
         require(newImplementation != address(0), "newImplementation should be non-zero");
         address currentImplementation = implementation();
         require(currentImplementation != newImplementation, "newImplementation should be not same as currentImplementation");
-        _upgradeTo(newImplementation);
+        _setImplementation(newImplementation);
         emit Upgraded(newImplementation);
     }
 }

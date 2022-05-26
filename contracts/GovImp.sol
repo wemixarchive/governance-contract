@@ -9,7 +9,6 @@ import "./interface/IEnvStorage.sol";
 import "./interface/IStaking.sol";
 import "./abstract/AGov.sol";
 
-
 contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
     using SafeMath for uint256;
 
@@ -22,10 +21,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
     event NotApplicable(uint256 indexed ballotId, string reason); 
 
     constructor(
-        address _logic,
-        address admin_,
-        bytes memory _data
-    ) payable AGov(_logic, admin_, _data) {
+    ) payable AGov() {
     }
     
     function addProposalToAddMember(
@@ -140,7 +136,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
         returns (uint256 ballotIdx)
     {
         require(newGovAddr != address(0), "Implementation cannot be zero");
-        require(newGovAddr != _implementation(), "Same contract address");
+        require(newGovAddr != implementation(), "Same contract address");
 
         ballotIdx = ballotLength.add(1);
         IBallotStorage(getBallotStorageAddress()).createBallotForAddress(

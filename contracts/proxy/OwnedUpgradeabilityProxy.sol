@@ -18,14 +18,14 @@ contract OwnedUpgradeabilityProxy is UpgradeabilityProxy {
     // Storage position of the owner of the contract
     bytes32 private constant PROXY_OWNER_POSITION = keccak256("org.metadium.proxy.owner");
 
-    /**
+    /*
      * @dev the constructor sets the original owner of the contract to the sender account
      */
-    constructor() public {
+    constructor() {
         setUpgradeabilityOwner(msg.sender);
     }
 
-    /**
+    /*
      * @dev Throws if called by any account other than the owner
      */
     modifier onlyProxyOwner() {
@@ -33,7 +33,7 @@ contract OwnedUpgradeabilityProxy is UpgradeabilityProxy {
         _;
     }
 
-    /**
+    /*
      * @dev Tells the address of the owner
      * @return the address of the owner
      */
@@ -44,7 +44,7 @@ contract OwnedUpgradeabilityProxy is UpgradeabilityProxy {
         }
     }
 
-    /**
+    /*
      * @dev Allows the current owner to transfer control of the contract to a newOwner.
      * @param newOwner The address to transfer ownership to.
      */
@@ -71,7 +71,8 @@ contract OwnedUpgradeabilityProxy is UpgradeabilityProxy {
      */
     function upgradeToAndCall(address implementation, bytes memory data) public payable onlyProxyOwner {
         _setImplementation(implementation);
-        require(address(this).call(data,{value:msg.value}));
+        (bool succ, )= address(this).call{value:msg.value}(data);
+        require(succ);
     }
 
     /**

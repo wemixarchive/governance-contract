@@ -80,3 +80,7 @@ config/local-metadiumTestnet.json
 config/local-metadiumMainnet.json
 
 build/
+artifacts/
+cache/
+
+.vscode/
