@@ -151,7 +151,6 @@ describe('Governance', function () {
       const idx = await gov.getNodeIdxFromMember(deployer);
       expect(idx).to.not.equal(0);
       const [ nName, nEnode, nIp, nPort ] = await gov.getNode(idx);
-      console.log(U2S(nName),nodeName[0])
       U2S(nName).should.equal(nodeName[0]);
       (nEnode).should.equal(enode[0]);
       (U2S(nIp)).should.equal(ip[0]);

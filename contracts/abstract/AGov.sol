@@ -3,11 +3,11 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../interface/IStaking.sol";
 import "../GovChecker.sol";
-import "../proxy/UpgradeabilityProxy.sol";
+// import "../proxy/UpgradeabilityProxy.sol";
 // import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 
-abstract contract AGov is GovChecker, UpgradeabilityProxy {
+abstract contract AGov is GovChecker {
     uint public modifiedBlock;
 
     // For voting member
@@ -32,15 +32,11 @@ abstract contract AGov is GovChecker, UpgradeabilityProxy {
     mapping(uint256 => address) internal nodeToMember;
     uint256 internal nodeLength;
 
+
     // For ballot
     uint256 public ballotLength;
     uint256 public voteLength;
     uint256 internal ballotInVoting;
-
-
-    constructor(
-    ) payable UpgradeabilityProxy() {
-    }
 
     function isMember(address addr) public view returns (bool) { return (memberIdx[addr] != 0); }
     function getMember(uint256 idx) public view returns (address) { return members[idx]; }

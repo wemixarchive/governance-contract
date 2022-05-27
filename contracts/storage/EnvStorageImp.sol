@@ -1,12 +1,11 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "../abstract/EnvConstants.sol";
+// import "../abstract/EnvConstants.sol";
 import "../abstract/AEnvStorage.sol";
+import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
-import "hardhat/console.sol";
-
-contract EnvStorageImp is AEnvStorage, EnvConstants {
+contract EnvStorageImp is AEnvStorage, UUPSUpgradeable {
     using SafeMath for uint256;
 
     function initialize(
@@ -82,6 +81,8 @@ contract EnvStorageImp is AEnvStorage, EnvConstants {
     function getMaxIdleBlockInterval() public view returns (uint256) {
         return getUint(MAX_IDLE_BLOCK_INTERVAL_NAME);
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner{}
 
     function setBlocksPer(uint256 _value) public onlyGov { 
         setUint(BLOCKS_PER_NAME, _value);

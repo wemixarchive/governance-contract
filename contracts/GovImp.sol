@@ -9,7 +9,9 @@ import "./interface/IEnvStorage.sol";
 import "./interface/IStaking.sol";
 import "./abstract/AGov.sol";
 
-contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
+import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+
+contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgradeable {
     using SafeMath for uint256;
 
     event MemberAdded(address indexed addr);
@@ -18,11 +20,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
     event EnvChanged(bytes32 envName, uint256 envType, bytes envVal);
     event MemberUpdated(address indexed addr);
     // added for case that ballot's result could not be applicable.
-    event NotApplicable(uint256 indexed ballotId, string reason); 
-
-    constructor(
-    ) payable AGov() {
-    }
+    event NotApplicable(uint256 indexed ballotId, string reason);
     
     function addProposalToAddMember(
         address member,
@@ -136,7 +134,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
         returns (uint256 ballotIdx)
     {
         require(newGovAddr != address(0), "Implementation cannot be zero");
-        require(newGovAddr != implementation(), "Same contract address");
+        require(newGovAddr != _getImplementation(), "Same contract address");
 
         ballotIdx = ballotLength.add(1);
         IBallotStorage(getBallotStorageAddress()).createBallotForAddress(
@@ -475,7 +473,8 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
 
         address newImp = IBallotStorage(getBallotStorageAddress()).getBallotAddress(ballotIdx);
         if (newImp != address(0)) {
-            _upgradeTo(newImp);
+            _authorizeUpgrade(newImp);
+            _upgradeToAndCallUUPS(newImp, new bytes(0), false);
             modifiedBlock = block.number;
         }
     }
@@ -597,6 +596,8 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants {
     function availableBalanceOf(address addr) private view returns (uint256) {
         return IStaking(getStakingAddress()).availableBalanceOf(addr);
     }
+
   
+    function _authorizeUpgrade(address newImplementation) internal override onlyGovMem{}
     //------------------ Code reduction end
 }
