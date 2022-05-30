@@ -12,4 +12,5 @@ interface IStaking {
     function availableBalanceOf(address) external view returns (uint256);
     function calcVotingWeight(address) external view returns (uint256);
     function calcVotingWeightWithScaleFactor(address, uint32) external view returns (uint256);
+    function isAllowed(address voter, address staker) external view returns(bool);
 }

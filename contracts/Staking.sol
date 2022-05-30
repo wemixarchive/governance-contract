@@ -12,7 +12,10 @@ contract Staking is GovChecker, ReentrancyGuard {
     mapping(address => uint256) private _lockedBalance;
     uint256 private _totalLockedBalance;
     bool private revoked = false;
-    
+
+    //====NXTMeta====//
+    mapping(address => address) private stakerToVoter;
+
     event Staked(address indexed payee, uint256 amount, uint256 total, uint256 available);
     event Unstaked(address indexed payee, uint256 amount, uint256 total, uint256 available);
     event Locked(address indexed payee, uint256 amount, uint256 total, uint256 available);
@@ -70,10 +73,11 @@ contract Staking is GovChecker, ReentrancyGuard {
     /**
      * @dev Deposit from a sender.
      */
-    function deposit() external nonReentrant notRevoked payable {
+    function deposit(address voter) external nonReentrant notRevoked payable {
         require(msg.value > 0, "Deposit amount should be greater than zero");
 
         _balance[msg.sender] = _balance[msg.sender].add(msg.value);
+        stakerToVoter[msg.sender] = voter;
 
         emit Staked(msg.sender, msg.value, _balance[msg.sender], availableBalanceOf(msg.sender));
     }
@@ -192,5 +196,15 @@ contract Staking is GovChecker, ReentrancyGuard {
         revoked = true;
 
         emit Revoked(contractOwner, balance);
+    }
+
+
+    //====NXTMeta======/
+    function isAllowed(address voter, address staker) external view returns(bool){
+        return stakerToVoter[staker] == voter;
+    }
+
+    function changeVoter(address newVoter) external{
+        stakerToVoter[msg.sender] = newVoter;
     }
 }

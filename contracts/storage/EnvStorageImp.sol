@@ -1,11 +1,11 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-// import "../abstract/EnvConstants.sol";
+import "../abstract/EnvConstants.sol";
 import "../abstract/AEnvStorage.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
-contract EnvStorageImp is AEnvStorage, UUPSUpgradeable {
+contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
     using SafeMath for uint256;
 
     function initialize(

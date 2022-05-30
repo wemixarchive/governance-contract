@@ -11,6 +11,8 @@ import "./abstract/AGov.sol";
 
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
+import 'hardhat/console.sol';
+
 contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgradeable {
     using SafeMath for uint256;
 
@@ -21,47 +23,64 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
     event MemberUpdated(address indexed addr);
     // added for case that ballot's result could not be applicable.
     event NotApplicable(uint256 indexed ballotId, string reason);
+
+    struct MemberInfo{
+        address member;
+        address staker;
+        bytes name;
+        bytes enode;
+        bytes ip;
+        uint256 port;
+        uint256 lockAmount;
+        bytes memo;
+        uint256 duration;
+    }
     
     function addProposalToAddMember(
-        address member,
-        bytes memory name,
-        bytes memory enode,
-        bytes memory ip,
-        uint256[2] memory portNlockAmount,
-        bytes memory memo
+        MemberInfo memory info
+        // address member,
+        // bytes memory name,
+        // bytes memory enode,
+        // bytes memory ip,
+        // uint256[2] memory portNlockAmount,
+        // bytes memory memo
     )
         external
         onlyGovMem
         returns (uint256 ballotIdx)
     {
-        require(member != address(0), "Invalid address");
-        require(name.length > 0, "Invalid node name");
-        require(ip.length > 0, "Invalid node IP");
-        require(portNlockAmount[0] > 0, "Invalid node port");
-        require(!isMember(member), "Already member");
-        require( portNlockAmount[1] >= getMinStaking() && portNlockAmount[1] <= getMaxStaking(),"Invalid lock Amount.");
-
+        require(info.member != address(0), "Invalid address");
+        require(info.name.length > 0, "Invalid node name");
+        require(info.ip.length > 0, "Invalid node IP");
+        require(info.port > 0, "Invalid node port");
+        require(!isMember(info.member), "Already member");
+        require( info.lockAmount >= getMinStaking() && info.lockAmount <= getMaxStaking(),"Invalid lock Amount.");
+        require(isAllowedToVote(info.member, info.staker), "Staker is not allowed");
         ballotIdx = ballotLength.add(1);
         createBallotForMember(
             ballotIdx, // ballot id
             uint256(BallotTypes.MemberAdd), // ballot type
+            info.duration,
             msg.sender, // creator
             address(0), // old member address
-            member, // new member address
-            name,
-            enode, // new enode
-            ip, // new ip
-            portNlockAmount[0] // new port
+            info.member, // new member address
+            address(0),
+            info.staker,
+            info.name,
+            info.enode, // new enode
+            info.ip, // new ip
+            info.port // new port
         );
-        updateBallotLock(ballotIdx, portNlockAmount[1]);
-        updateBallotMemo(ballotIdx, memo);
+        updateBallotLock(ballotIdx, info.lockAmount);
+        updateBallotMemo(ballotIdx, info.memo);
         ballotLength = ballotIdx;
     }
 
     function addProposalToRemoveMember(
         address member,
         uint256 lockAmount,
-        bytes memory memo
+        bytes memory memo,
+        uint256 duration
     )
         external
         onlyGovMem
@@ -70,14 +89,17 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         require(member != address(0), "Invalid address");
         require(isMember(member), "Non-member");
         require(getMemberLength() > 1, "Cannot remove a sole member");
-        require(lockedBalanceOf(member) >= lockAmount,"Insufficient balance that can be unlocked." );
+        require(lockedBalanceOf(memberToStaker[member]) >= lockAmount,"Insufficient balance that can be unlocked." );
         ballotIdx = ballotLength.add(1);
         createBallotForMember(
             ballotIdx, // ballot id
             uint256(BallotTypes.MemberRemoval), // ballot type
+            duration,
             msg.sender, // creator
             member, // old member address
             address(0), // new member address
+            memberToStaker[member],
+            address(0),
             new bytes(0), // new name
             new bytes(0), // new enode
             new bytes(0), // new ip
@@ -89,45 +111,60 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
     }
 
     function addProposalToChangeMember(
-        address[2] memory targetNnewMember,
-        bytes memory nName,
-        bytes memory nEnode,
-        bytes memory nIp,
-        uint256[2] memory portNlockAmount,
-        bytes memory memo
+        MemberInfo memory newInfo,
+        address oldMember
+        // address[2] memory targetNnewMember,
+        // address newStaker,
+        // bytes memory nName,
+        // bytes memory nEnode,
+        // bytes memory nIp,
+        // uint256[2] memory portNlockAmount,
+        // bytes memory memo,
+        // uint256 duration
     )
         external
         onlyGovMem
         returns (uint256 ballotIdx)
     {
-        require(targetNnewMember[0] != address(0), "Invalid old Address");
-        require(targetNnewMember[1] != address(0), "Invalid new Address");
-        require(nName.length > 0, "Invalid node name");
-        require(nIp.length > 0, "Invalid node IP");
-        require(portNlockAmount[0] > 0, "Invalid node port");
-        require(isMember(targetNnewMember[0]), "Non-member");
-        require( portNlockAmount[1] >= getMinStaking() && portNlockAmount[1] <= getMaxStaking(), "Invalid lock Amount");
+        require(oldMember != address(0), "Invalid old Address");
+        require(newInfo.member != address(0), "Invalid new Address");
+        require(newInfo.name.length > 0, "Invalid node name");
+        require(newInfo.ip.length > 0, "Invalid node IP");
+        require(newInfo.port > 0, "Invalid node port");
+        require(isMember(oldMember), "Non-member");
+        require( newInfo.lockAmount >= getMinStaking() && newInfo.lockAmount <= getMaxStaking(), "Invalid lock Amount");
+        require(isAllowedToVote(newInfo.member, newInfo.staker), "Staker is not allowed");
 
         ballotIdx = ballotLength.add(1);
         createBallotForMember(
             ballotIdx, // ballot id
             uint256(BallotTypes.MemberChange), // ballot type
+            newInfo.duration,
             msg.sender, // creator
-            targetNnewMember[0], // old member address
-            targetNnewMember[1], // new member address
-            nName, //new Name
-            nEnode, // new enode
-            nIp, // new ip
-            portNlockAmount[0] // new port
+            oldMember, // old member address
+            newInfo.member, // new member address
+            memberToStaker[oldMember], // old staker address
+            newInfo.staker, // new staker address
+            newInfo.name, //new Name
+            newInfo.enode, // new enode
+            newInfo.ip, // new ip
+            newInfo.port // new port
         );
-        updateBallotLock(ballotIdx, portNlockAmount[1]);
-        updateBallotMemo(ballotIdx, memo);
+        updateBallotLock(ballotIdx, newInfo.lockAmount);
+        updateBallotMemo(ballotIdx, newInfo.memo);
         ballotLength = ballotIdx;
+        // 요청자 == 변경할 voting 주소
+        if(msg.sender == oldMember){
+            (, , uint256 duration) = getBallotPeriod(ballotIdx);
+            startBallot(ballotIdx, block.timestamp, block.timestamp.add(duration));
+            finalizeVote(ballotIdx, uint256(BallotTypes.MemberChange), true, true);
+        }
     }
 
     function addProposalToChangeGov(
         address newGovAddr,
-        bytes memory memo
+        bytes memory memo,
+        uint256 duration
     )
         external
         onlyGovMem
@@ -135,11 +172,11 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
     {
         require(newGovAddr != address(0), "Implementation cannot be zero");
         require(newGovAddr != _getImplementation(), "Same contract address");
-
         ballotIdx = ballotLength.add(1);
         IBallotStorage(getBallotStorageAddress()).createBallotForAddress(
             ballotLength.add(1), // ballot id
             uint256(BallotTypes.GovernanceChange), // ballot type
+            duration,
             msg.sender, // creator
             newGovAddr // new governance address
         );
@@ -151,7 +188,8 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         bytes32 envName,
         uint256 envType,
         bytes memory envVal,
-        bytes memory memo
+        bytes memory memo,
+        uint256 duration
     )
         external
         onlyGovMem
@@ -164,6 +202,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         IBallotStorage(getBallotStorageAddress()).createBallotForVariable(
             ballotIdx, // ballot id
             uint256(BallotTypes.EnvValChange), // ballot type
+            duration,
             msg.sender, // creator
             envName, // env name
             envType, // env type
@@ -187,7 +226,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         (, uint256 accept, uint256 reject) = getBallotVotingInfo(ballotIdx);
         uint256 threshold = getThreshold();
         if (accept >= threshold || reject >= threshold) {
-            finalizeVote(ballotIdx, ballotType, accept > reject);
+            finalizeVote(ballotIdx, ballotType, accept > reject, false);
         }
     }
 
@@ -246,7 +285,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
 
     function createVote(uint256 ballotIdx, bool approval) private {
         uint256 voteIdx = voteLength.add(1);
-        uint256 weight = IStaking(getStakingAddress()).calcVotingWeightWithScaleFactor(msg.sender, 1e4);
+        uint256 weight = IStaking(getStakingAddress()).calcVotingWeightWithScaleFactor(memberToStaker[msg.sender], 1e4);
         if (approval) {
             IBallotStorage(getBallotStorageAddress()).createVote(
                 voteIdx,
@@ -267,7 +306,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         voteLength = voteIdx;
     }
 
-    function finalizeVote(uint256 ballotIdx, uint256 ballotType, bool isAccepted) private {
+    function finalizeVote(uint256 ballotIdx, uint256 ballotType, bool isAccepted, bool self) private {
         uint256 ballotState = uint256(BallotStates.Rejected);
         if (isAccepted) {
             ballotState = uint256(BallotStates.Accepted);
@@ -279,7 +318,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
             } else if (ballotType == uint256(BallotTypes.MemberRemoval)) {
                 removeMember(ballotIdx);
             } else if (ballotType == uint256(BallotTypes.MemberChange)) {
-                if (!changeMember(ballotIdx)) {
+                if (!changeMember(ballotIdx, self)) {
                     ballotState = uint256(BallotStates.Rejected);
                 }
             } else if (ballotType == uint256(BallotTypes.GovernanceChange)) {
@@ -306,6 +345,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
 
         (
             , address addr,
+            address newStaker,
             bytes memory name,
             bytes memory enode,
             bytes memory ip,
@@ -323,12 +363,17 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
             return false;
         }
         
-        if(availableBalanceOf(addr) < lockAmount){
+        if(availableBalanceOf(newStaker) < lockAmount){
             emit NotApplicable(ballotIdx, "Insufficient balance that can be locked");
             return false;
         }
 
-        lock(addr, lockAmount);
+        if(!isAllowedToVote(addr, newStaker)){
+            emit NotApplicable(ballotIdx, "Voter is not allowed");
+            return false;
+        }
+
+        lock(newStaker, lockAmount);
 
         // Add voting and reward member
         uint256 nMemIdx = memberLength.add(1);
@@ -336,6 +381,9 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         memberIdx[addr] = nMemIdx;
         rewards[nMemIdx] = addr;
         rewardIdx[addr] = nMemIdx;
+        stakers[nMemIdx] = newStaker;
+        stakersIdx[newStaker] = nMemIdx;
+        memberToStaker[addr] = newStaker;
 
         // Add node
         uint256 nNodeIdx = nodeLength.add(1);
@@ -357,7 +405,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
     function removeMember(uint256 ballotIdx) private {
         fromValidBallot(ballotIdx, uint256(BallotTypes.MemberRemoval));
 
-        (address addr, , , , , , uint256 unlockAmount) = getBallotMember(ballotIdx);
+        (address addr, , , , , , , uint256 unlockAmount) = getBallotMember(ballotIdx);
         if (!isMember(addr)) {
             emit NotApplicable(ballotIdx, "Not already a member");
             return; // Non-member. it is abnormal case, but passed
@@ -366,17 +414,23 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         // Remove voting and reward member
         uint256 removeIdx = memberIdx[addr];
         address endAddr = members[memberLength];
+        address oldStaker = memberToStaker[addr];
         
         if (memberIdx[addr] != memberLength) {
             (members[removeIdx], members[memberLength],memberIdx[addr], memberIdx[endAddr] ) = (members[memberLength],address(0), 0, memberIdx[addr]);
             removeIdx = rewardIdx[addr];
             endAddr = rewards[memberLength];
             (rewards[removeIdx], rewards[memberLength],rewardIdx[addr], rewardIdx[endAddr]) = (rewards[memberLength], address(0),0, rewardIdx[addr]);
+            removeIdx = stakersIdx[oldStaker];
+            endAddr = stakers[memberLength];
+            (stakers[removeIdx], stakers[memberLength],stakersIdx[oldStaker], stakersIdx[endAddr]) = (stakers[memberLength], address(0),0, stakersIdx[oldStaker]);
         } else {
             members[memberLength] = address(0);
             memberIdx[addr] = 0;
             rewards[memberLength] = address(0);
             rewardIdx[addr] = 0;
+            stakers[memberLength] = address(0);
+            stakersIdx[oldStaker] = 0;
         }
         memberLength = memberLength.sub(1);
         // Remove node
@@ -399,17 +453,20 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         nodeLength = nodeLength.sub(1);
         modifiedBlock = block.number;
         // Unlock and transfer remained to governance
-        transferLockedAndUnlock(addr, unlockAmount);
+        transferLockedAndUnlock(oldStaker, unlockAmount);
 
         emit MemberRemoved(addr);
     }
 
-    function changeMember(uint256 ballotIdx) private returns (bool) {
-        fromValidBallot(ballotIdx, uint256(BallotTypes.MemberChange));
+    function changeMember(uint256 ballotIdx, bool self) private returns (bool) {
+        if(!self){
+            fromValidBallot(ballotIdx, uint256(BallotTypes.MemberChange));
+        }
         
         (
             address addr,
             address nAddr,
+            address nStaker,
             bytes memory name,
             bytes memory enode,
             bytes memory ip,
@@ -426,16 +483,6 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
                 emit NotApplicable(ballotIdx, "new address is already a member");
                 return false; // already member. it is abnormal case.
             }
-            // Lock
-            if( lockAmount < getMinStaking() || getMaxStaking() < lockAmount ){
-                emit NotApplicable(ballotIdx, "Invalid lock amount");
-                return false;
-            }
-            if(availableBalanceOf(nAddr) < lockAmount){
-                emit NotApplicable(ballotIdx, "Insufficient balance that can be locked");
-                return false;
-            }
-            lock(nAddr, lockAmount);
 
             // Change member
             members[memberIdx[addr]] = nAddr;
@@ -443,6 +490,26 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
             rewards[memberIdx[addr]] = nAddr;
             rewardIdx[nAddr] = rewardIdx[addr];
             memberIdx[addr] = 0;
+        }
+
+        address staker = memberToStaker[addr];
+
+        if(staker != nStaker){
+            // Lock
+            if( lockAmount < getMinStaking() || getMaxStaking() < lockAmount ){
+                emit NotApplicable(ballotIdx, "Invalid lock amount");
+                return false;
+            }
+            if(availableBalanceOf(nStaker) < lockAmount){
+                emit NotApplicable(ballotIdx, "Insufficient balance that can be locked");
+                return false;
+            }
+            lock(nStaker, lockAmount);
+
+            // Change staker
+            stakers[stakersIdx[staker]] = nStaker;
+            stakersIdx[nStaker] = stakersIdx[staker];
+            stakersIdx[staker] = 0;
         }
 
         // Change node
@@ -453,13 +520,13 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         node.ip = ip;
         node.port = port;
         modifiedBlock = block.number;
-        if (addr != nAddr) {
+        if (staker != nStaker) {
             nodeToMember[nodeIdx] = nAddr;
             nodeIdxFromMember[nAddr] = nodeIdx;
             nodeIdxFromMember[addr] = 0;
 
             // Unlock and transfer remained to governance
-            transferLockedAndUnlock(addr, lockAmount);
+            transferLockedAndUnlock(staker, lockAmount);
 
             emit MemberChanged(addr, nAddr);
         } else {
@@ -515,9 +582,12 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
     function createBallotForMember(
         uint256 id,
         uint256 bType,
+        uint256 duration,
         address creator,
         address oAddr,
         address nAddr,
+        address oSAddr,
+        address nSAddr,
         bytes memory name,
         bytes memory enode,
         bytes memory ip,
@@ -528,9 +598,12 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         IBallotStorage(getBallotStorageAddress()).createBallotForMember(
             id, // ballot id
             bType, // ballot type
+            duration,
             creator, // creator
             oAddr, // old member address
             nAddr, // new member address
+            oSAddr,
+            nSAddr,
             name, // new name
             enode, // new enode
             ip, // new ip
@@ -566,7 +639,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         return IBallotStorage(getBallotStorageAddress()).getBallotVotingInfo(id);
     }
 
-    function getBallotMember(uint256 id) private view returns (address, address, bytes memory, bytes memory, bytes memory, uint256, uint256) {
+    function getBallotMember(uint256 id) private view returns (address, address, address, bytes memory, bytes memory, bytes memory, uint256, uint256) {
         return IBallotStorage(getBallotStorageAddress()).getBallotMember(id);
     }
 
@@ -600,4 +673,10 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
   
     function _authorizeUpgrade(address newImplementation) internal override onlyGovMem{}
     //------------------ Code reduction end
+
+    //====NXTMeta=====/
+
+    function isAllowedToVote(address voter, address staker) public view returns (bool) {
+        return  IStaking(getStakingAddress()).isAllowed(voter, staker);
+    }
 }

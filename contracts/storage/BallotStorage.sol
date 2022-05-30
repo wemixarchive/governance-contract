@@ -6,6 +6,8 @@ import "../abstract/BallotEnums.sol";
 import "../GovChecker.sol";
 import "../interface/IEnvStorage.sol";
 
+import 'hardhat/console.sol';
+
 
 contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     using SafeMath for uint256;
@@ -43,6 +45,8 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         uint256 id;    
         address oldMemberAddress;
         address newMemberAddress;
+        address oldStakerAddress;
+        address newStakerAddress;
         bytes newNodeName; // name
         bytes newNodeId; // admin.nodeInfo.id is 512 bit public key
         bytes newNodeIp;
@@ -203,6 +207,8 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     function getBallotMember(uint256 _id) public view returns (
         address oldMemberAddress,
         address newMemberAddress,
+        // address oldStakerAddress,
+        address newStakerAddress,
         bytes memory newNodeName, // name
         bytes memory newNodeId, // admin.nodeInfo.id is 512 bit public key
         bytes memory newNodeIp,
@@ -213,6 +219,8 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
         BallotMember storage tBallot = ballotMemberMap[_id];
         oldMemberAddress = tBallot.oldMemberAddress;
         newMemberAddress = tBallot.newMemberAddress;
+        // oldStakerAddress = tBallot.oldStakerAddress;
+        newStakerAddress = tBallot.newStakerAddress;
         newNodeName = tBallot.newNodeName;
         newNodeId = tBallot.newNodeId;
         newNodeIp = tBallot.newNodeIp;
@@ -249,9 +257,12 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     function createBallotForMember(
         uint256 _id,
         uint256 _ballotType,
+        uint256 _duration,
         address _creator,
         address _oldMemberAddress,
         address _newMemberAddress,
+        address _oldStakerAddress,
+        address _newStakerAddress,
         bytes memory _newNodeName, // name
         bytes memory _newNodeId, // admin.nodeInfo.id is 512 bit public key
         bytes memory _newNodeIp,
@@ -273,11 +284,13 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
             ),
             "Invalid Parameter"
         );
-        _createBallot(_id, _ballotType, _creator);
+        _createBallot(_id, _ballotType,_duration,  _creator);
         BallotMember memory newBallot;
         newBallot.id = _id;
         newBallot.oldMemberAddress = _oldMemberAddress;
         newBallot.newMemberAddress = _newMemberAddress;
+        newBallot.oldStakerAddress = _oldStakerAddress;
+        newBallot.newStakerAddress = _newStakerAddress;
         newBallot.newNodeName = _newNodeName;
         newBallot.newNodeId = _newNodeId;
         newBallot.newNodeIp = _newNodeIp;
@@ -289,6 +302,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     function createBallotForAddress(
         uint256 _id,
         uint256 _ballotType,
+        uint256 _duration,
         address _creator,
         address _newGovernanceAddress
     )
@@ -299,8 +313,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     {
         require(_ballotType == uint256(BallotTypes.GovernanceChange), "Invalid Ballot Type");
         require(_newGovernanceAddress != address(0), "Invalid Parameter");
-        
-        _createBallot(_id, _ballotType, _creator);
+        _createBallot(_id, _ballotType, _duration, _creator);
         BallotAddress memory newBallot;
         newBallot.id = _id;
         newBallot.newGovernanceAddress = _newGovernanceAddress;
@@ -311,6 +324,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     function createBallotForVariable(
         uint256 _id,
         uint256 _ballotType,
+        uint256 _duration,
         address _creator,
         bytes32 _envVariableName,
         uint256 _envVariableType,
@@ -325,7 +339,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
             _areVariableBallotParamValid(_ballotType, _envVariableName, _envVariableType, _envVariableValue),
             "Invalid Parameter"
         );
-        _createBallot(_id, _ballotType, _creator);
+        _createBallot(_id, _ballotType, _duration, _creator);
         BallotVariable memory newBallot;
         newBallot.id = _id;
         newBallot.envVariableName = _envVariableName;
@@ -523,8 +537,10 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
     function _createBallot(
         uint256 _id,
         uint256 _ballotType,
+        uint256 _duration,
         address _creator
     )
+        onlyValidDuration(_duration)
         internal
     {
         require(ballotBasicMap[_id].id != _id, "Already existed ballot");
@@ -536,7 +552,7 @@ contract BallotStorage is  GovChecker, EnvConstants, BallotEnums {
 //        newBallot.memo = _memo;
         newBallot.state = uint256(BallotStates.Ready);
         newBallot.isFinalized = false;
-//        newBallot.duration = _duration;
+        newBallot.duration = _duration;
         ballotBasicMap[_id] = newBallot;
         ballotCount = ballotCount.add(1);
         emit BallotCreated(_id, _ballotType, _creator);

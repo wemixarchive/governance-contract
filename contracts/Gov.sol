@@ -8,6 +8,8 @@ import "./abstract/AGov.sol";
 import "@openzeppelin/contracts/proxy/Proxy.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Upgrade.sol";
 
+import "hardhat/console.sol";
+
 contract Gov is AGov, Proxy, ERC1967Upgrade {
     // "Metadium Governance"
     uint public magic = 0x4d6574616469756d20476f7665726e616e6365;
@@ -35,6 +37,7 @@ contract Gov is AGov, Proxy, ERC1967Upgrade {
     function init(
         address registry,
         address newImplementation,
+        address staker,
         uint256 lockAmount,
         bytes memory name,
         bytes memory enode,
@@ -51,8 +54,9 @@ contract Gov is AGov, Proxy, ERC1967Upgrade {
 
         // Lock
         IStaking staking = IStaking(getStakingAddress());
-        require(staking.availableBalanceOf(msg.sender) >= lockAmount, "Insufficient staking");
-        staking.lock(msg.sender, lockAmount);
+        require(staking.availableBalanceOf(staker) >= lockAmount, "Insufficient staking");
+        require(staking.isAllowed(msg.sender, staker), 'Staker is not allowed');
+        staking.lock(staker, lockAmount);
 
         // Add voting member
         memberLength = 1;
@@ -62,6 +66,10 @@ contract Gov is AGov, Proxy, ERC1967Upgrade {
         // Add reward member
         rewards[memberLength] = msg.sender;
         rewardIdx[msg.sender] = memberLength;
+
+        stakers[memberLength] = staker;
+        stakersIdx[staker] = memberLength;
+        memberToStaker[msg.sender] = staker;
 
         // Add node
         nodeLength = 1;
