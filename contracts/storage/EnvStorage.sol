@@ -20,6 +20,14 @@ contract EnvStorage is ERC1967Proxy, AEnvStorage {
         // _upgradeTo(_implementation);
     }
 
+    function upgradeTo(address newImplementation) public onlyGovOrOwner{
+        _upgradeToAndCallUUPS(newImplementation, '', false);
+    }
+
+    function implementation() external view returns(address){
+        return _implementation();
+    }
+
     // function setImplementation(address newImplementation) public onlyGovOrOwner {
     //     _upgradeTo(newImplementation);
     // }

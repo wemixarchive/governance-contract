@@ -9,6 +9,11 @@ interface IEnvStorage {
     function setStakingMaxByBytes(bytes memory) external;
     function setGasPriceByBytes(bytes memory) external;
     function setMaxIdleBlockIntervalByBytes(bytes memory) external;
+    function setBallotDurationMinMaxByBytes(bytes memory _value ) external;
+    function setStakingMinMaxByBytes(bytes memory _value ) external;
+    function setStakingAddressByBytes(bytes memory _value ) external;
+    function setEcofundAddressByBytes(bytes memory _value ) external;
+    function setMaintananceAddressByBytes(bytes memory _value ) external;
     function getBlocksPer() external view returns (uint256);
     function getStakingMin() external view returns (uint256);
     function getStakingMax() external view returns (uint256);

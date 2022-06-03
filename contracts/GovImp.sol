@@ -557,20 +557,46 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
 
         IEnvStorage envStorage = IEnvStorage(getEnvStorageAddress());
         uint256 uintType = uint256(VariableTypes.Uint);
+        uint256 addressType = uint256(VariableTypes.Address);
         if (envKey == BLOCKS_PER_NAME && envType == uintType) {
             envStorage.setBlocksPerByBytes(envVal);
-        } else if (envKey == BALLOT_DURATION_MIN_NAME && envType == uintType) {
-            envStorage.setBallotDurationMinByBytes(envVal);
-        } else if (envKey == BALLOT_DURATION_MAX_NAME && envType == uintType) {
-            envStorage.setBallotDurationMaxByBytes(envVal);
-        } else if (envKey == STAKING_MIN_NAME && envType == uintType) {
-            envStorage.setStakingMinByBytes(envVal);
-        } else if (envKey == STAKING_MAX_NAME && envType == uintType) {
-            envStorage.setStakingMaxByBytes(envVal);
-        } else if (envKey == GAS_PRICE_NAME && envType == uintType) {
+        } 
+        // else if (envKey == BALLOT_DURATION_MIN_NAME && envType == uintType) {
+        //     envStorage.setBallotDurationMinByBytes(envVal);
+        // } else if (envKey == BALLOT_DURATION_MAX_NAME && envType == uintType) {
+        //     envStorage.setBallotDurationMaxByBytes(envVal);
+        // }
+        else if (envKey == BALLOT_DURATION_MIN_MAX_NAME && envType == uintType) {
+            envStorage.setBallotDurationMinMaxByBytes(envVal);
+        }
+        // else if (envKey == STAKING_MIN_NAME && envType == uintType) {
+        //     envStorage.setStakingMinByBytes(envVal);
+        // } else if (envKey == STAKING_MAX_NAME && envType == uintType) {
+        //     envStorage.setStakingMaxByBytes(envVal);
+        // } 
+        else if (envKey == STAKING_MIN_MAX_NAME && envType == uintType) {
+            envStorage.setStakingMinMaxByBytes(envVal);
+        }
+        else if (envKey == GAS_PRICE_NAME && envType == uintType) {
             envStorage.setGasPriceByBytes(envVal);
         } else if (envKey == MAX_IDLE_BLOCK_INTERVAL_NAME && envType == uintType) {
             envStorage.setMaxIdleBlockIntervalByBytes(envVal);
+        } else if (envKey == BLOCK_CREATION_TIME_NAME && envType == uintType) {
+            envStorage.setMaxIdleBlockIntervalByBytes(envVal);
+        } else if (envKey == BLOCK_REWARD_AMOUNT_NAME && envType == uintType) {
+            envStorage.setMaxIdleBlockIntervalByBytes(envVal);
+        } else if (envKey == MAX_PRIORITY_FEE_PER_GAS_NAME && envType == uintType) {
+            envStorage.setMaxIdleBlockIntervalByBytes(envVal);
+        } else if (envKey == BLOCK_REWARD_DISTRIBUTION_METHOD_NAME && envType == uintType) {
+            envStorage.setMaxIdleBlockIntervalByBytes(envVal);
+        } else if (envKey == GASLIMIT_AND_BASE_FEE_NAME && envType == uintType) {
+            envStorage.setMaxIdleBlockIntervalByBytes(envVal);
+        } else if (envKey == STAKING_ADDRESS_NAME && envType == addressType) {
+            envStorage.setStakingAddressByBytes(envVal);
+        } else if (envKey == ECOFUND_ADDRESS_NAME && envType == addressType) {
+            envStorage.setEcofundAddressByBytes(envVal);
+        } else if (envKey == MAINTANANCE_ADDRESS_NAME && envType == addressType) {
+            envStorage.setMaintananceAddressByBytes(envVal);
         }
 
         modifiedBlock = block.number;

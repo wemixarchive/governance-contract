@@ -12,6 +12,7 @@ const U2S = ethers.utils.toUtf8String;
 
 const B322S = hre.ethers.utils.formatBytes32String;
 
+const zeroAddress = '0x'+'0'.repeat(40);
 
 // require('chai')
 //   .use(require('chai-bignumber')(web3.BigNumber))
@@ -53,6 +54,29 @@ const memo = [
 const envName = 'key';
 const envVal = 'value';
 
+const envParams = {
+  "blocksPer" : 1000,
+  "ballotDurationMin" : 1,
+  "ballotDurationMax" : 604800,
+  "stakingMin" : '4980000'+'0'.repeat(18),
+  "stakingMax" : '39840000'+'0'.repeat(18),
+  "gasPrice" : '80'+'0'.repeat(9),
+  "MaxIdleBlockInterval" : 5,
+  "blockCreationTime" : 1000,
+  "blockRewardAmount" : '1'+'0'.repeat(18),
+  "maxPriorityFeePerGas" : '100'+'0'.repeat(9),
+  "blockRewardDistrbutionBlockProducer" : 4000,
+  "blockRewardDistrbutionStakingReward" : 1000,
+  "blockRewardDistrbutionEcosystem" : 2500,
+  "blockRewardDistrbutionMaintanance" : 2500,
+  "blockGasLimit" : '100000000',
+  "baseFeeMaxChangeDenominator" : 2,
+  "elasticityMultiplier" : 1
+  // "stakingAddress" : zeroAddress,
+  // "ecofundAddress" : zeroAddress,
+  // "maintananceAddress" : zeroAddress
+}
+
 const duration = 3600;
 
 // SHOULD double-check below map to follow contract code
@@ -89,8 +113,8 @@ describe('Governance', function () {
     staker0 = accs[4];
     staker1 = accs[5];
     staker2 = accs[6];
-    staker3 = accs[6];
-    user1 = accs[7];
+    staker3 = accs[7];
+    user1 = accs[8];
     let Registry = await hre.ethers.getContractFactory('Registry');
     // registry = await Registry.new();
     registry = await Registry.deploy();
@@ -125,14 +149,23 @@ describe('Governance', function () {
     const _defaultGasPrice = '80'+'0'.repeat(9);
     const _defaultMaxIdleBlockInterval = 5;
 
+    const envNames = Object.keys(envParams);
+    let envNamesBytes = [];
+    for(let i=0;i<envNames.length;i++){
+      envNamesBytes.push(ethers.utils.keccak256(U2B(envNames[i])));
+    }
+    const envVariables = Object.values(envParams);
     await envDelegator.initialize(
-      _defaultBlocksPer,
-      _defaultBallotDurationMin,
-      _defaultBallotDurationMax,
-      _defaultStakingMin,
-      _defaultStakingMax,
-      _defaultGasPrice,
-      _defaultMaxIdleBlockInterval);
+      envNamesBytes,
+      envVariables
+      // _defaultBlocksPer,
+      // _defaultBallotDurationMin,
+      // _defaultBallotDurationMax,
+      // _defaultStakingMin,
+      // _defaultStakingMax,
+      // _defaultGasPrice,
+      // _defaultMaxIdleBlockInterval
+      );
 
     // Initialize for staking
     await staking.connect(staker0).deposit(deployer.address,{ value: amount});
@@ -143,12 +176,24 @@ describe('Governance', function () {
     let data = await govDelegator.getNode(1);
   });
 
-  // // For short check
-  // describe('Contract creation ', function () {
-  //   it('consume for govImp', async () => { await GovImp.new(); });
-  //   it('consume for envStorageImp', async () => { await EnvStorageImp.new(); });
-  //   it('consume for ballotStorage', async () => { await BallotStorage.new(registry.address); });
-  // });
+  // For short check
+  describe('Contract creation ', function () {
+    it('consume for govImp', async () => { 
+      let GovImp = await hre.ethers.getContractFactory('GovImp');
+      let newGovImp = await GovImp.deploy();
+      await newGovImp.deployed();
+     });
+    it('consume for envStorageImp', async () => { 
+      let EnvStorageImp = await hre.ethers.getContractFactory('EnvStorageImp');
+      let newEnvStorageImp = await EnvStorageImp.deploy();
+      await newEnvStorageImp.deployed();
+     });
+    it('consume for ballotStorage', async () => { 
+      let BallotStorage = await hre.ethers.getContractFactory('BallotStorage');
+      let newBallotStorage =  await BallotStorage.deploy(registry.address);
+      await newBallotStorage.deployed();
+     });
+  });
 
   describe('Deployer ', function () {
     it('has enode and locked staking', async () => {
