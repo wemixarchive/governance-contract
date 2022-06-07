@@ -1,4 +1,5 @@
 pragma solidity ^0.8.0;
+// pragma abicod
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../abstract/EnvConstants.sol";
@@ -249,6 +250,18 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
         );
     }
 
+    function getStakingRewardAddress() public view returns(address){
+        return getAddress(STAKING_REWARD_ADDRESS_NAME);
+    }
+
+    function getEcofundAddress() public view returns(address){
+        return getAddress(ECOFUND_ADDRESS_NAME);
+    }
+
+    function getMaintananceAddress() public view returns(address){
+        return getAddress(MAINTANANCE_ADDRESS_NAME);
+    }
+
     function setBallotDurationMinMax(uint256 _min, uint256 _max) public onlyGov { 
         require(_min <= _max, "Minimum duration must be smaller and equal than maximum duration");
         setUint(BALLOT_DURATION_MIN_NAME, _min);
@@ -278,7 +291,7 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
         uint256 _staking_reward,
         uint256 _ecofund,
         uint256 _maintanance
-        ) public onlyGov { 
+        ) public onlyGov {
         require((_block_producer + _staking_reward + _ecofund + _maintanance) == DENOMINATOR,
             "Wrong reward distrubtion ratio");
         setUint(BLOCK_REWARD_DISTRIBUTION_BLOCK_PRODUCER_NAME, _block_producer);
@@ -298,7 +311,7 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
     }
 
     function setStakingAddress(address _value) public onlyGov { 
-        setAddress(STAKING_ADDRESS_NAME, _value);
+        setAddress(STAKING_REWARD_ADDRESS_NAME, _value);
     }
     function setEcofundAddress(address _value) public onlyGov { 
         setAddress(ECOFUND_ADDRESS_NAME, _value);
@@ -433,7 +446,7 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
         assembly {
             _output0 := mload(add(_input, 32))
             _output1 := mload(add(_input, 64))
-            _output2 := mload(add(_input, 128))
+            _output2 := mload(add(_input, 96))
         }
     }
 
@@ -441,14 +454,15 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
         assembly {
             _output0 := mload(add(_input, 32))
             _output1 := mload(add(_input, 64))
-            _output2 := mload(add(_input, 128))
-            _output3 := mload(add(_input, 192))
+            _output2 := mload(add(_input, 96))
+            _output3 := mload(add(_input, 128))
         }
     }
 
     function toAddress(bytes memory _input) internal pure returns (address _output) {
-        assembly {
-            _output := mload(add(_input, 20))
-        }
+        _output = abi.decode(_input, (address));
+        // assembly {
+        //     _output := mload(add(_input, 20))
+        // }
     }
 }

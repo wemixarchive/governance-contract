@@ -24,7 +24,7 @@ contract EnvConstants {
     // uint256 public constant MAX_IDLE_BLOCK_INTERVAL_TYPE = uint256(VariableTypes.Uint);
 
     //=======NXTMeta========/
-    
+
     bytes32 public constant BALLOT_DURATION_MIN_MAX_NAME = keccak256("ballotDurationMinMax"); 
     bytes32 public constant STAKING_MIN_MAX_NAME = keccak256("stakingMinMax"); 
 
@@ -43,7 +43,7 @@ contract EnvConstants {
     bytes32 public constant BASE_FEE_MAX_CHANGE_DENOMINATOR_NAME = keccak256("baseFeeMaxChangeDenominator");
     bytes32 public constant ELASTICITY_MULTIPLIER_NAME = keccak256("elasticityMultiplier");
 
-    bytes32 public constant STAKING_ADDRESS_NAME = keccak256("stakingAddress");
+    bytes32 public constant STAKING_REWARD_ADDRESS_NAME = keccak256("stakingRewardAddress");
     bytes32 public constant ECOFUND_ADDRESS_NAME = keccak256("ecofundAddress");
     bytes32 public constant MAINTANANCE_ADDRESS_NAME = keccak256("maintananceAddress");
 

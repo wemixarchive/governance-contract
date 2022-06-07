@@ -13,6 +13,7 @@ import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
 import 'hardhat/console.sol';
 
+///TODO Member = voter?
 contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgradeable {
     using SafeMath for uint256;
 
@@ -25,7 +26,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
     event NotApplicable(uint256 indexed ballotId, string reason);
 
     struct MemberInfo{
-        address member;
+        address member; // voter
         address staker;
         bytes name;
         bytes enode;
@@ -60,12 +61,12 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         createBallotForMember(
             ballotIdx, // ballot id
             uint256(BallotTypes.MemberAdd), // ballot type
-            info.duration,
+            info.duration, //Added
             msg.sender, // creator
             address(0), // old member address
             info.member, // new member address
-            address(0),
-            info.staker,
+            address(0), //Added old staker address
+            info.staker, //Added new staker address
             info.name,
             info.enode, // new enode
             info.ip, // new ip
@@ -379,8 +380,9 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         uint256 nMemIdx = memberLength.add(1);
         members[nMemIdx] = addr;
         memberIdx[addr] = nMemIdx;
-        rewards[nMemIdx] = addr;
-        rewardIdx[addr] = nMemIdx;
+        ///TODO reward = staker
+        rewards[nMemIdx] = newStaker;
+        rewardIdx[newStaker] = nMemIdx;
         stakers[nMemIdx] = newStaker;
         stakersIdx[newStaker] = nMemIdx;
         memberToStaker[addr] = newStaker;
@@ -582,16 +584,17 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         } else if (envKey == MAX_IDLE_BLOCK_INTERVAL_NAME && envType == uintType) {
             envStorage.setMaxIdleBlockIntervalByBytes(envVal);
         } else if (envKey == BLOCK_CREATION_TIME_NAME && envType == uintType) {
-            envStorage.setMaxIdleBlockIntervalByBytes(envVal);
+            envStorage.setBlockCreationTimeByBytes(envVal);
         } else if (envKey == BLOCK_REWARD_AMOUNT_NAME && envType == uintType) {
-            envStorage.setMaxIdleBlockIntervalByBytes(envVal);
+            envStorage.setBlockRewardAmountByBytes(envVal);
         } else if (envKey == MAX_PRIORITY_FEE_PER_GAS_NAME && envType == uintType) {
-            envStorage.setMaxIdleBlockIntervalByBytes(envVal);
+            envStorage.setMaxPriorityFeePerGasByBytes(envVal);
         } else if (envKey == BLOCK_REWARD_DISTRIBUTION_METHOD_NAME && envType == uintType) {
-            envStorage.setMaxIdleBlockIntervalByBytes(envVal);
+            ///TODO voting ending condtion check
+            envStorage.setBlockRewardDistributionMethodByBytes(envVal);
         } else if (envKey == GASLIMIT_AND_BASE_FEE_NAME && envType == uintType) {
-            envStorage.setMaxIdleBlockIntervalByBytes(envVal);
-        } else if (envKey == STAKING_ADDRESS_NAME && envType == addressType) {
+            envStorage.setGasLimitAndBaseFeeByBytes(envVal);
+        } else if (envKey == STAKING_REWARD_ADDRESS_NAME && envType == addressType) {
             envStorage.setStakingAddressByBytes(envVal);
         } else if (envKey == ECOFUND_ADDRESS_NAME && envType == addressType) {
             envStorage.setEcofundAddressByBytes(envVal);

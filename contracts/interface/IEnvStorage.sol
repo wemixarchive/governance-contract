@@ -9,6 +9,11 @@ interface IEnvStorage {
     function setStakingMaxByBytes(bytes memory) external;
     function setGasPriceByBytes(bytes memory) external;
     function setMaxIdleBlockIntervalByBytes(bytes memory) external;
+    function setBlockCreationTimeByBytes(bytes memory _value ) external;
+    function setBlockRewardAmountByBytes(bytes memory _value ) external;
+    function setMaxPriorityFeePerGasByBytes(bytes memory _value ) external;
+    function setBlockRewardDistributionMethodByBytes(bytes memory _value ) external;
+    function setGasLimitAndBaseFeeByBytes(bytes memory _value ) external;
     function setBallotDurationMinMaxByBytes(bytes memory _value ) external;
     function setStakingMinMaxByBytes(bytes memory _value ) external;
     function setStakingAddressByBytes(bytes memory _value ) external;
