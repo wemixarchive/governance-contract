@@ -33,6 +33,9 @@
   "dependencies": {
     "@openzeppelin/contracts": "^4.6.0",
     "bignumber.js": "^9.0.2",
-    "hardhat": "^2.9.6"
+    "dotenv": "^16.0.1",
+    "hardhat": "^2.9.6",
+    "hardhat-contract-sizer": "^2.5.1",
+    "hardhat-gas-reporter": "^1.0.8"
   }
 }

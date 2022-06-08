@@ -4,10 +4,11 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 import "./abstract/BallotEnums.sol";
 import "./abstract/EnvConstants.sol";
+import "./abstract/AGov.sol";
+
 import "./interface/IBallotStorage.sol";
 import "./interface/IEnvStorage.sol";
 import "./interface/IStaking.sol";
-import "./abstract/AGov.sol";
 
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
@@ -17,17 +18,36 @@ import 'hardhat/console.sol';
 contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgradeable {
     using SafeMath for uint256;
 
-    event MemberAdded(address indexed addr);
-    event MemberRemoved(address indexed addr);
-    event MemberChanged(address indexed oldAddr, address indexed newAddr);
+
+    enum VariableTypes {
+        Invalid,
+        Int,
+        Uint,
+        Uint2,
+        Uint3,
+        Uint4,
+        Address,
+        Bytes32,
+        Bytes,
+        String
+    }
+
+    event MemberAdded(address indexed addr, address indexed voter);
+    event MemberRemoved(address indexed addr, address indexed voter);
+    event MemberChanged(address indexed oldAddr, address indexed newAddr, address indexed newVoter);
     event EnvChanged(bytes32 envName, uint256 envType, bytes envVal);
-    event MemberUpdated(address indexed addr);
+    event MemberUpdated(address indexed addr, address indexed voter);
     // added for case that ballot's result could not be applicable.
     event NotApplicable(uint256 indexed ballotId, string reason);
 
+    ///TODO
+    /*
+        staker = member
+    */
     struct MemberInfo{
-        address member; // voter
+        address voter; // voter
         address staker;
+        address reward;
         bytes name;
         bytes enode;
         bytes ip;
@@ -37,36 +57,31 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         uint256 duration;
     }
     
+    //Add member address = staker address = voter address
     function addProposalToAddMember(
         MemberInfo memory info
-        // address member,
-        // bytes memory name,
-        // bytes memory enode,
-        // bytes memory ip,
-        // uint256[2] memory portNlockAmount,
-        // bytes memory memo
     )
         external
         onlyGovMem
         returns (uint256 ballotIdx)
     {
-        require(info.member != address(0), "Invalid address");
+        require(info.voter != address(0), "Invalid address");
         require(info.name.length > 0, "Invalid node name");
         require(info.ip.length > 0, "Invalid node IP");
         require(info.port > 0, "Invalid node port");
-        require(!isMember(info.member), "Already member");
+        require(!isMember(info.staker), "Already member");
         require( info.lockAmount >= getMinStaking() && info.lockAmount <= getMaxStaking(),"Invalid lock Amount.");
-        require(isAllowedToVote(info.member, info.staker), "Staker is not allowed");
+        require(info.staker == info.voter, "Staker is not voter");
         ballotIdx = ballotLength.add(1);
         createBallotForMember(
             ballotIdx, // ballot id
             uint256(BallotTypes.MemberAdd), // ballot type
             info.duration, //Added
             msg.sender, // creator
-            address(0), // old member address
-            info.member, // new member address
-            address(0), //Added old staker address
-            info.staker, //Added new staker address
+            address(0), // old staker address
+            info.staker, // new staker address
+            info.voter, //Added new voter address
+            info.reward, //Added new reward address
             info.name,
             info.enode, // new enode
             info.ip, // new ip
@@ -78,7 +93,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
     }
 
     function addProposalToRemoveMember(
-        address member,
+        address staker,
         uint256 lockAmount,
         bytes memory memo,
         uint256 duration
@@ -87,19 +102,19 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         onlyGovMem
         returns (uint256 ballotIdx)
     {
-        require(member != address(0), "Invalid address");
-        require(isMember(member), "Non-member");
+        require(staker != address(0), "Invalid address");
+        require(isMember(staker), "Non-member");
         require(getMemberLength() > 1, "Cannot remove a sole member");
-        require(lockedBalanceOf(memberToStaker[member]) >= lockAmount,"Insufficient balance that can be unlocked." );
+        require(lockedBalanceOf(staker) >= lockAmount,"Insufficient balance that can be unlocked." );
         ballotIdx = ballotLength.add(1);
         createBallotForMember(
             ballotIdx, // ballot id
             uint256(BallotTypes.MemberRemoval), // ballot type
             duration,
             msg.sender, // creator
-            member, // old member address
-            address(0), // new member address
-            memberToStaker[member],
+            staker, // old staker address
+            address(0), // new staker address
+            address(0),
             address(0),
             new bytes(0), // new name
             new bytes(0), // new enode
@@ -111,9 +126,17 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         ballotLength = ballotIdx;
     }
 
+    ///TODO voter A, staker A -> voter B, staker B Ok with voting
+    // voter A, staker B -> voter C, staker C Ok with voting
+    // voter A, staker B -> voter A, staker A Ok with voting
+    // voter A call : voter A, staker A -> voter A, staker B X
+    // staker A call : voter A, staker A-> voter B, staker A Ok without voting
+    // only staker A call : voter B, staker A, reward C -> voter B, staker A, reward D Ok without voting only (voter can not change reward)
+    // staker only change own info
+    // voter can propose and vote anything
     function addProposalToChangeMember(
         MemberInfo memory newInfo,
-        address oldMember
+        address oldStaker
         // address[2] memory targetNnewMember,
         // address newStaker,
         // bytes memory nName,
@@ -127,14 +150,13 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         onlyGovMem
         returns (uint256 ballotIdx)
     {
-        require(oldMember != address(0), "Invalid old Address");
-        require(newInfo.member != address(0), "Invalid new Address");
+        require(oldStaker != address(0), "Invalid old Address");
+        require(newInfo.voter != address(0), "Invalid new Address");
         require(newInfo.name.length > 0, "Invalid node name");
         require(newInfo.ip.length > 0, "Invalid node IP");
         require(newInfo.port > 0, "Invalid node port");
-        require(isMember(oldMember), "Non-member");
+        require(isMember(oldStaker), "Non-member");
         require( newInfo.lockAmount >= getMinStaking() && newInfo.lockAmount <= getMaxStaking(), "Invalid lock Amount");
-        require(isAllowedToVote(newInfo.member, newInfo.staker), "Staker is not allowed");
 
         ballotIdx = ballotLength.add(1);
         createBallotForMember(
@@ -142,10 +164,10 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
             uint256(BallotTypes.MemberChange), // ballot type
             newInfo.duration,
             msg.sender, // creator
-            oldMember, // old member address
-            newInfo.member, // new member address
-            memberToStaker[oldMember], // old staker address
+            oldStaker, // old staker address
             newInfo.staker, // new staker address
+            newInfo.voter, // old voter address
+            newInfo.reward, // new voter address
             newInfo.name, //new Name
             newInfo.enode, // new enode
             newInfo.ip, // new ip
@@ -155,13 +177,14 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         updateBallotMemo(ballotIdx, newInfo.memo);
         ballotLength = ballotIdx;
         // 요청자 == 변경할 voting 주소
-        if(msg.sender == oldMember){
+        if(msg.sender == oldStaker && oldStaker == newInfo.staker){
             (, , uint256 duration) = getBallotPeriod(ballotIdx);
             startBallot(ballotIdx, block.timestamp, block.timestamp.add(duration));
             finalizeVote(ballotIdx, uint256(BallotTypes.MemberChange), true, true);
         }
     }
 
+    ///TODO staking, maintanance, ecofund address change in registry
     function addProposalToChangeGov(
         address newGovAddr,
         bytes memory memo,
@@ -198,7 +221,10 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
     {
         // require(envName != 0, "Invalid name");
         require(uint256(VariableTypes.Int) <= envType && envType <= uint256(VariableTypes.String), "Invalid type");
-
+        ///TODO check condition
+        require(checkVariableCondition(envName, envVal), "Invalid value");
+        
+        ///TODO variable type
         ballotIdx = ballotLength.add(1);
         IBallotStorage(getBallotStorageAddress()).createBallotForVariable(
             ballotIdx, // ballot id
@@ -286,7 +312,10 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
 
     function createVote(uint256 ballotIdx, bool approval) private {
         uint256 voteIdx = voteLength.add(1);
-        uint256 weight = IStaking(getStakingAddress()).calcVotingWeightWithScaleFactor(memberToStaker[msg.sender], 1e4);
+        address staker;
+        if(isStaker(msg.sender)) staker = msg.sender;
+        else if(isVoter(msg.sender)) staker = stakers[voterIdx[msg.sender]];
+        uint256 weight = IStaking(getStakingAddress()).calcVotingWeightWithScaleFactor(staker, 1e4);
         if (approval) {
             IBallotStorage(getBallotStorageAddress()).createVote(
                 voteIdx,
@@ -345,15 +374,16 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         fromValidBallot(ballotIdx, uint256(BallotTypes.MemberAdd));
 
         (
-            , address addr,
-            address newStaker,
+            , address newStaker,
+            address newVoter,
+            address newReward,
             bytes memory name,
             bytes memory enode,
             bytes memory ip,
             uint port,
             uint256 lockAmount
         ) = getBallotMember(ballotIdx);
-        if (isMember(addr)) {
+        if (isMember(newStaker)) {
             emit NotApplicable(ballotIdx, "Already a member");
             return true; // Already member. it is abnormal case, but passed. 
         }
@@ -369,8 +399,8 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
             return false;
         }
 
-        if(!isAllowedToVote(addr, newStaker)){
-            emit NotApplicable(ballotIdx, "Voter is not allowed");
+        if(newStaker == newVoter && newStaker == newReward){
+            emit NotApplicable(ballotIdx, "Invalid member address");
             return false;
         }
 
@@ -378,14 +408,12 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
 
         // Add voting and reward member
         uint256 nMemIdx = memberLength.add(1);
-        members[nMemIdx] = addr;
-        memberIdx[addr] = nMemIdx;
-        ///TODO reward = staker
-        rewards[nMemIdx] = newStaker;
-        rewardIdx[newStaker] = nMemIdx;
+        voters[nMemIdx] = newVoter;
+        voterIdx[newVoter] = nMemIdx;
+        rewards[nMemIdx] = newReward;
+        rewardIdx[newReward] = nMemIdx;
         stakers[nMemIdx] = newStaker;
-        stakersIdx[newStaker] = nMemIdx;
-        memberToStaker[addr] = newStaker;
+        stakerIdx[newStaker] = nMemIdx;
 
         // Add node
         uint256 nNodeIdx = nodeLength.add(1);
@@ -394,50 +422,51 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         node.enode = enode;
         node.ip = ip;
         node.port = port;
-        nodeToMember[nNodeIdx] = addr;
-        nodeIdxFromMember[addr] = nNodeIdx;
+        nodeToMember[nNodeIdx] = newStaker;
+        nodeIdxFromMember[newStaker] = nNodeIdx;
         node.name = name;
         memberLength = nMemIdx;
         nodeLength = nNodeIdx;
         modifiedBlock = block.number;
-        emit MemberAdded(addr);
+        emit MemberAdded(newStaker, newVoter);
         return true;
     }
 
     function removeMember(uint256 ballotIdx) private {
         fromValidBallot(ballotIdx, uint256(BallotTypes.MemberRemoval));
 
-        (address addr, , , , , , , uint256 unlockAmount) = getBallotMember(ballotIdx);
-        if (!isMember(addr)) {
+        (address oldStaker, , , , , , , , uint256 unlockAmount) = getBallotMember(ballotIdx);
+        if (!isMember(oldStaker)) {
             emit NotApplicable(ballotIdx, "Not already a member");
             return; // Non-member. it is abnormal case, but passed
         }
 
         // Remove voting and reward member
-        uint256 removeIdx = memberIdx[addr];
-        address endAddr = members[memberLength];
-        address oldStaker = memberToStaker[addr];
+        uint256 removeIdx = stakerIdx[oldStaker];
+        address endAddr = stakers[memberLength];
+        address oldVoter = voters[removeIdx];
+        address oldReward = rewards[removeIdx];
         
-        if (memberIdx[addr] != memberLength) {
-            (members[removeIdx], members[memberLength],memberIdx[addr], memberIdx[endAddr] ) = (members[memberLength],address(0), 0, memberIdx[addr]);
-            removeIdx = rewardIdx[addr];
+        if (stakerIdx[oldStaker] != memberLength) {
+            (stakers[removeIdx], stakers[memberLength],stakerIdx[oldStaker], stakerIdx[endAddr]) = (stakers[memberLength], address(0),0, stakerIdx[oldStaker]);
+            removeIdx = rewardIdx[oldStaker];
             endAddr = rewards[memberLength];
-            (rewards[removeIdx], rewards[memberLength],rewardIdx[addr], rewardIdx[endAddr]) = (rewards[memberLength], address(0),0, rewardIdx[addr]);
-            removeIdx = stakersIdx[oldStaker];
-            endAddr = stakers[memberLength];
-            (stakers[removeIdx], stakers[memberLength],stakersIdx[oldStaker], stakersIdx[endAddr]) = (stakers[memberLength], address(0),0, stakersIdx[oldStaker]);
+            (rewards[removeIdx], rewards[memberLength],rewardIdx[oldReward], rewardIdx[endAddr]) = (rewards[memberLength], address(0),0, rewardIdx[oldReward]);
+            removeIdx = voterIdx[oldStaker];
+            endAddr = voters[memberLength];
+            (voters[removeIdx], voters[memberLength],voterIdx[oldVoter], voterIdx[endAddr] ) = (voters[memberLength],address(0), 0, voterIdx[oldVoter]);
         } else {
-            members[memberLength] = address(0);
-            memberIdx[addr] = 0;
-            rewards[memberLength] = address(0);
-            rewardIdx[addr] = 0;
             stakers[memberLength] = address(0);
-            stakersIdx[oldStaker] = 0;
+            stakerIdx[oldStaker] = 0;
+            rewards[memberLength] = address(0);
+            rewardIdx[oldReward] = 0;
+            voters[memberLength] = address(0);
+            voterIdx[oldVoter] = 0;
         }
         memberLength = memberLength.sub(1);
         // Remove node
-        if (nodeIdxFromMember[addr] != nodeLength) {
-            removeIdx = nodeIdxFromMember[addr];
+        if (nodeIdxFromMember[oldStaker] != nodeLength) {
+            removeIdx = nodeIdxFromMember[oldStaker];
             endAddr = nodeToMember[nodeLength];
 
             Node storage node = nodes[removeIdx];
@@ -450,89 +479,107 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
             nodeIdxFromMember[endAddr]=removeIdx;
         }
         nodeToMember[nodeLength] = address(0);
-        nodeIdxFromMember[addr] = 0;
+        nodeIdxFromMember[oldStaker] = 0;
         delete nodes[nodeLength];
         nodeLength = nodeLength.sub(1);
         modifiedBlock = block.number;
         // Unlock and transfer remained to governance
         transferLockedAndUnlock(oldStaker, unlockAmount);
 
-        emit MemberRemoved(addr);
+        emit MemberRemoved(oldStaker, oldVoter);
     }
 
+    ///TODO isMember=> isStaker and isVoter
+    // vote => onlyVoter, staker can change voter without voting, default = staker == voter
+    // voter can change staker with voting.(changeMember)
     function changeMember(uint256 ballotIdx, bool self) private returns (bool) {
         if(!self){
             fromValidBallot(ballotIdx, uint256(BallotTypes.MemberChange));
         }
         
         (
-            address addr,
-            address nAddr,
-            address nStaker,
+            address oldStaker,
+            address newStaker,
+            address newVoter,
+            address newReward,
             bytes memory name,
             bytes memory enode,
             bytes memory ip,
             uint port,
             uint256 lockAmount
         ) = getBallotMember(ballotIdx);
-        if (!isMember(addr)) {
+        if (!isMember(oldStaker)) {
             emit NotApplicable(ballotIdx, "Old address is not a member");
             return false; // Non-member. it is abnormal case. 
         }
 
-        if (addr != nAddr) {
-            if (isMember(nAddr)) {
+        //old staker
+        uint256 memberIdx = stakerIdx[oldStaker];
+        if (oldStaker != newStaker) {
+            if (isMember(newStaker)) {
                 emit NotApplicable(ballotIdx, "new address is already a member");
                 return false; // already member. it is abnormal case.
             }
+            if(newStaker != newVoter){
+                emit NotApplicable(ballotIdx, "Invalid voter address");
+                return false;
+            }
 
             // Change member
-            members[memberIdx[addr]] = nAddr;
-            memberIdx[nAddr] = memberIdx[addr];
-            rewards[memberIdx[addr]] = nAddr;
-            rewardIdx[nAddr] = rewardIdx[addr];
-            memberIdx[addr] = 0;
-        }
+            stakers[memberIdx] = newStaker;
+            stakerIdx[newStaker] = memberIdx;
+            stakerIdx[oldStaker] = 0;
+            // stakerToVoter[oldStaker] = address(0);
+            // stakerToVoter[newStaker] = newVoter;
 
-        address staker = memberToStaker[addr];
-
-        if(staker != nStaker){
-            // Lock
+             // Lock
             if( lockAmount < getMinStaking() || getMaxStaking() < lockAmount ){
                 emit NotApplicable(ballotIdx, "Invalid lock amount");
                 return false;
             }
-            if(availableBalanceOf(nStaker) < lockAmount){
+            if(availableBalanceOf(newStaker) < lockAmount){
                 emit NotApplicable(ballotIdx, "Insufficient balance that can be locked");
                 return false;
             }
-            lock(nStaker, lockAmount);
+            lock(newStaker, lockAmount);
 
-            // Change staker
-            stakers[stakersIdx[staker]] = nStaker;
-            stakersIdx[nStaker] = stakersIdx[staker];
-            stakersIdx[staker] = 0;
         }
 
         // Change node
-        uint256 nodeIdx = nodeIdxFromMember[addr];
+        uint256 nodeIdx = nodeIdxFromMember[oldStaker];
         Node storage node = nodes[nodeIdx];
         node.name = name;
         node.enode = enode;
         node.ip = ip;
         node.port = port;
         modifiedBlock = block.number;
-        if (staker != nStaker) {
-            nodeToMember[nodeIdx] = nAddr;
-            nodeIdxFromMember[nAddr] = nodeIdx;
-            nodeIdxFromMember[addr] = 0;
+
+        {
+            address oldReward = rewards[memberIdx];
+            rewards[memberIdx] = newReward;
+            rewardIdx[newReward] = memberIdx;
+            rewardIdx[oldReward] = 0;
+        }
+        {
+            address oldVoter = voters[memberIdx];
+            voters[memberIdx] = newVoter;
+            voterIdx[newVoter] = memberIdx;
+            voterIdx[oldVoter] = 0;
+        }
+
+        if (oldStaker != newStaker) {
+           
+
+            nodeToMember[nodeIdx] = newStaker;
+            nodeIdxFromMember[newStaker] = nodeIdx;
+            nodeIdxFromMember[oldStaker] = 0;
 
             // Unlock and transfer remained to governance
-            transferLockedAndUnlock(staker, lockAmount);
+            transferLockedAndUnlock(oldStaker, lockAmount);
 
-            emit MemberChanged(addr, nAddr);
+            emit MemberChanged(oldStaker, newStaker, newVoter);
         } else {
-            emit MemberUpdated(addr);
+            emit MemberUpdated(oldStaker, newStaker);
         }
         return true;
     }
@@ -550,7 +597,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
 
     function applyEnv(uint256 ballotIdx) private {
         fromValidBallot(ballotIdx, uint256(BallotTypes.EnvValChange));
-
+        
         (
             bytes32 envKey,
             uint256 envType,
@@ -558,49 +605,82 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         ) = IBallotStorage(getBallotStorageAddress()).getBallotVariable(ballotIdx);
 
         IEnvStorage envStorage = IEnvStorage(getEnvStorageAddress());
-        uint256 uintType = uint256(VariableTypes.Uint);
-        uint256 addressType = uint256(VariableTypes.Address);
-        if (envKey == BLOCKS_PER_NAME && envType == uintType) {
-            envStorage.setBlocksPerByBytes(envVal);
-        } 
-        // else if (envKey == BALLOT_DURATION_MIN_NAME && envType == uintType) {
-        //     envStorage.setBallotDurationMinByBytes(envVal);
-        // } else if (envKey == BALLOT_DURATION_MAX_NAME && envType == uintType) {
-        //     envStorage.setBallotDurationMaxByBytes(envVal);
+        envStorage.setVariable(envKey, envVal);
+        // uint256 uintType = uint256(VariableTypes.Uint);
+        // if(envType == uintType){
+        //     uint256 value = abi.decode(envVal, (uint256));
+        //     envStorage.setUint(envKey, value);
         // }
-        else if (envKey == BALLOT_DURATION_MIN_MAX_NAME && envType == uintType) {
-            envStorage.setBallotDurationMinMaxByBytes(envVal);
-        }
-        // else if (envKey == STAKING_MIN_NAME && envType == uintType) {
-        //     envStorage.setStakingMinByBytes(envVal);
-        // } else if (envKey == STAKING_MAX_NAME && envType == uintType) {
-        //     envStorage.setStakingMaxByBytes(envVal);
+        // else if(envType == addressType){
+        //     address value = abi.decode(envVal, (address));
+        //     envStorage.setAddress(envKey, value);
+        // }
+        // else if(envType == uint256(VariableTypes.Uint2)){
+        //     (uint256 value0, uint256 value1) = abi.decode(envVal, (uint256, uint256));
+        //     if(envKey == BALLOT_DURATION_MIN_MAX_NAME || envKey ==STAKING_MIN_MAX_NAME){
+        //         require(value0 <= value1, "Minimum must be smaller than maximum");
+        //     }
+        //     envStorage.setUint(envKey, value0);
+        //     envStorage.setUint(envKey, value1);
+        // }
+        // else if(envType == uint256(VariableTypes.Uint3)){
+        //     (uint256 value0, uint256 value1, uint256 value2) = abi.decode(envVal, (uint256, uint256, uint256));
+        //     envStorage.setUint(envKey, value0);
+        //     envStorage.setUint(envKey, value1);
+        //     envStorage.setUint(envKey, value2);
+        // }
+        // else if(envType == uint256(VariableTypes.Uint4)){
+        //     (uint256 value0, uint256 value1, uint256 value2, uint256 value3) = abi.decode(envVal, (uint256, uint256, uint256, uint256));
+        //     if(envKey == BLOCK_REWARD_DISTRIBUTION_METHOD_NAME){
+        //         require((value0 + value1 + value2 + value3) ==  DENOMINATOR, "Wrong reward distrubtion ratio");
+        //     }
+        //     envStorage.setUint(envKey, value0);
+        //     envStorage.setUint(envKey, value1);
+        //     envStorage.setUint(envKey, value2);
+        //     envStorage.setUint(envKey, value3);
+        // }
+        // if (envKey == BLOCKS_PER_NAME && envType == uintType) {
+        //     envStorage.setBlocksPerByBytes(envVal);
         // } 
-        else if (envKey == STAKING_MIN_MAX_NAME && envType == uintType) {
-            envStorage.setStakingMinMaxByBytes(envVal);
-        }
-        else if (envKey == GAS_PRICE_NAME && envType == uintType) {
-            envStorage.setGasPriceByBytes(envVal);
-        } else if (envKey == MAX_IDLE_BLOCK_INTERVAL_NAME && envType == uintType) {
-            envStorage.setMaxIdleBlockIntervalByBytes(envVal);
-        } else if (envKey == BLOCK_CREATION_TIME_NAME && envType == uintType) {
-            envStorage.setBlockCreationTimeByBytes(envVal);
-        } else if (envKey == BLOCK_REWARD_AMOUNT_NAME && envType == uintType) {
-            envStorage.setBlockRewardAmountByBytes(envVal);
-        } else if (envKey == MAX_PRIORITY_FEE_PER_GAS_NAME && envType == uintType) {
-            envStorage.setMaxPriorityFeePerGasByBytes(envVal);
-        } else if (envKey == BLOCK_REWARD_DISTRIBUTION_METHOD_NAME && envType == uintType) {
-            ///TODO voting ending condtion check
-            envStorage.setBlockRewardDistributionMethodByBytes(envVal);
-        } else if (envKey == GASLIMIT_AND_BASE_FEE_NAME && envType == uintType) {
-            envStorage.setGasLimitAndBaseFeeByBytes(envVal);
-        } else if (envKey == STAKING_REWARD_ADDRESS_NAME && envType == addressType) {
-            envStorage.setStakingAddressByBytes(envVal);
-        } else if (envKey == ECOFUND_ADDRESS_NAME && envType == addressType) {
-            envStorage.setEcofundAddressByBytes(envVal);
-        } else if (envKey == MAINTANANCE_ADDRESS_NAME && envType == addressType) {
-            envStorage.setMaintananceAddressByBytes(envVal);
-        }
+        // // else if (envKey == BALLOT_DURATION_MIN_NAME && envType == uintType) {
+        // //     envStorage.setBallotDurationMinByBytes(envVal);
+        // // } else if (envKey == BALLOT_DURATION_MAX_NAME && envType == uintType) {
+        // //     envStorage.setBallotDurationMaxByBytes(envVal);
+        // // }
+        // else if (envKey == BALLOT_DURATION_MIN_MAX_NAME && envType == uintType) {
+        //     envStorage.setBallotDurationMinMaxByBytes(envVal);
+        // }
+        // // else if (envKey == STAKING_MIN_NAME && envType == uintType) {
+        // //     envStorage.setStakingMinByBytes(envVal);
+        // // } else if (envKey == STAKING_MAX_NAME && envType == uintType) {
+        // //     envStorage.setStakingMaxByBytes(envVal);
+        // // } 
+        // else if (envKey == STAKING_MIN_MAX_NAME && envType == uintType) {
+        //     envStorage.setStakingMinMaxByBytes(envVal);
+        // }
+        // else if (envKey == GAS_PRICE_NAME && envType == uintType) {
+        //     envStorage.setGasPriceByBytes(envVal);
+        // } else if (envKey == MAX_IDLE_BLOCK_INTERVAL_NAME && envType == uintType) {
+        //     envStorage.setMaxIdleBlockIntervalByBytes(envVal);
+        // } else if (envKey == BLOCK_CREATION_TIME_NAME && envType == uintType) {
+        //     envStorage.setBlockCreationTimeByBytes(envVal);
+        // } else if (envKey == BLOCK_REWARD_AMOUNT_NAME && envType == uintType) {
+        //     envStorage.setBlockRewardAmountByBytes(envVal);
+        // } else if (envKey == MAX_PRIORITY_FEE_PER_GAS_NAME && envType == uintType) {
+        //     envStorage.setMaxPriorityFeePerGasByBytes(envVal);
+        // } else if (envKey == BLOCK_REWARD_DISTRIBUTION_METHOD_NAME && envType == uintType) {
+        //     ///TODO voting ending condtion check
+        //     envStorage.setBlockRewardDistributionMethodByBytes(envVal);
+        // } else if (envKey == GASLIMIT_AND_BASE_FEE_NAME && envType == uintType) {
+        //     envStorage.setGasLimitAndBaseFeeByBytes(envVal);
+        // } 
+        // else if (envKey == STAKING_REWARD_ADDRESS_NAME && envType == addressType) {
+        //     envStorage.setStakingAddressByBytes(envVal);
+        // } else if (envKey == ECOFUND_ADDRESS_NAME && envType == addressType) {
+        //     envStorage.setEcofundAddressByBytes(envVal);
+        // } else if (envKey == MAINTANANCE_ADDRESS_NAME && envType == addressType) {
+        //     envStorage.setMaintananceAddressByBytes(envVal);
+        // }
 
         modifiedBlock = block.number;
 
@@ -631,8 +711,8 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
             creator, // creator
             oAddr, // old member address
             nAddr, // new member address
-            oSAddr,
-            nSAddr,
+            oSAddr, // old staker address
+            nSAddr, // new staker address
             name, // new name
             enode, // new enode
             ip, // new ip
@@ -668,7 +748,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         return IBallotStorage(getBallotStorageAddress()).getBallotVotingInfo(id);
     }
 
-    function getBallotMember(uint256 id) private view returns (address, address, address, bytes memory, bytes memory, bytes memory, uint256, uint256) {
+    function getBallotMember(uint256 id) private view returns (address, address, address, address, bytes memory, bytes memory, bytes memory, uint256, uint256) {
         return IBallotStorage(getBallotStorageAddress()).getBallotMember(id);
     }
 
@@ -700,12 +780,13 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
     }
 
   
-    function _authorizeUpgrade(address newImplementation) internal override onlyGovMem{}
     //------------------ Code reduction end
 
     //====NXTMeta=====/
 
-    function isAllowedToVote(address voter, address staker) public view returns (bool) {
-        return  IStaking(getStakingAddress()).isAllowed(voter, staker);
+    function _authorizeUpgrade(address newImplementation) internal override onlyGovMem{}
+
+    function checkVariableCondition(bytes32 envKey, bytes memory envVal) internal view returns(bool){
+        return IEnvStorage(getEnvStorageAddress()).checkVariableCondition(envKey, envVal);
     }
 }

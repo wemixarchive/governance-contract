@@ -250,17 +250,17 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
         );
     }
 
-    function getStakingRewardAddress() public view returns(address){
-        return getAddress(STAKING_REWARD_ADDRESS_NAME);
-    }
+    // function getStakingRewardAddress() public view returns(address){
+    //     return getAddress(STAKING_REWARD_ADDRESS_NAME);
+    // }
 
-    function getEcofundAddress() public view returns(address){
-        return getAddress(ECOFUND_ADDRESS_NAME);
-    }
+    // function getEcofundAddress() public view returns(address){
+    //     return getAddress(ECOFUND_ADDRESS_NAME);
+    // }
 
-    function getMaintananceAddress() public view returns(address){
-        return getAddress(MAINTANANCE_ADDRESS_NAME);
-    }
+    // function getMaintananceAddress() public view returns(address){
+    //     return getAddress(MAINTANANCE_ADDRESS_NAME);
+    // }
 
     function setBallotDurationMinMax(uint256 _min, uint256 _max) public onlyGov { 
         require(_min <= _max, "Minimum duration must be smaller and equal than maximum duration");
@@ -310,15 +310,15 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
         setUint(ELASTICITY_MULTIPLIER_NAME, _elasticityMultiplier);
     }
 
-    function setStakingAddress(address _value) public onlyGov { 
-        setAddress(STAKING_REWARD_ADDRESS_NAME, _value);
-    }
-    function setEcofundAddress(address _value) public onlyGov { 
-        setAddress(ECOFUND_ADDRESS_NAME, _value);
-    }
-    function setMaintananceAddress(address _value) public onlyGov { 
-        setAddress(MAINTANANCE_ADDRESS_NAME, _value);
-    }
+    // function setStakingAddress(address _value) public onlyGov { 
+    //     setAddress(STAKING_REWARD_ADDRESS_NAME, _value);
+    // }
+    // function setEcofundAddress(address _value) public onlyGov { 
+    //     setAddress(ECOFUND_ADDRESS_NAME, _value);
+    // }
+    // function setMaintananceAddress(address _value) public onlyGov { 
+    //     setAddress(MAINTANANCE_ADDRESS_NAME, _value);
+    // }
 
     function setBallotDurationMinMaxByBytes(bytes memory _value ) public onlyGov { 
         (uint256 _min, uint256 _max) = to2Uint(_value);
@@ -364,17 +364,66 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
         setGasLimitAndBaseFee( _block_GasLimit, _baseFeeMaxChangeDenominator, _elasticityMultiplier);
     }
 
-    function setStakingAddressByBytes(bytes memory _value ) public onlyGov { 
-        setStakingAddress(toAddress(_value));
+    function checkVariableCondition(bytes32 envKey, bytes memory envVal) external pure returns(bool){
+
+        if(envKey == BLOCK_REWARD_DISTRIBUTION_METHOD_NAME){
+            (
+                uint256 _block_producer,
+                uint256 _staking_reward,
+                uint256 _ecofund,
+                uint256 _maintanance
+            ) = abi.decode(envVal, (uint256, uint256, uint256, uint256));
+            if((_block_producer + _staking_reward + _ecofund + _maintanance) != DENOMINATOR) return false;
+        }
+        else if(envKey == STAKING_MIN_MAX_NAME || envKey == BALLOT_DURATION_MIN_MAX_NAME ){
+            (uint256 min, uint256 max) = abi.decode(envVal, (uint256, uint256));
+            if(min > max) return false;
+        }
+        else if(envKey == BLOCK_CREATION_TIME_NAME){
+            uint256 time = abi.decode(envVal, (uint256));
+            if(time < 100) return false;
+        }
+        return true;
     }
 
-    function setEcofundAddressByBytes(bytes memory _value ) public onlyGov { 
-        setEcofundAddress(toAddress(_value));
+    function setVariable(bytes32 envKey, bytes memory envVal) external{
+        if (envKey == BLOCKS_PER_NAME) {
+            setBlocksPerByBytes(envVal);
+        } 
+        else if (envKey == BALLOT_DURATION_MIN_MAX_NAME) {
+            setBallotDurationMinMaxByBytes(envVal);
+        }
+        else if (envKey == STAKING_MIN_MAX_NAME) {
+            setStakingMinMaxByBytes(envVal);
+        }
+        else if (envKey == GAS_PRICE_NAME) {
+            setGasPriceByBytes(envVal);
+        } else if (envKey == MAX_IDLE_BLOCK_INTERVAL_NAME) {
+            setMaxIdleBlockIntervalByBytes(envVal);
+        } else if (envKey == BLOCK_CREATION_TIME_NAME) {
+            setBlockCreationTimeByBytes(envVal);
+        } else if (envKey == BLOCK_REWARD_AMOUNT_NAME) {
+            setBlockRewardAmountByBytes(envVal);
+        } else if (envKey == MAX_PRIORITY_FEE_PER_GAS_NAME) {
+            setMaxPriorityFeePerGasByBytes(envVal);
+        } else if (envKey == BLOCK_REWARD_DISTRIBUTION_METHOD_NAME) {
+            setBlockRewardDistributionMethodByBytes(envVal);
+        } else if (envKey == GASLIMIT_AND_BASE_FEE_NAME) {
+            setGasLimitAndBaseFeeByBytes(envVal);
+        } 
     }
 
-    function setMaintananceAddressByBytes(bytes memory _value ) public onlyGov { 
-        setMaintananceAddress(toAddress(_value));
-    }
+    // function setStakingAddressByBytes(bytes memory _value ) public onlyGov { 
+    //     setStakingAddress(toAddress(_value));
+    // }
+
+    // function setEcofundAddressByBytes(bytes memory _value ) public onlyGov { 
+    //     setEcofundAddress(toAddress(_value));
+    // }
+
+    // function setMaintananceAddressByBytes(bytes memory _value ) public onlyGov { 
+    //     setMaintananceAddress(toAddress(_value));
+    // }
 
     // function getTestInt() public view returns (int256) {
     //     return getInt(TEST_INT);

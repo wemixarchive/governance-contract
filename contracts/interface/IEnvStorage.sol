@@ -2,6 +2,8 @@ pragma solidity ^0.8.0;
 
 
 interface IEnvStorage {
+    function setUint(bytes32 name, uint256 value) external;
+    function setAddress(bytes32 name, address value) external;
     function setBlocksPerByBytes(bytes memory) external;
     function setBallotDurationMinByBytes(bytes memory) external;
     function setBallotDurationMaxByBytes(bytes memory) external;
@@ -26,4 +28,6 @@ interface IEnvStorage {
     function getBallotDurationMax() external view returns (uint256);
     function getGasPrice() external view returns (uint256); 
     function getMaxIdleBlockInterval() external view returns (uint256);
+    function checkVariableCondition(bytes32 envKey, bytes memory envVal) external pure returns(bool);
+    function setVariable(bytes32 envKey, bytes memory envVal) external;
 }

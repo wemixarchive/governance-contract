@@ -43,23 +43,12 @@ contract EnvConstants {
     bytes32 public constant BASE_FEE_MAX_CHANGE_DENOMINATOR_NAME = keccak256("baseFeeMaxChangeDenominator");
     bytes32 public constant ELASTICITY_MULTIPLIER_NAME = keccak256("elasticityMultiplier");
 
-    bytes32 public constant STAKING_REWARD_ADDRESS_NAME = keccak256("stakingRewardAddress");
-    bytes32 public constant ECOFUND_ADDRESS_NAME = keccak256("ecofundAddress");
-    bytes32 public constant MAINTANANCE_ADDRESS_NAME = keccak256("maintananceAddress");
+    // bytes32 public constant STAKING_REWARD_ADDRESS_NAME = keccak256("stakingRewardAddress");
+    // bytes32 public constant ECOFUND_ADDRESS_NAME = keccak256("ecofundAddress");
+    // bytes32 public constant MAINTANANCE_ADDRESS_NAME = keccak256("maintananceAddress");
 
     uint256 public constant DENOMINATOR = 10000;
     
-    // bytes32 public constant BLOCK_Reward = keccak256("blockCreationTime"); 
-
-    enum VariableTypes {
-        Invalid,
-        Int,
-        Uint,
-        Address,
-        Bytes32,
-        Bytes,
-        String
-    }
 
     // bytes32 internal constant TEST_INT = keccak256("TEST_INT");
     // bytes32 internal constant TEST_ADDRESS = keccak256("TEST_ADDRESS");

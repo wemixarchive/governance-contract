@@ -12,8 +12,8 @@ abstract contract AGov is GovChecker {
     uint public modifiedBlock;
 
     // For voting member
-    mapping(uint256 => address) internal members;
-    mapping(address => uint256) internal memberIdx;
+    mapping(uint256 => address) internal voters;
+    mapping(address => uint256) internal voterIdx;
     uint256 internal memberLength;
 
     // For reward member
@@ -22,8 +22,8 @@ abstract contract AGov is GovChecker {
 
     //For staking member
     mapping(uint256 => address) internal stakers;
-    mapping(address => uint256) internal stakersIdx;
-    mapping(address => address) internal memberToStaker;
+    mapping(address => uint256) internal stakerIdx;
+    // mapping(address => address) internal stakerToVoter;
 
     // For enode
     struct Node {
@@ -44,15 +44,17 @@ abstract contract AGov is GovChecker {
     uint256 public voteLength;
     uint256 internal ballotInVoting;
 
-    function isMember(address addr) public view returns (bool) { return (memberIdx[addr] != 0); }
-    function getMember(uint256 idx) public view returns (address) { return members[idx]; }
+    function isVoter(address addr) public view returns (bool) { return (stakerIdx[addr] != 0); }
+    function isStaker(address addr) public view returns (bool) { return voterIdx[addr] != 0; }
+    function isMember(address addr) public view returns (bool) { return (isStaker(addr) || isVoter(addr)); }
+    function getMember(uint256 idx) public view returns (address) { return stakers[idx]; }
     function getMemberLength() public view returns (uint256) { return memberLength; }
     function getReward(uint256 idx) public view returns (address) { return rewards[idx]; }
     function getNodeIdxFromMember(address addr) public view returns (uint256) { return nodeIdxFromMember[addr]; }
     function getMemberFromNodeIdx(uint256 idx) public view returns (address) { return nodeToMember[idx]; }
     function getNodeLength() public view returns (uint256) { return nodeLength; }
     //====NxtMeta=====/
-    function getStaker(uint256 idx) public view returns (address) { return stakers[idx]; }
+    function getVoter(uint256 idx) public view returns (address) { return voters[idx]; }
 
     function getNode(uint256 idx) public view returns (bytes memory name, bytes memory enode, bytes memory ip, uint port) {
         return (nodes[idx].name, nodes[idx].enode, nodes[idx].ip, nodes[idx].port);

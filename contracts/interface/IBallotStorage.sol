@@ -7,7 +7,7 @@ interface IBallotStorage {
 
     function createBallotForAddress(uint256, uint256, uint256, address, address)external returns (uint256);
     function createBallotForVariable(uint256, uint256, uint256, address, bytes32, uint256, bytes memory) external returns (uint256);
-    function createVote(uint256, uint256, address, uint256, uint256) external returns (uint256);
+    function createVote(uint256, uint256, address, uint256, uint256) external;
     function finalizeBallot(uint256, uint256) external;
     function startBallot(uint256, uint256, uint256) external;
     function updateBallotMemo(uint256, bytes memory) external;
@@ -22,7 +22,7 @@ interface IBallotStorage {
         uint256, uint256, uint256, address, bytes memory, uint256,
         uint256, uint256, uint256, bool, uint256);
 
-    function getBallotMember(uint256) external view returns (address, address, address, bytes memory, bytes memory, bytes memory, uint256, uint256);
+    function getBallotMember(uint256) external view returns (address, address, address, address, bytes memory, bytes memory, bytes memory, uint256, uint256);
     function getBallotAddress(uint256) external view returns (address);
     function getBallotVariable(uint256) external view returns (bytes32, uint256, bytes memory);
 }

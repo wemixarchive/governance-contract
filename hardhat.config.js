@@ -1,5 +1,9 @@
 require("@nomiclabs/hardhat-waffle");
 const { task } = require("hardhat/config");
+require("hardhat-gas-reporter");
+require('hardhat-contract-sizer');
+
+require('dotenv').config();
 
 
 const path = require("path")
@@ -21,6 +25,8 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
  * @type import('hardhat/config').HardhatUserConfig
  */
 
+const privateKey = process.env.SK;
+
  module.exports = {
   networks : {
     hardhat:{
@@ -34,6 +40,10 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
       // forking:{
       //   url:`https://api.metadium.com/dev`
       // }
+    },
+    testnet:{
+      url:`https://api.metadium.com/dev`,
+      accounts:[privateKey]
     },
     localhost : {
       url : "http://127.0.0.1:8545"
@@ -60,5 +70,8 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   },
   mocha: {
     timeout : 1000000
+  },
+  gasReporter: {
+    enabled: true
   }
 };

@@ -4,6 +4,8 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./GovChecker.sol";
 
+import "./interface/IEnvStorage.sol";
+
 
 contract Staking is GovChecker, ReentrancyGuard {
     using SafeMath for uint256;
@@ -23,28 +25,28 @@ contract Staking is GovChecker, ReentrancyGuard {
     event TransferLocked(address indexed payee, uint256 amount, uint256 total, uint256 available);
     event Revoked(address indexed owner, uint256 amount);
 
-    struct ConstractorInfo{
-        address addr;
-        uint amount;
-    }
+    // struct ConstractorInfo{
+    //     address addr;
+    //     uint amount;
+    // }
 
-    constructor(address registry, ConstractorInfo[] memory infos) {
+    constructor(address registry) {
         _totalLockedBalance = 0;
         setRegistry(registry);
 
         // data is only for test purpose
-        if (infos.length == 0)
-            return;
+        // if (infos.length == 0)
+        //     return;
 
         // []{address, amount}
         // address addr;
         // uint amount;
         // uint ix;
         // uint eix;
-        for(uint i = 0;i<infos.length;i++){
-            _balance[infos[i].addr] = infos[i].amount;
-            _lockedBalance[infos[i].addr] = infos[i].amount;
-        }
+        // for(uint i = 0;i<infos.length;i++){
+        //     _balance[infos[i].addr] = infos[i].amount;
+        //     _lockedBalance[infos[i].addr] = infos[i].amount;
+        // }
         // assembly {
         //     ix := add(data, 0x20)
         // }
@@ -73,13 +75,25 @@ contract Staking is GovChecker, ReentrancyGuard {
     /**
      * @dev Deposit from a sender.
      */
-    function deposit(address voter) external nonReentrant notRevoked payable {
+     ///TODO remove voter
+    function deposit() external nonReentrant notRevoked payable {
         require(msg.value > 0, "Deposit amount should be greater than zero");
 
         _balance[msg.sender] = _balance[msg.sender].add(msg.value);
-        stakerToVoter[msg.sender] = voter;
+
+        if(IGov(getGovAddress()).isMember(msg.sender)){
+            uint256 minimum_staking = IEnvStorage(getEnvStorageAddress()).getStakingMin();
+            if(availableBalanceOf(msg.sender) >= minimum_staking)
+                _lock(msg.sender, minimum_staking);
+        }
 
         emit Staked(msg.sender, msg.value, _balance[msg.sender], availableBalanceOf(msg.sender));
+    }
+
+    function addDeposit(address voter) external nonReentrant notRevoked onlyGovMem payable { 
+        // deposit(voter);
+        // require(availableBalanceOf + msg.value >= minbalance)
+        // lock(msg.sender, minbalance);
     }
 
     /**
@@ -102,6 +116,10 @@ contract Staking is GovChecker, ReentrancyGuard {
      * @param lockAmount The amount of funds will be locked.
      */
     function lock(address payee, uint256 lockAmount) external onlyGov {
+        _lock(payee, lockAmount);
+    }
+
+    function _lock(address payee, uint256 lockAmount) internal {
         if (lockAmount == 0) return;
         require(_balance[payee] >= lockAmount, "Lock amount should be equal or less than balance");
         require(availableBalanceOf(payee) >= lockAmount, "Insufficient balance that can be locked");
@@ -200,11 +218,11 @@ contract Staking is GovChecker, ReentrancyGuard {
 
 
     //====NXTMeta======/
-    function isAllowed(address voter, address staker) external view returns(bool){
-        return stakerToVoter[staker] == voter;
-    }
+    // function isAllowed(address voter, address staker) external view returns(bool){
+    //     return stakerToVoter[staker] == voter;
+    // }
 
-    function changeVoter(address newVoter) external{
-        stakerToVoter[msg.sender] = newVoter;
-    }
+    // function changeVoter(address newVoter) external{
+    //     stakerToVoter[msg.sender] = newVoter;
+    // }
 }
