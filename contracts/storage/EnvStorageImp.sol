@@ -381,7 +381,7 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
         }
         else if(envKey == BLOCK_CREATION_TIME_NAME){
             uint256 time = abi.decode(envVal, (uint256));
-            if(time < 100) return false;
+            if(time < 1000) return false;
         }
         return true;
     }

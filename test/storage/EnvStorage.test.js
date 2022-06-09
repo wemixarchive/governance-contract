@@ -371,28 +371,6 @@ describe('EnvStorage start', async () => {
       _value[1].should.be.equal(BigNumber.from(_baseFeeMaxChangeDenominator));
       _value[2].should.be.equal(BigNumber.from(_elasticityMultiplier));
     });
-
-    it('Update staking address', async () => {
-      const _stakingAddrByBytes = type2Bytes(['address'],[_stakingAddress]);
-      const _result = await iEnvStorage.connect(govAddr).setStakingAddressByBytes(_stakingAddrByBytes);
-      const _value = await iEnvStorage.getStakingRewardAddress();
-      _value.toString().should.be.equal(_stakingAddress);
-    });
-
-    it('Update ecofund address', async () => {
-      const _ecofundAddressByBytes = type2Bytes(['address'],[_ecofundAddress]);
-      const _result = await iEnvStorage.connect(govAddr).setEcofundAddressByBytes(_ecofundAddressByBytes);
-      const _value = await iEnvStorage.getEcofundAddress();
-      _value.toString().should.be.equal((_ecofundAddress));
-    });
-
-    it('Update maintanance address', async () => {
-      const _maintananceAddressByBytes = type2Bytes(['address'],[_maintananceAddress]);
-      console.log(_maintananceAddressByBytes)
-      const _result = await iEnvStorage.connect(govAddr).setMaintananceAddressByBytes(_maintananceAddressByBytes);
-      const _value = await iEnvStorage.getMaintananceAddress();
-      _value.toString().should.be.equal((_maintananceAddress));
-    });
   });
 });
 

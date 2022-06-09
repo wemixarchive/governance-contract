@@ -30,7 +30,9 @@ contract EnvConstants {
 
     bytes32 public constant BLOCK_CREATION_TIME_NAME = keccak256("blockCreationTime"); 
     bytes32 public constant BLOCK_REWARD_AMOUNT_NAME = keccak256("blockRewardAmount");
+    // unit = gwei
     bytes32 public constant MAX_PRIORITY_FEE_PER_GAS_NAME = keccak256("maxPriorityFeePerGas");
+
 
     bytes32 public constant BLOCK_REWARD_DISTRIBUTION_METHOD_NAME = keccak256("blockRewardDistrbution");
     bytes32 public constant BLOCK_REWARD_DISTRIBUTION_BLOCK_PRODUCER_NAME = keccak256("blockRewardDistrbutionBlockProducer");

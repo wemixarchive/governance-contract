@@ -44,8 +44,8 @@ abstract contract AGov is GovChecker {
     uint256 public voteLength;
     uint256 internal ballotInVoting;
 
-    function isVoter(address addr) public view returns (bool) { return (stakerIdx[addr] != 0); }
-    function isStaker(address addr) public view returns (bool) { return voterIdx[addr] != 0; }
+    function isVoter(address addr) public view returns (bool) { return (voterIdx[addr] != 0); }
+    function isStaker(address addr) public view returns (bool) { return (stakerIdx[addr] != 0); }
     function isMember(address addr) public view returns (bool) { return (isStaker(addr) || isVoter(addr)); }
     function getMember(uint256 idx) public view returns (address) { return stakers[idx]; }
     function getMemberLength() public view returns (uint256) { return memberLength; }

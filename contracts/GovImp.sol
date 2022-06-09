@@ -12,9 +12,6 @@ import "./interface/IStaking.sol";
 
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
-import 'hardhat/console.sol';
-
-///TODO Member = voter?
 contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgradeable {
     using SafeMath for uint256;
 
@@ -40,13 +37,9 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
     // added for case that ballot's result could not be applicable.
     event NotApplicable(uint256 indexed ballotId, string reason);
 
-    ///TODO
-    /*
-        staker = member
-    */
     struct MemberInfo{
-        address voter; // voter
         address staker;
+        address voter; // voter
         address reward;
         bytes name;
         bytes enode;
@@ -126,7 +119,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         ballotLength = ballotIdx;
     }
 
-    ///TODO voter A, staker A -> voter B, staker B Ok with voting
+    // voter A, staker A -> voter B, staker B Ok with voting
     // voter A, staker B -> voter C, staker C Ok with voting
     // voter A, staker B -> voter A, staker A Ok with voting
     // voter A call : voter A, staker A -> voter A, staker B X
@@ -184,7 +177,6 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         }
     }
 
-    ///TODO staking, maintanance, ecofund address change in registry
     function addProposalToChangeGov(
         address newGovAddr,
         bytes memory memo,
@@ -196,6 +188,12 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
     {
         require(newGovAddr != address(0), "Implementation cannot be zero");
         require(newGovAddr != _getImplementation(), "Same contract address");
+        //check newGov has proxiableUUID
+        try IERC1822Proxiable(newGovAddr).proxiableUUID() returns (bytes32 slot) {
+            require(slot == _IMPLEMENTATION_SLOT, "ERC1967Upgrade: unsupported proxiableUUID");
+        } catch {
+            revert("ERC1967Upgrade: new implementation is not UUPS");
+        }
         ballotIdx = ballotLength.add(1);
         IBallotStorage(getBallotStorageAddress()).createBallotForAddress(
             ballotLength.add(1), // ballot id
@@ -221,10 +219,8 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
     {
         // require(envName != 0, "Invalid name");
         require(uint256(VariableTypes.Int) <= envType && envType <= uint256(VariableTypes.String), "Invalid type");
-        ///TODO check condition
         require(checkVariableCondition(envName, envVal), "Invalid value");
         
-        ///TODO variable type
         ballotIdx = ballotLength.add(1);
         IBallotStorage(getBallotStorageAddress()).createBallotForVariable(
             ballotIdx, // ballot id
@@ -399,7 +395,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
             return false;
         }
 
-        if(newStaker == newVoter && newStaker == newReward){
+        if(newStaker != newVoter && newStaker != newReward){
             emit NotApplicable(ballotIdx, "Invalid member address");
             return false;
         }
@@ -489,7 +485,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         emit MemberRemoved(oldStaker, oldVoter);
     }
 
-    ///TODO isMember=> isStaker and isVoter
+    // isMember=> isStaker and isVoter
     // vote => onlyVoter, staker can change voter without voting, default = staker == voter
     // voter can change staker with voting.(changeMember)
     function changeMember(uint256 ballotIdx, bool self) private returns (bool) {
@@ -520,7 +516,7 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
                 emit NotApplicable(ballotIdx, "new address is already a member");
                 return false; // already member. it is abnormal case.
             }
-            if(newStaker != newVoter){
+            if(newStaker != newVoter && newStaker != newReward){
                 emit NotApplicable(ballotIdx, "Invalid voter address");
                 return false;
             }
@@ -606,82 +602,6 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
 
         IEnvStorage envStorage = IEnvStorage(getEnvStorageAddress());
         envStorage.setVariable(envKey, envVal);
-        // uint256 uintType = uint256(VariableTypes.Uint);
-        // if(envType == uintType){
-        //     uint256 value = abi.decode(envVal, (uint256));
-        //     envStorage.setUint(envKey, value);
-        // }
-        // else if(envType == addressType){
-        //     address value = abi.decode(envVal, (address));
-        //     envStorage.setAddress(envKey, value);
-        // }
-        // else if(envType == uint256(VariableTypes.Uint2)){
-        //     (uint256 value0, uint256 value1) = abi.decode(envVal, (uint256, uint256));
-        //     if(envKey == BALLOT_DURATION_MIN_MAX_NAME || envKey ==STAKING_MIN_MAX_NAME){
-        //         require(value0 <= value1, "Minimum must be smaller than maximum");
-        //     }
-        //     envStorage.setUint(envKey, value0);
-        //     envStorage.setUint(envKey, value1);
-        // }
-        // else if(envType == uint256(VariableTypes.Uint3)){
-        //     (uint256 value0, uint256 value1, uint256 value2) = abi.decode(envVal, (uint256, uint256, uint256));
-        //     envStorage.setUint(envKey, value0);
-        //     envStorage.setUint(envKey, value1);
-        //     envStorage.setUint(envKey, value2);
-        // }
-        // else if(envType == uint256(VariableTypes.Uint4)){
-        //     (uint256 value0, uint256 value1, uint256 value2, uint256 value3) = abi.decode(envVal, (uint256, uint256, uint256, uint256));
-        //     if(envKey == BLOCK_REWARD_DISTRIBUTION_METHOD_NAME){
-        //         require((value0 + value1 + value2 + value3) ==  DENOMINATOR, "Wrong reward distrubtion ratio");
-        //     }
-        //     envStorage.setUint(envKey, value0);
-        //     envStorage.setUint(envKey, value1);
-        //     envStorage.setUint(envKey, value2);
-        //     envStorage.setUint(envKey, value3);
-        // }
-        // if (envKey == BLOCKS_PER_NAME && envType == uintType) {
-        //     envStorage.setBlocksPerByBytes(envVal);
-        // } 
-        // // else if (envKey == BALLOT_DURATION_MIN_NAME && envType == uintType) {
-        // //     envStorage.setBallotDurationMinByBytes(envVal);
-        // // } else if (envKey == BALLOT_DURATION_MAX_NAME && envType == uintType) {
-        // //     envStorage.setBallotDurationMaxByBytes(envVal);
-        // // }
-        // else if (envKey == BALLOT_DURATION_MIN_MAX_NAME && envType == uintType) {
-        //     envStorage.setBallotDurationMinMaxByBytes(envVal);
-        // }
-        // // else if (envKey == STAKING_MIN_NAME && envType == uintType) {
-        // //     envStorage.setStakingMinByBytes(envVal);
-        // // } else if (envKey == STAKING_MAX_NAME && envType == uintType) {
-        // //     envStorage.setStakingMaxByBytes(envVal);
-        // // } 
-        // else if (envKey == STAKING_MIN_MAX_NAME && envType == uintType) {
-        //     envStorage.setStakingMinMaxByBytes(envVal);
-        // }
-        // else if (envKey == GAS_PRICE_NAME && envType == uintType) {
-        //     envStorage.setGasPriceByBytes(envVal);
-        // } else if (envKey == MAX_IDLE_BLOCK_INTERVAL_NAME && envType == uintType) {
-        //     envStorage.setMaxIdleBlockIntervalByBytes(envVal);
-        // } else if (envKey == BLOCK_CREATION_TIME_NAME && envType == uintType) {
-        //     envStorage.setBlockCreationTimeByBytes(envVal);
-        // } else if (envKey == BLOCK_REWARD_AMOUNT_NAME && envType == uintType) {
-        //     envStorage.setBlockRewardAmountByBytes(envVal);
-        // } else if (envKey == MAX_PRIORITY_FEE_PER_GAS_NAME && envType == uintType) {
-        //     envStorage.setMaxPriorityFeePerGasByBytes(envVal);
-        // } else if (envKey == BLOCK_REWARD_DISTRIBUTION_METHOD_NAME && envType == uintType) {
-        //     ///TODO voting ending condtion check
-        //     envStorage.setBlockRewardDistributionMethodByBytes(envVal);
-        // } else if (envKey == GASLIMIT_AND_BASE_FEE_NAME && envType == uintType) {
-        //     envStorage.setGasLimitAndBaseFeeByBytes(envVal);
-        // } 
-        // else if (envKey == STAKING_REWARD_ADDRESS_NAME && envType == addressType) {
-        //     envStorage.setStakingAddressByBytes(envVal);
-        // } else if (envKey == ECOFUND_ADDRESS_NAME && envType == addressType) {
-        //     envStorage.setEcofundAddressByBytes(envVal);
-        // } else if (envKey == MAINTANANCE_ADDRESS_NAME && envType == addressType) {
-        //     envStorage.setMaintananceAddressByBytes(envVal);
-        // }
-
         modifiedBlock = block.number;
 
         emit EnvChanged(envKey, envType, envVal);

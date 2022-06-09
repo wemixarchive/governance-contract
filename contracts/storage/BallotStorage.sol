@@ -581,7 +581,7 @@ contract BallotStorage is  GovChecker, BallotEnums {
             require(_oldStakerAddress != address(0), "Invalid old staker address");
             require(_newStakerAddress == address(0), "Invalid new staker address");
             require(_newVoterAddress == address(0), "Invalid new voter address");
-            require(_newRewardAddress != address(0), "Invalid new reward address");
+            require(_newRewardAddress == address(0), "Invalid new reward address");
             require(_newName.length == 0, "Invalid new node name");
             require(_newNodeId.length == 0, "Invalid new node id");
             require(_newNodeIp.length == 0, "Invalid new node IP");
