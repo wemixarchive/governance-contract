@@ -6,8 +6,6 @@ import "../GovChecker.sol";
 // import "../proxy/UpgradeabilityProxy.sol";
 // import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
-import 'hardhat/console.sol';
-
 abstract contract AGov is GovChecker {
     uint public modifiedBlock;
 
@@ -55,6 +53,7 @@ abstract contract AGov is GovChecker {
     function getNodeLength() public view returns (uint256) { return nodeLength; }
     //====NxtMeta=====/
     function getVoter(uint256 idx) public view returns (address) { return voters[idx]; }
+    // getMemberIdx(address addr)
 
     function getNode(uint256 idx) public view returns (bytes memory name, bytes memory enode, bytes memory ip, uint port) {
         return (nodes[idx].name, nodes[idx].enode, nodes[idx].ip, nodes[idx].port);

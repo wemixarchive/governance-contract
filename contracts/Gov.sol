@@ -8,8 +8,6 @@ import "./abstract/AGov.sol";
 import "@openzeppelin/contracts/proxy/Proxy.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Upgrade.sol";
 
-import "hardhat/console.sol";
-
 contract Gov is AGov, Proxy, ERC1967Upgrade {
     // "Metadium Governance"
     uint public magic = 0x4d6574616469756d20476f7665726e616e6365;

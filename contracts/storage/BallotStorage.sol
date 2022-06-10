@@ -6,8 +6,6 @@ import "../abstract/BallotEnums.sol";
 import "../GovChecker.sol";
 import "../interface/IEnvStorage.sol";
 
-import 'hardhat/console.sol';
-
 
 contract BallotStorage is  GovChecker, BallotEnums {
     using SafeMath for uint256;
