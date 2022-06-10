@@ -16,7 +16,7 @@ endif
 
 #DOCKER_OPT=--network bobthe
 #TRUFFLE_IMAGE=metadium/bobthe:latest
-NODE14_IMAGE=node:14-alpine
+NODE14_IMAGE=node:14
 DOCKER_RUN=docker run $(DOCKER_OPT) $(PASSWD_OPT) -it --rm -e "HOME=/tmp" -v $(shell pwd):/data -w /data $(NODE14_IMAGE)
 
 ifdef NETWORK
