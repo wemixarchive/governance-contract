@@ -75,7 +75,6 @@ contract Staking is GovChecker, ReentrancyGuard {
     /**
      * @dev Deposit from a sender.
      */
-     ///TODO remove voter
     function deposit() external nonReentrant notRevoked payable {
         require(msg.value > 0, "Deposit amount should be greater than zero");
 
@@ -88,12 +87,6 @@ contract Staking is GovChecker, ReentrancyGuard {
         }
 
         emit Staked(msg.sender, msg.value, _balance[msg.sender], availableBalanceOf(msg.sender));
-    }
-
-    function addDeposit(address voter) external nonReentrant notRevoked onlyGovMem payable { 
-        // deposit(voter);
-        // require(availableBalanceOf + msg.value >= minbalance)
-        // lock(msg.sender, minbalance);
     }
 
     /**
@@ -215,14 +208,4 @@ contract Staking is GovChecker, ReentrancyGuard {
 
         emit Revoked(contractOwner, balance);
     }
-
-
-    //====NXTMeta======/
-    // function isAllowed(address voter, address staker) external view returns(bool){
-    //     return stakerToVoter[staker] == voter;
-    // }
-
-    // function changeVoter(address newVoter) external{
-    //     stakerToVoter[msg.sender] = newVoter;
-    // }
 }
