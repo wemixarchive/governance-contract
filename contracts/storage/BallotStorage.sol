@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -336,7 +337,7 @@ contract BallotStorage is  GovChecker, BallotEnums {
         returns (uint256)
     {
         require(
-            _areVariableBallotParamValid(_ballotType, _envVariableName, _envVariableType, _envVariableValue),
+            _areVariableBallotParamValid(_ballotType, _envVariableName, _envVariableValue),
             "Invalid Parameter"
         );
         _createBallot(_id, _ballotType, _duration, _creator);
@@ -608,7 +609,6 @@ contract BallotStorage is  GovChecker, BallotEnums {
     function _areVariableBallotParamValid(
         uint256 _ballotType,
         bytes32 _envVariableName,
-        uint256 _envVariableType,
         bytes memory _envVariableValue 
     )
         internal

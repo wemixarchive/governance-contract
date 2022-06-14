@@ -28,14 +28,13 @@
     "chai": "^4.3.6",
     "ethereum-waffle": "^3.4.4",
     "ethers": "^5.6.8",
-    "hardhat": "^2.9.6"
-  },
-  "dependencies": {
-    "@openzeppelin/contracts": "^4.6.0",
+    "hardhat": "^2.9.6",
     "bignumber.js": "^9.0.2",
     "dotenv": "^16.0.1",
-    "hardhat": "^2.9.6",
     "hardhat-contract-sizer": "^2.5.1",
-    "hardhat-gas-reporter": "^1.0.8"
+    "hardhat-gas-reporter": "^1.0.8",
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.6.0"
   }
 }
