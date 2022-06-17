@@ -15,8 +15,9 @@ else
 endif
 
 #DOCKER_OPT=--network bobthe
-TRUFFLE_IMAGE=metadium/bobthe:latest
-DOCKER_RUN=docker run $(DOCKER_OPT) $(PASSWD_OPT) -it --rm -e "HOME=/tmp" -v $(shell pwd):/data -w /data $(TRUFFLE_IMAGE)
+#TRUFFLE_IMAGE=metadium/bobthe:latest
+NODE14_IMAGE=node:14
+DOCKER_RUN=docker run $(DOCKER_OPT) $(PASSWD_OPT) -it --rm -e "HOME=/tmp" -v $(shell pwd):/data -w /data $(NODE14_IMAGE)
 
 ifdef NETWORK
 DEST_NETWORK := --network $(NETWORK)
@@ -29,40 +30,34 @@ endif
 .PHONY: build deploy
 
 build: npm
-	@$(DOCKER_RUN) nodejs node_modules/.bin/truffle compile
+	@$(DOCKER_RUN) nodejs node_modules/.bin/hardhat compile
 
 npm:
-	@[ -f node_modules/.bin/truffle ] || $(DOCKER_RUN) npm install
+	@[ -d node_modules/@openzeppelin/contracts ] || $(DOCKER_RUN) npm install @openzeppelin/contracts
+	
 
 deploy:
-	$(DOCKER_RUN) nodejs node_modules/.bin/truffle migrate $(RESET) $(DEST_NETWORK)
+	$(DOCKER_RUN) nodejs node_modules/.bin/hardhat run scripts/deploy.js $(RESET) $(DEST_NETWORK)
 
 gov: MetadiumGovernance.js
 
 MetadiumGovernance.js: build/MetadiumGovernance.js
 
 build/MetadiumGovernance.js: build_dir npm build/solc build/solc.sh build/gov.sol
-	PATH=$(shell pwd)/build:$${PATH} build/solc.sh -r gov=$(CURDIR_SOLC)/contracts -r openzeppelin-solidity=$(CURDIR_SOLC)/node_modules/openzeppelin-solidity build/gov.sol $@
+	PATH=$(shell pwd)/build:$${PATH} build/solc.sh -r gov=$(CURDIR_SOLC)/contracts -r @openzeppelin=$(CURDIR_SOLC)/node_modules/@openzeppelin build/gov.sol $@
 
 build/gov.sol:
 	@if [ ! -f build/gov.sol ]; then \
-		echo 'pragma solidity ^0.4.24; import "gov/Gov.sol"; import "gov/GovChecker.sol"; import "gov/GovImp.sol"; import "gov/Migrations.sol"; import "gov/Registry.sol"; import "gov/Staking.sol"; import "gov/storage/BallotStorage.sol"; import "gov/storage/EnvStorage.sol"; import "gov/storage/EnvStorageImp.sol";' > $@; \
+		echo '// SPDX-License-Identifier: MIT\npragma solidity ^0.8.0; import "gov/Gov.sol"; import "gov/GovChecker.sol"; import "gov/GovImp.sol"; import "gov/Registry.sol"; import "gov/Staking.sol"; import "gov/storage/BallotStorage.sol"; import "gov/storage/EnvStorage.sol"; import "gov/storage/EnvStorageImp.sol";' > $@; \
 	fi
 
 build_dir:
 	@[ -d build ] || mkdir -p build
 
-SOLC_SH_URL=https://github.com/METADIUM/go-metadium/raw/master/metadium/scripts/solc.sh
+SOLC_SH_URL=./solc.sh
 build/solc.sh:
-	@if [ ! -x build/solc.sh ]; then				\
-		if which curl > /dev/null 2>&1; then			\
-			curl -Ls -o build/solc.sh $(SOLC_SH_URL);	\
-			chmod +x build/solc.sh;				\
-		elif which wget > /dev/null 2>&1; then			\
-			wget -nv -o build/solc.sh $(SOLC_SH_URL);	\
-			chmod +x build/solc.sh;				\
-		fi							\
-	fi
+	 cp solc.sh build/solc.sh
+	 chmod +x build/solc.sh
 
 ifneq ($(shell uname), Linux)
 
@@ -70,7 +65,7 @@ build/solc:
 	@test 1
 
 else
-SOLC_URL=https://github.com/ethereum/solidity/releases/download/v0.4.24/solc-static-linux
+SOLC_URL=https://github.com/ethereum/solidity/releases/download/v0.8.6/solc-static-linux
 build/solc:
 	@if [ ! -x build/solc ]; then				\
 		if which curl > /dev/null 2>&1; then		\

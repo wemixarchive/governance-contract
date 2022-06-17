@@ -1,4 +1,5 @@
-pragma solidity ^0.4.16;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
 
 interface IStaking {
@@ -12,4 +13,5 @@ interface IStaking {
     function availableBalanceOf(address) external view returns (uint256);
     function calcVotingWeight(address) external view returns (uint256);
     function calcVotingWeightWithScaleFactor(address, uint32) external view returns (uint256);
+    // function isAllowed(address voter, address staker) external view returns(bool);
 }

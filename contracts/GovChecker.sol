@@ -1,6 +1,7 @@
-pragma solidity ^0.4.24;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interface/IRegistry.sol";
 import "./interface/IGov.sol";
 
@@ -19,7 +20,7 @@ contract GovChecker is Ownable {
     bytes32 public constant REWARD_POOL_NAME = "RewardPool";
     bytes32 public constant MAINTENANCE_NAME = "Maintenance";
 
-    /**
+    /*
      * @dev Function to set registry address. Contract that wants to use registry should setRegistry first.
      * @param _addr address of registry
      * @return A boolean that indicates if the operation was successful.

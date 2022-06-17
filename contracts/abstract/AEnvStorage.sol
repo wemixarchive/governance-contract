@@ -1,10 +1,11 @@
-pragma solidity ^0.4.24;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
 import "../GovChecker.sol";
 import "../storage/EternalStorage.sol";
 
 
-contract AEnvStorage is EternalStorage, GovChecker {
+abstract contract AEnvStorage is EternalStorage, GovChecker {
     event StringVarableChanged ( 
         bytes32 indexed _name,
         string _value
@@ -76,7 +77,7 @@ contract AEnvStorage is EternalStorage, GovChecker {
      * @param h The keccak256 hash of the variable name
      * @param v The value to be stored
      */
-    function setString(bytes32 h, string v) internal  {
+    function setString(bytes32 h, string memory v) internal  {
         _setString(h, v);
         emit StringVarableChanged(h, v);
     }
@@ -86,7 +87,7 @@ contract AEnvStorage is EternalStorage, GovChecker {
      * @param h The keccak256 hash of the variable name
      * @param v The value to be stored
      */
-    function setBytes(bytes32 h, bytes v) internal {
+    function setBytes(bytes32 h, bytes memory v) internal {
         _setBytes(h, v);
         emit BytesVarableChanged(h, v);
     }

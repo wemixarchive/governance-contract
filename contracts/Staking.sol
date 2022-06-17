@@ -1,8 +1,11 @@
-pragma solidity ^0.4.24;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "openzeppelin-solidity/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./GovChecker.sol";
+
+import "./interface/IEnvStorage.sol";
 
 
 contract Staking is GovChecker, ReentrancyGuard {
@@ -12,7 +15,10 @@ contract Staking is GovChecker, ReentrancyGuard {
     mapping(address => uint256) private _lockedBalance;
     uint256 private _totalLockedBalance;
     bool private revoked = false;
-    
+
+    //====NXTMeta====//
+    mapping(address => address) private stakerToVoter;
+
     event Staked(address indexed payee, uint256 amount, uint256 total, uint256 available);
     event Unstaked(address indexed payee, uint256 amount, uint256 total, uint256 available);
     event Locked(address indexed payee, uint256 amount, uint256 total, uint256 available);
@@ -20,41 +26,50 @@ contract Staking is GovChecker, ReentrancyGuard {
     event TransferLocked(address indexed payee, uint256 amount, uint256 total, uint256 available);
     event Revoked(address indexed owner, uint256 amount);
 
-    constructor(address registry, bytes data) public {
+    // struct ConstractorInfo{
+    //     address addr;
+    //     uint amount;
+    // }
+
+    constructor(address registry) {
         _totalLockedBalance = 0;
         setRegistry(registry);
 
         // data is only for test purpose
-        if (data.length == 0)
-            return;
+        // if (infos.length == 0)
+        //     return;
 
         // []{address, amount}
-        address addr;
-        uint amount;
-        uint ix;
-        uint eix;
-        assembly {
-            ix := add(data, 0x20)
-        }
-        eix = ix + data.length;
-        while (ix < eix) {
-            assembly {
-                amount := mload(ix)
-            }
-            addr = address(amount);
-            ix += 0x20;
-            require(ix < eix);
-            assembly {
-                amount := mload(ix)
-            }
-            ix += 0x20;
+        // address addr;
+        // uint amount;
+        // uint ix;
+        // uint eix;
+        // for(uint i = 0;i<infos.length;i++){
+        //     _balance[infos[i].addr] = infos[i].amount;
+        //     _lockedBalance[infos[i].addr] = infos[i].amount;
+        // }
+        // assembly {
+        //     ix := add(data, 0x20)
+        // }
+        // eix = ix + data.length;
+        // while (ix < eix) {
+        //     assembly {
+        //         addr := mload(ix)
+        //     }
+        //     // addr = address(amount);
+        //     ix += 0x20;
+        //     require(ix < eix);
+        //     assembly {
+        //         amount := mload(ix)
+        //     }
+        //     ix += 0x20;
 
-            _balance[addr] = amount;
-            _lockedBalance[addr] = amount;
-        }
+        //     _balance[addr] = amount;
+        //     _lockedBalance[addr] = amount;
+        // }
     }
 
-    function () external payable {
+    receive() external payable {
         revert();
     }
 
@@ -65,6 +80,12 @@ contract Staking is GovChecker, ReentrancyGuard {
         require(msg.value > 0, "Deposit amount should be greater than zero");
 
         _balance[msg.sender] = _balance[msg.sender].add(msg.value);
+
+        if(IGov(getGovAddress()).isMember(msg.sender)){
+            uint256 minimum_staking = IEnvStorage(getEnvStorageAddress()).getStakingMin();
+            if(availableBalanceOf(msg.sender) >= minimum_staking)
+                _lock(msg.sender, minimum_staking);
+        }
 
         emit Staked(msg.sender, msg.value, _balance[msg.sender], availableBalanceOf(msg.sender));
     }
@@ -78,7 +99,7 @@ contract Staking is GovChecker, ReentrancyGuard {
         require(amount <= availableBalanceOf(msg.sender), "Withdraw amount should be equal or less than balance");
 
         _balance[msg.sender] = _balance[msg.sender].sub(amount);
-        msg.sender.transfer(amount);
+        payable(msg.sender).transfer(amount);
 
         emit Unstaked(msg.sender, amount, _balance[msg.sender], availableBalanceOf(msg.sender));
     }
@@ -89,6 +110,10 @@ contract Staking is GovChecker, ReentrancyGuard {
      * @param lockAmount The amount of funds will be locked.
      */
     function lock(address payee, uint256 lockAmount) external onlyGov {
+        _lock(payee, lockAmount);
+    }
+
+    function _lock(address payee, uint256 lockAmount) internal {
         if (lockAmount == 0) return;
         require(_balance[payee] >= lockAmount, "Lock amount should be equal or less than balance");
         require(availableBalanceOf(payee) >= lockAmount, "Insufficient balance that can be locked");
@@ -179,7 +204,7 @@ contract Staking is GovChecker, ReentrancyGuard {
 
         require(balance > 0);
 
-        contractOwner.transfer(balance);
+        payable(contractOwner).transfer(balance);
         revoked = true;
 
         emit Revoked(contractOwner, balance);

@@ -1,5 +1,5 @@
-pragma solidity ^0.4.16;
-
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
 interface IGov {
     function isMember(address) external view returns (bool);
@@ -9,6 +9,6 @@ interface IGov {
     function getNodeIdxFromMember(address) external view returns (uint256);
     function getMemberFromNodeIdx(uint256) external view returns (address);
     function getNodeLength() external view returns (uint256);
-    function getNode(uint256) external view returns (bytes, bytes, bytes, uint);
+    function getNode(uint256) external view returns (bytes memory, bytes memory, bytes memory, uint);
     function getBallotInVoting() external view returns (uint256);
 }
