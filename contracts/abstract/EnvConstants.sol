@@ -18,12 +18,12 @@ contract EnvConstants {
     bytes32 public constant STAKING_MAX_NAME = keccak256("stakingMax"); 
     // uint256 public constant STAKING_MAX_TYPE = uint256(VariableTypes.Uint);
 
-    bytes32 public constant GAS_PRICE_NAME = keccak256("gasPrice"); 
+    // bytes32 public constant GAS_PRICE_NAME = keccak256("gasPrice"); 
     // uint256 public constant GAS_PRICE_TYPE = uint256(VariableTypes.Uint);
 
     bytes32 public constant MAX_IDLE_BLOCK_INTERVAL_NAME = keccak256("MaxIdleBlockInterval"); 
     // uint256 public constant MAX_IDLE_BLOCK_INTERVAL_TYPE = uint256(VariableTypes.Uint);
-
+ 
     //=======NXTMeta========/
 
     bytes32 public constant BALLOT_DURATION_MIN_MAX_NAME = keccak256("ballotDurationMinMax"); 
@@ -34,7 +34,7 @@ contract EnvConstants {
     // unit = gwei
     bytes32 public constant MAX_PRIORITY_FEE_PER_GAS_NAME = keccak256("maxPriorityFeePerGas");
 
-    bytes32 public constant BLOCK_REWARD_DISTRIBUTION_METHOD_NAME = keccak256("blockRewardDistrbution");
+    bytes32 public constant BLOCK_REWARD_DISTRIBUTION_METHOD_NAME = keccak256("blockRewardDistribution");
     bytes32 public constant BLOCK_REWARD_DISTRIBUTION_BLOCK_PRODUCER_NAME = keccak256("blockRewardDistributionBlockProducer");
     bytes32 public constant BLOCK_REWARD_DISTRIBUTION_STAKING_REWARD_NAME = keccak256("blockRewardDistributionStakingReward");
     bytes32 public constant BLOCK_REWARD_DISTRIBUTION_ECOSYSTEM_NAME = keccak256("blockRewardDistributionEcosystem");
@@ -42,8 +42,10 @@ contract EnvConstants {
 
     bytes32 public constant GASLIMIT_AND_BASE_FEE_NAME = keccak256("gasLimitAndBaseFee");
     bytes32 public constant BLOCK_GASLIMIT_NAME = keccak256("blockGasLimit");
-    bytes32 public constant BASE_FEE_MAX_CHANGE_DENOMINATOR_NAME = keccak256("baseFeeMaxChangeDenominator");
-    bytes32 public constant ELASTICITY_MULTIPLIER_NAME = keccak256("elasticityMultiplier");
+    bytes32 public constant BASE_FEE_MAX_CHANGE_RATE_NAME = keccak256("baseFeeMaxChangeRate");
+    bytes32 public constant GAS_TARGET_PERCENTAGE_NAME = keccak256("gasTargetPercentage");
+    
+    bytes32 public constant MAX_BASE_FEE_NAME = keccak256("maxBaseFee");
 
     // bytes32 public constant STAKING_REWARD_ADDRESS_NAME = keccak256("stakingRewardAddress");
     // bytes32 public constant ECOFUND_ADDRESS_NAME = keccak256("ecofundAddress");

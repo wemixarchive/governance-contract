@@ -74,8 +74,8 @@ contract Staking is GovChecker, ReentrancyGuard {
 
         if(IGov(getGovAddress()).isMember(msg.sender)){
             uint256 minimum_staking = IEnvStorage(getEnvStorageAddress()).getStakingMin();
-            if(availableBalanceOf(msg.sender) >= minimum_staking)
-                _lock(msg.sender, minimum_staking);
+            if(minimum_staking > _lockedBalance[msg.sender] && availableBalanceOf(msg.sender) >= (minimum_staking - _lockedBalance[msg.sender]))
+                _lock(msg.sender, minimum_staking - _lockedBalance[msg.sender]);
         }
 
         emit Staked(msg.sender, msg.value, _balance[msg.sender], availableBalanceOf(msg.sender));
