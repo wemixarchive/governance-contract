@@ -38,7 +38,7 @@ contract EnvConstants {
     bytes32 public constant BLOCK_REWARD_DISTRIBUTION_BLOCK_PRODUCER_NAME = keccak256("blockRewardDistributionBlockProducer");
     bytes32 public constant BLOCK_REWARD_DISTRIBUTION_STAKING_REWARD_NAME = keccak256("blockRewardDistributionStakingReward");
     bytes32 public constant BLOCK_REWARD_DISTRIBUTION_ECOSYSTEM_NAME = keccak256("blockRewardDistributionEcosystem");
-    bytes32 public constant BLOCK_REWARD_DISTRIBUTION_MAINTANANCE_NAME = keccak256("blockRewardDistributionMaintanance");
+    bytes32 public constant BLOCK_REWARD_DISTRIBUTION_MAINTANANCE_NAME = keccak256("blockRewardDistributionMaintenance");
 
     bytes32 public constant GASLIMIT_AND_BASE_FEE_NAME = keccak256("gasLimitAndBaseFee");
     bytes32 public constant BLOCK_GASLIMIT_NAME = keccak256("blockGasLimit");
