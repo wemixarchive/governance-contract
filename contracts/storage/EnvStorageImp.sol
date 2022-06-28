@@ -136,9 +136,9 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
         return getUint(STAKING_MAX_NAME);
     }
 
-    function getGasPrice() public view returns (uint256) {
-        return getUint(GAS_PRICE_NAME);
-    }
+    // function getGasPrice() public view returns (uint256) {
+    //     return getUint(GAS_PRICE_NAME);
+    // }
 
     function getMaxIdleBlockInterval() public view returns (uint256) {
         return getUint(MAX_IDLE_BLOCK_INTERVAL_NAME);
@@ -166,9 +166,9 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
         setUint(STAKING_MAX_NAME, _value);
     }
 
-    function setGasPrice(uint256 _value) public onlyGov { 
-        setUint(GAS_PRICE_NAME, _value);
-    }
+    // function setGasPrice(uint256 _value) public onlyGov { 
+    //     setUint(GAS_PRICE_NAME, _value);
+    // }
     
     function setMaxIdleBlockInterval(uint256 _value) public onlyGov { 
         setUint(MAX_IDLE_BLOCK_INTERVAL_NAME, _value);
@@ -194,9 +194,9 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
         setStakingMax(toUint(_value));
     }
 
-    function setGasPriceByBytes(bytes memory _value ) public onlyGov { 
-        setGasPrice(toUint(_value));
-    }
+    // function setGasPriceByBytes(bytes memory _value ) public onlyGov { 
+    //     setGasPrice(toUint(_value));
+    // }
 
     function setMaxIdleBlockIntervalByBytes(bytes memory _value ) public onlyGov { 
         setMaxIdleBlockInterval(toUint(_value));
@@ -233,6 +233,10 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
         return getUint(MAX_PRIORITY_FEE_PER_GAS_NAME);
     }
 
+    function getMaxBaseFee() public view returns (uint256) {
+        return getUint(MAX_BASE_FEE_NAME);
+    }
+
     function getBlockRewardDistributionMethod() public view returns (uint256,uint256,uint256,uint256) {
         return (
             getUint(BLOCK_REWARD_DISTRIBUTION_BLOCK_PRODUCER_NAME),
@@ -246,8 +250,8 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
     function getGasLimitAndBaseFee() public view returns (uint256, uint256, uint256) {
         return (
             getUint(BLOCK_GASLIMIT_NAME),
-            getUint(BASE_FEE_MAX_CHANGE_DENOMINATOR_NAME),
-            getUint(ELASTICITY_MULTIPLIER_NAME)
+            getUint(BASE_FEE_MAX_CHANGE_RATE_NAME),
+            getUint(GAS_TARGET_PERCENTAGE_NAME)
         );
     }
 
@@ -287,6 +291,10 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
         setUint(MAX_PRIORITY_FEE_PER_GAS_NAME, _value);
     }
 
+    function setMaxBaseFee(uint256 _value) public onlyGov { 
+        setUint(MAX_BASE_FEE_NAME, _value);
+    }
+
     function setBlockRewardDistributionMethod(
         uint256 _block_producer,
         uint256 _staking_reward,
@@ -303,12 +311,14 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
 
     function setGasLimitAndBaseFee(
         uint256 _block_GasLimit,
-        uint256 _baseFeeMaxChangeDenominator,
-        uint256 _elasticityMultiplier
+        uint256 _baseFeeMaxChangeRate,
+        uint256 _gasTargetPercentage,
+        uint256 _maxBaseFee
         ) public onlyGov { 
         setUint(BLOCK_GASLIMIT_NAME, _block_GasLimit);
-        setUint(BASE_FEE_MAX_CHANGE_DENOMINATOR_NAME, _baseFeeMaxChangeDenominator);
-        setUint(ELASTICITY_MULTIPLIER_NAME, _elasticityMultiplier);
+        setUint(BASE_FEE_MAX_CHANGE_RATE_NAME, _baseFeeMaxChangeRate);
+        setUint(GAS_TARGET_PERCENTAGE_NAME, _gasTargetPercentage);
+        setUint(MAX_BASE_FEE_NAME, _maxBaseFee);
     }
 
     // function setStakingAddress(address _value) public onlyGov { 
@@ -343,6 +353,10 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
         setMaxPriorityFeePerGas(toUint(_value));
     }
 
+    function setMaxBaseFeeByBytes(bytes memory _value ) public onlyGov { 
+        setMaxBaseFee(toUint(_value));
+    }
+
     function setBlockRewardDistributionMethodByBytes(bytes memory _value ) public onlyGov {
         (uint256 _block_producer,
         uint256 _staking_reward,
@@ -354,15 +368,16 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
             _ecosystem,
             _maintanance
             );
-    }
+    } 
 
     function setGasLimitAndBaseFeeByBytes(bytes memory _value ) public onlyGov { 
         (
         uint256 _block_GasLimit,
-        uint256 _baseFeeMaxChangeDenominator,
-        uint256 _elasticityMultiplier
-        )= to3Uint(_value);
-        setGasLimitAndBaseFee( _block_GasLimit, _baseFeeMaxChangeDenominator, _elasticityMultiplier);
+        uint256 _baseFeeMaxChangeRate,
+        uint256 _gasTargetPercentage,
+        uint256 _maxBaseFee
+        )= to4Uint(_value);
+        setGasLimitAndBaseFee( _block_GasLimit, _baseFeeMaxChangeRate, _gasTargetPercentage, _maxBaseFee);
     }
 
     function checkVariableCondition(bytes32 envKey, bytes memory envVal) external pure returns(bool){
@@ -397,11 +412,13 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
         else if (envKey == STAKING_MIN_MAX_NAME) {
             setStakingMinMaxByBytes(envVal);
         }
-        else if (envKey == GAS_PRICE_NAME) {
-            setGasPriceByBytes(envVal);
-        } else if (envKey == MAX_IDLE_BLOCK_INTERVAL_NAME) {
+        // else if (envKey == GAS_PRICE_NAME) {
+        //     setGasPriceByBytes(envVal);
+        // } 
+        else if (envKey == MAX_IDLE_BLOCK_INTERVAL_NAME) {
             setMaxIdleBlockIntervalByBytes(envVal);
-        } else if (envKey == BLOCK_CREATION_TIME_NAME) {
+        } 
+        else if (envKey == BLOCK_CREATION_TIME_NAME) {
             setBlockCreationTimeByBytes(envVal);
         } else if (envKey == BLOCK_REWARD_AMOUNT_NAME) {
             setBlockRewardAmountByBytes(envVal);
@@ -411,6 +428,8 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
             setBlockRewardDistributionMethodByBytes(envVal);
         } else if (envKey == GASLIMIT_AND_BASE_FEE_NAME) {
             setGasLimitAndBaseFeeByBytes(envVal);
+        } else if (envKey == MAX_BASE_FEE_NAME) {
+            setMaxBaseFeeByBytes(envVal);
         } 
     }
 
