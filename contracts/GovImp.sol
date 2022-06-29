@@ -120,25 +120,9 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         ballotLength = ballotIdx;
     }
 
-    // voter A, staker A -> voter B, staker B Ok with voting
-    // voter A, staker B -> voter C, staker C Ok with voting
-    // voter A, staker B -> voter A, staker A Ok with voting
-    // voter A call : voter A, staker A -> voter A, staker B X
-    // staker A call : voter A, staker A-> voter B, staker A Ok without voting
-    // only staker A call : voter B, staker A, reward C -> voter B, staker A, reward D Ok without voting only (voter can not change reward)
-    // staker only change own info
-    // voter can propose and vote anything
     function addProposalToChangeMember(
         MemberInfo memory newInfo,
         address oldStaker
-        // address[2] memory targetNnewMember,
-        // address newStaker,
-        // bytes memory nName,
-        // bytes memory nEnode,
-        // bytes memory nIp,
-        // uint256[2] memory portNlockAmount,
-        // bytes memory memo,
-        // uint256 duration
     )
         external
         onlyGovMem
@@ -486,9 +470,6 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         emit MemberRemoved(oldStaker, oldVoter);
     }
 
-    // isMember=> isStaker and isVoter
-    // vote => onlyVoter, staker can change voter without voting, default = staker == voter
-    // voter can change staker with voting.(changeMember)
     function changeMember(uint256 ballotIdx, bool self) private returns (bool) {
         if(!self){
             fromValidBallot(ballotIdx, uint256(BallotTypes.MemberChange));
