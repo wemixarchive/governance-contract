@@ -7,6 +7,10 @@ require("dotenv").config();
 
 const path = require("path");
 
+const sendTx = require("./scripts/sendTx_task").sendTxKeep;
+const setting = require("./scripts/setting_task").set;
+const changeEnv = require("./scripts/changeEnv_task").changeEnvVal;
+
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
 task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
@@ -76,10 +80,6 @@ module.exports = {
                 initialIndex: 0,
                 accountsBalance: "1000000000" + "0".repeat(18),
             },
-            // accounts : account_balance_list,
-            // forking:{
-            //   url:`https://api.metadium.com/dev`
-            // }
         },
         localhost: {
             url: "http://127.0.0.1:8545",
