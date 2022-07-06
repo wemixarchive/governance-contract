@@ -31,7 +31,7 @@ task("changeMP", "Change maxPrioirtyFeePerGas")
         let envValue = [args.envValue];
         envMsg = "mp test";
         // console.log(envName, types, envValue, msg)
-        const sets = await setting(hre, arg.pw);
+        const sets = await setting(hre, args.pw);
         await changeEnv(hre, sets, envName, envTypes, envValue, envMsg);
     });
 
