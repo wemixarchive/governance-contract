@@ -18,6 +18,44 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   }
 });
 
+task("changeMP", "Change maxPrioirtyFeePerGas")
+    .addParam("envValue")
+    .setAction(async (args, hre) => {
+        let envName = "maxPriorityFeePerGas";
+
+        let envTypes = ["uint256"];
+        let envValue = [args.envValue];
+        envMsg = "mp test";
+        // console.log(envName, types, envValue, msg)
+        const sets = await setting(hre);
+        await changeEnv(hre, sets, envName, envTypes, envValue, envMsg);
+    });
+
+task("changeFee", "Change gasLimitAndBaseFee")
+    .addParam("gasLimit")
+    .addParam("changeRate")
+    .addParam("targetPerc")
+    .addParam("maxBasefee")
+    .setAction(async (args, hre) => {
+        let envName = "gasLimitAndBaseFee";
+
+        let envTypes = ["uint256", "uint256", "uint256", "uint256"];
+        let envValue = [args.gasLimit, args.changeRate, args.targetPerc, args.maxBasefee+'0'.repeat(9)];
+        envMsg = "mp test";
+        // console.log(envName, types, envValue, msg)
+        const sets = await setting(hre);
+        await changeEnv(hre, sets, envName, envTypes, envValue, envMsg);
+    });
+
+task("sendTx", "send tx")
+    .addParam("fromIdx")
+    .addParam("toIdx")
+    .addParam("value")
+    .setAction(async (args, hre) => {
+        const sets = await setting(hre);
+        await sendTx(hre, sets, args.fromIdx, args.toIdx, args.value);
+    });
+
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
