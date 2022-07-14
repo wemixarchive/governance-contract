@@ -297,23 +297,14 @@ contract GovImp is AGov, ReentrancyGuard, BallotEnums, EnvConstants, UUPSUpgrade
         if(isStaker(msg.sender)) staker = msg.sender;
         else if(isVoter(msg.sender)) staker = stakers[voterIdx[msg.sender]];
         uint256 weight = IStaking(getStakingAddress()).calcVotingWeightWithScaleFactor(staker, 1e4);
-        if (approval) {
-            IBallotStorage(getBallotStorageAddress()).createVote(
-                voteIdx,
-                ballotIdx,
-                msg.sender,
-                uint256(DecisionTypes.Accept),
-                weight
-            );
-        } else {
-            IBallotStorage(getBallotStorageAddress()).createVote(
-                voteIdx,
-                ballotIdx,
-                msg.sender,
-                uint256(DecisionTypes.Reject),
-                weight
-            );
-        }
+        uint256 decision = approval ? uint256(DecisionTypes.Accept) : uint256(DecisionTypes.Reject);
+        IBallotStorage(getBallotStorageAddress()).createVote(
+            voteIdx,
+            ballotIdx,
+            staker,
+            decision,
+            weight
+        );
         voteLength = voteIdx;
     }
 
