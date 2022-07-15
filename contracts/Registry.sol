@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-
+import "./interface/IRegistry.sol";
 
 /**
  * @title Registry
@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  *      Not only contract address but also general address can be set in this contract.
  *      Owner should set domain and permission.
  */
-contract Registry is Ownable {
+contract Registry is Ownable, IRegistry {
     // "Metadium Registry"
     uint public magic = 0x4d6574616469756d205265676973747279;
     uint public modifiedBlock;
@@ -44,7 +44,7 @@ contract Registry is Ownable {
      * @param _name _name
      * @return An address of the _name
      */
-    function getContractAddress(bytes32 _name) public view returns (address addr) {
+    function getContractAddress(bytes32 _name) public override view returns (address addr) {
         require(contracts[_name] != address(0x0), "address should be non-zero");
         return contracts[_name];
     }

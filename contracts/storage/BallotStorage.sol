@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-// import "../abstract/EnvConstants.sol";
 import "../abstract/BallotEnums.sol";
 import "../GovChecker.sol";
 import "../interface/IEnvStorage.sol";
+import "../interface/IBallotStorage.sol";
 
 
-contract BallotStorage is  GovChecker, BallotEnums {
-    using SafeMath for uint256;
+contract BallotStorage is  GovChecker, BallotEnums, IBallotStorage {
     
     struct BallotBasic {
         //Ballot ID
@@ -123,6 +121,7 @@ contract BallotStorage is  GovChecker, BallotEnums {
     uint256 internal ballotCount = 0;
 
     constructor(address _registry) {
+        _transferOwnership(_msgSender());
         setRegistry(_registry);
     }
 
@@ -175,7 +174,7 @@ contract BallotStorage is  GovChecker, BallotEnums {
         return ballotCount;
     }
 
-    function getBallotBasic(uint256 _id) public view returns (
+    function getBallotBasic(uint256 _id) public override view returns (
         uint256 startTime,
         uint256 endTime,
         uint256 ballotType,
@@ -203,7 +202,7 @@ contract BallotStorage is  GovChecker, BallotEnums {
         duration = tBallot.duration;
     }
 
-    function getBallotMember(uint256 _id) public view returns (
+    function getBallotMember(uint256 _id) public override view returns (
         address oldStakerAddress,
         address newStakerAddress,
         address newVoterAddress,
@@ -227,7 +226,7 @@ contract BallotStorage is  GovChecker, BallotEnums {
         lockAmount = tBallot.lockAmount;
     }
 
-    function getBallotAddress(uint256 _id) public view returns (
+    function getBallotAddress(uint256 _id) public override view returns (
         address newGovernanceAddress
     )
     {
@@ -235,7 +234,7 @@ contract BallotStorage is  GovChecker, BallotEnums {
         newGovernanceAddress = tBallot.newGovernanceAddress;
     }
 
-    function getBallotVariable(uint256 _id) public view returns (
+    function getBallotVariable(uint256 _id) public override view returns (
         bytes32 envVariableName,
         uint256 envVariableType,
         bytes memory envVariableValue 
@@ -268,6 +267,7 @@ contract BallotStorage is  GovChecker, BallotEnums {
         uint _newNodePort
     )
         public
+        override
         onlyGov
         notDisabled
     {
@@ -308,6 +308,7 @@ contract BallotStorage is  GovChecker, BallotEnums {
         address _newGovernanceAddress
     )
         public
+        override
         onlyGov
         notDisabled
         returns (uint256)
@@ -332,6 +333,7 @@ contract BallotStorage is  GovChecker, BallotEnums {
         bytes memory _envVariableValue 
     )
         public
+        override
         onlyGov
         notDisabled
         returns (uint256)
@@ -358,6 +360,7 @@ contract BallotStorage is  GovChecker, BallotEnums {
         uint256 _power
     )
         public
+        override
         onlyGov
         notDisabled
     {
@@ -385,6 +388,7 @@ contract BallotStorage is  GovChecker, BallotEnums {
         uint256 _endTime
     )
         public
+        override
         onlyGov
         notDisabled
         onlyValidTime(_startTime, _endTime)
@@ -405,6 +409,7 @@ contract BallotStorage is  GovChecker, BallotEnums {
         bytes memory _memo
     )
         public
+        override
         onlyGovOrCreator(_ballotId)
         notDisabled
     {
@@ -420,6 +425,7 @@ contract BallotStorage is  GovChecker, BallotEnums {
         uint256 _duration
     )
         public 
+        override
         onlyGovOrCreator(_ballotId)
         notDisabled
         onlyValidDuration(_duration)
@@ -438,6 +444,7 @@ contract BallotStorage is  GovChecker, BallotEnums {
         uint256 _lockAmount
     )
         public 
+        override
         onlyGov
         notDisabled
     {
@@ -462,7 +469,7 @@ contract BallotStorage is  GovChecker, BallotEnums {
     }
 
     // finalize ballot info
-    function finalizeBallot(uint256 _ballotId, uint256 _ballotState) public onlyGov notDisabled {
+    function finalizeBallot(uint256 _ballotId, uint256 _ballotState) public override onlyGov notDisabled {
         require(ballotBasicMap[_ballotId].id == _ballotId, "not existed Ballot");
         require(ballotBasicMap[_ballotId].isFinalized == false, "already finalized");
         require((_ballotState == uint256(BallotStates.Accepted))
@@ -497,7 +504,7 @@ contract BallotStorage is  GovChecker, BallotEnums {
         time = _vote.time;
     }
 
-    function getBallotPeriod(uint256 _id) public view returns (
+    function getBallotPeriod(uint256 _id) public override view returns (
         uint256 startTime,
         uint256 endTime,
         uint256 duration
@@ -509,7 +516,7 @@ contract BallotStorage is  GovChecker, BallotEnums {
         duration = tBallot.duration;
     }
 
-    function getBallotVotingInfo(uint256 _id) public view returns (
+    function getBallotVotingInfo(uint256 _id) public override view returns (
         uint256 totalVoters,
         uint256 powerOfAccepts,
         uint256 powerOfRejects
@@ -522,7 +529,7 @@ contract BallotStorage is  GovChecker, BallotEnums {
         powerOfRejects = tBallot.powerOfRejects;        
     }
 
-    function getBallotState(uint256 _id) public view returns (
+    function getBallotState(uint256 _id) public override view returns (
         uint256 ballotType,
         uint256 state,
         bool isFinalized
@@ -554,7 +561,7 @@ contract BallotStorage is  GovChecker, BallotEnums {
         newBallot.isFinalized = false;
         newBallot.duration = _duration;
         ballotBasicMap[_id] = newBallot;
-        ballotCount = ballotCount.add(1);
+        ballotCount = ballotCount + 1;
         emit BallotCreated(_id, _ballotType, _creator);
     }
 
@@ -644,12 +651,12 @@ contract BallotStorage is  GovChecker, BallotEnums {
         //2. 투표 여부 등록
         hasVotedMap[_ballotId][_voter] = true;
         //3. update totalVoters
-        _ballot.totalVoters = _ballot.totalVoters.add(1);
+        _ballot.totalVoters = _ballot.totalVoters + 1;
         //4. Update power of accept/reject
         if (_decision == uint256(DecisionTypes.Accept)){
-            _ballot.powerOfAccepts = _ballot.powerOfAccepts.add(_power);
+            _ballot.powerOfAccepts = _ballot.powerOfAccepts + _power;
         } else {
-            _ballot.powerOfRejects = _ballot.powerOfRejects.add(_power);
+            _ballot.powerOfRejects = _ballot.powerOfRejects + _power;
         }
     }
 }
