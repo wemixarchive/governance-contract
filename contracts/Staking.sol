@@ -85,6 +85,12 @@ contract Staking is GovChecker, ReentrancyGuard, IStaking {
     function withdraw(uint256 amount) external override nonReentrant notRevoked {
         require(amount > 0, "Amount should be bigger than zero");
 
+        //if minimum is changed unlock staked value
+        uint256 minimum_staking = IEnvStorage(getEnvStorageAddress()).getStakingMin();
+        if(lockedBalanceOf(msg.sender) > minimum_staking){
+            _unlock(msg.sender, lockedBalanceOf(msg.sender) - minimum_staking);
+        }
+
         require(amount <= availableBalanceOf(msg.sender), "Withdraw amount should be equal or less than balance");
 
         _balance[msg.sender] = _balance[msg.sender] - amount;
@@ -102,12 +108,19 @@ contract Staking is GovChecker, ReentrancyGuard, IStaking {
         _lock(payee, lockAmount);
     }
 
+    function lockMore(address payee, uint256 lockAmount) external onlyGovStaker {
+        _lock(payee, lockAmount);
+    }
+
     function _lock(address payee, uint256 lockAmount) internal {
         if (lockAmount == 0) return;
         require(_balance[payee] >= lockAmount, "Lock amount should be equal or less than balance");
         require(availableBalanceOf(payee) >= lockAmount, "Insufficient balance that can be locked");
+        uint256 maximum = IEnvStorage(getEnvStorageAddress()).getStakingMax();
+
 
         _lockedBalance[payee] = _lockedBalance[payee] + lockAmount;
+        require(_lockedBalance[payee] <= maximum, "Locked balance is larger than max");
 
         _totalLockedBalance = _totalLockedBalance + lockAmount;
 
