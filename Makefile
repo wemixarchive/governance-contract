@@ -34,6 +34,7 @@ build: npm
 
 npm:
 	@[ -d node_modules/@openzeppelin/contracts ] || $(DOCKER_RUN) npm install @openzeppelin/contracts
+	@[ -d node_modules/@openzeppelin/contracts-upgradeable ] || $(DOCKER_RUN) npm install @openzeppelin/contracts-upgradeable
 	
 
 deploy:
