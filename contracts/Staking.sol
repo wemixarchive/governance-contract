@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./GovChecker.sol";
 
 import "./interface/IEnvStorage.sol";
+import "./interface/IStaking.sol";
 
-
-contract Staking is GovChecker, ReentrancyGuard {
-    using SafeMath for uint256;
+contract Staking is GovChecker, ReentrancyGuard, IStaking {
 
     mapping(address => uint256) private _balance;
     mapping(address => uint256) private _lockedBalance;
@@ -17,8 +15,6 @@ contract Staking is GovChecker, ReentrancyGuard {
     bool private revoked = false;
 
     //====NXTMeta====//
-    mapping(address => address) private stakerToVoter;
-
     event Staked(address indexed payee, uint256 amount, uint256 total, uint256 available);
     event Unstaked(address indexed payee, uint256 amount, uint256 total, uint256 available);
     event Locked(address indexed payee, uint256 amount, uint256 total, uint256 available);
@@ -28,6 +24,7 @@ contract Staking is GovChecker, ReentrancyGuard {
 
     constructor(address registry, bytes memory data) {
         _totalLockedBalance = 0;
+        _transferOwnership(_msgSender());
         setRegistry(registry);
 
         // data is only for test purpose
@@ -67,10 +64,10 @@ contract Staking is GovChecker, ReentrancyGuard {
     /**
      * @dev Deposit from a sender.
      */
-    function deposit() external nonReentrant notRevoked payable {
+    function deposit() external override nonReentrant notRevoked payable {
         require(msg.value > 0, "Deposit amount should be greater than zero");
 
-        _balance[msg.sender] = _balance[msg.sender].add(msg.value);
+        _balance[msg.sender] = _balance[msg.sender] + msg.value;
 
         if(IGov(getGovAddress()).isMember(msg.sender)){
             uint256 minimum_staking = IEnvStorage(getEnvStorageAddress()).getStakingMin();
@@ -85,11 +82,18 @@ contract Staking is GovChecker, ReentrancyGuard {
      * @dev Withdraw for a sender.
      * @param amount The amount of funds will be withdrawn and transferred to.
      */
-    function withdraw(uint256 amount) external nonReentrant notRevoked {
+    function withdraw(uint256 amount) external override nonReentrant notRevoked {
         require(amount > 0, "Amount should be bigger than zero");
+
+        //if minimum is changed unlock staked value
+        uint256 minimum_staking = IEnvStorage(getEnvStorageAddress()).getStakingMin();
+        if(lockedBalanceOf(msg.sender) > minimum_staking){
+            _unlock(msg.sender, lockedBalanceOf(msg.sender) - minimum_staking);
+        }
+
         require(amount <= availableBalanceOf(msg.sender), "Withdraw amount should be equal or less than balance");
 
-        _balance[msg.sender] = _balance[msg.sender].sub(amount);
+        _balance[msg.sender] = _balance[msg.sender] - amount;
         payable(msg.sender).transfer(amount);
 
         emit Unstaked(msg.sender, amount, _balance[msg.sender], availableBalanceOf(msg.sender));
@@ -100,7 +104,11 @@ contract Staking is GovChecker, ReentrancyGuard {
      * @param payee The address whose funds will be locked.
      * @param lockAmount The amount of funds will be locked.
      */
-    function lock(address payee, uint256 lockAmount) external onlyGov {
+    function lock(address payee, uint256 lockAmount) external override onlyGov {
+        _lock(payee, lockAmount);
+    }
+
+    function lockMore(address payee, uint256 lockAmount) external onlyGovStaker {
         _lock(payee, lockAmount);
     }
 
@@ -108,9 +116,13 @@ contract Staking is GovChecker, ReentrancyGuard {
         if (lockAmount == 0) return;
         require(_balance[payee] >= lockAmount, "Lock amount should be equal or less than balance");
         require(availableBalanceOf(payee) >= lockAmount, "Insufficient balance that can be locked");
+        uint256 maximum = IEnvStorage(getEnvStorageAddress()).getStakingMax();
 
-        _lockedBalance[payee] = _lockedBalance[payee].add(lockAmount);
-        _totalLockedBalance = _totalLockedBalance.add(lockAmount);
+
+        _lockedBalance[payee] = _lockedBalance[payee] + lockAmount;
+        require(_lockedBalance[payee] <= maximum, "Locked balance is larger than max");
+
+        _totalLockedBalance = _totalLockedBalance + lockAmount;
 
         emit Locked(payee, lockAmount, _balance[payee], availableBalanceOf(payee));
     }
@@ -120,12 +132,12 @@ contract Staking is GovChecker, ReentrancyGuard {
      * @param from The address whose funds will be transfered.
      * @param amount The amount of funds will be transfered.
      */
-    function transferLocked(address from, uint256 amount) external onlyGov {
+    function transferLocked(address from, uint256 amount) external override onlyGov {
         if (amount == 0) return;
         unlock(from, amount);
-        _balance[from] = _balance[from].sub(amount);
+        _balance[from] = _balance[from] - amount;
         address rewardPool = getRewardPoolAddress();
-        _balance[rewardPool] = _balance[rewardPool].add(amount);
+        _balance[rewardPool] = _balance[rewardPool] + amount;
 
         emit TransferLocked(from, amount, _balance[from], availableBalanceOf(from));
     }
@@ -135,32 +147,36 @@ contract Staking is GovChecker, ReentrancyGuard {
      * @param payee The address whose funds will be unlocked.
      * @param unlockAmount The amount of funds will be unlocked.
      */
-    function unlock(address payee, uint256 unlockAmount) public onlyGov {
+    function unlock(address payee, uint256 unlockAmount) public override onlyGov {
+        _unlock(payee, unlockAmount);
+    }
+    
+    function _unlock(address payee, uint256 unlockAmount) internal {
         if (unlockAmount == 0) return;
         // require(_lockedBalance[payee] >= unlockAmount, "Unlock amount should be equal or less than balance locked");
-        _lockedBalance[payee] = _lockedBalance[payee].sub(unlockAmount);
-        _totalLockedBalance = _totalLockedBalance.sub(unlockAmount);
+        _lockedBalance[payee] = _lockedBalance[payee] - unlockAmount;
+        _totalLockedBalance = _totalLockedBalance - unlockAmount;
 
         emit Unlocked(payee, unlockAmount, _balance[payee], availableBalanceOf(payee));
     }
 
-    function balanceOf(address payee) public view returns (uint256) {
+    function balanceOf(address payee) public override view returns (uint256) {
         return _balance[payee];
     }
 
-    function lockedBalanceOf(address payee) public view returns (uint256) {
+    function lockedBalanceOf(address payee) public override view returns (uint256) {
         return _lockedBalance[payee];
     }
 
-    function availableBalanceOf(address payee) public view returns (uint256) {
-        return _balance[payee].sub(_lockedBalance[payee]);
+    function availableBalanceOf(address payee) public override view returns (uint256) {
+        return _balance[payee] - _lockedBalance[payee];
     }
 
     /**
      * @dev Calculate voting weight which range between 0 and 100.
      * @param payee The address whose funds were locked.
      */
-    function calcVotingWeight(address payee) public view returns (uint256) {
+    function calcVotingWeight(address payee) public override view returns (uint256) {
         return calcVotingWeightWithScaleFactor(payee, 1e2);
     }
 
@@ -172,9 +188,9 @@ contract Staking is GovChecker, ReentrancyGuard {
      *               if 1e2, result range is between 0 ~ 100
      *               if 1e3, result range is between 0 ~ 1000
      */
-    function calcVotingWeightWithScaleFactor(address payee, uint32 factor) public view returns (uint256) {
+    function calcVotingWeightWithScaleFactor(address payee, uint32 factor) public override view returns (uint256) {
         if (_lockedBalance[payee] == 0 || factor == 0) return 0;
-        return _lockedBalance[payee].mul(factor).div(_totalLockedBalance);
+        return _lockedBalance[payee] * factor / _totalLockedBalance;
     }
 
     function isRevoked() public view returns (bool) {
@@ -193,7 +209,7 @@ contract Staking is GovChecker, ReentrancyGuard {
         address contractOwner = owner();
         uint256 balance = address(this).balance;
 
-        require(balance > 0);
+        require(balance > 0, "balance = 0");
 
         payable(contractOwner).transfer(balance);
         revoked = true;

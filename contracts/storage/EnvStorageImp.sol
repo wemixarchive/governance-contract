@@ -2,82 +2,21 @@
 pragma solidity ^0.8.0;
 // pragma abicod
 
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../abstract/EnvConstants.sol";
 import "../abstract/AEnvStorage.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+import "../interface/IEnvStorage.sol";
 
-contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
-    using SafeMath for uint256;
+contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable, IEnvStorage {
 
-    // struct EnvInitInfo{
-    //     uint256 blocksPer;
-    //     uint256 ballotDurationMin;
-    //     uint256 ballotDurationMax;
-    //     uint256 stakingMin;
-    //     uint256 stakingMax;
-    //     uint256 gasPrice;
-    //     uint256 maxIdleBlockInterval;
-    //     //======NXTMeta=====
-    //     uint256 blockCreationTime;
-    //     uint256 blockRewardAmount;
-    //     uint256 maxPriorityFeePerGas;
-    //     uint256 blockRewardDistributionBlockProducer;
-    //     uint256 blockRewardDistributionStakingReward;
-    //     uint256 blockRewardDistributionEcoSystem;
-    //     uint256 blockRewardDistributionMaintanance;
-    //     uint256 gasLimit;
-    //     uint256 baseFeeMaxChangeDenominator;
-    //     uint256 elasticityMultiplier;
-    // }
     function initialize(
+        address _registry,
         bytes32[] memory names,
         uint256[] memory infos
-        // EnvInitInfo memory infos
-        // uint256 _blocksPer, 
-        // uint256 _ballotDurationMin,
-        // uint256 _ballotDurationMax,
-        // uint256 _stakingMin,
-        // uint256 _stakingMax,
-        // uint256 _gasPrice,
-        // uint256 _maxIdleBlockInterval
-    ) public onlyOwner {
-        // uint256 blocksPer = getBlocksPer();
-        // uint256 ballotDurationMin = getBallotDurationMin();
-        // uint256 ballotDurationMax = getBallotDurationMax();
-        // uint256 stakingMin = getStakingMin();
-        // uint256 stakingMax = getStakingMax();
-        // uint256 gasPrice = getGasPrice();
-        // uint256 maxIdleBlockInterval = getMaxIdleBlockInterval();
-
-        // require(infos.blocksPer != 0 || blocksPer != 0, "invalid blocksPer values");
-        // require(infos.ballotDurationMin != 0 || ballotDurationMin != 0, "invalid ballotDurationMin values");
-        // require(infos.ballotDurationMax != 0 || ballotDurationMax != 0, "invalid ballotDurationMax values");
-        // require(infos.stakingMin != 0 || stakingMin != 0, "invalid stakingMin values");
-        // require(infos.stakingMax != 0 || stakingMax != 0, "invalid stakingMax values");
-        // require(infos.gasPrice != 0 || gasPrice != 0, "invalid gasPrice values");
-        // require(infos.maxIdleBlockInterval != 0 || maxIdleBlockInterval != 0, "invalid max Idle Block Interval values");
-        // if (blocksPer == 0) {
-        //     setUint(BLOCKS_PER_NAME, infos.blocksPer);
-        // }
-        // if (ballotDurationMin == 0) {
-        //     setUint(BALLOT_DURATION_MIN_NAME, infos.ballotDurationMin);
-        // }
-        // if (ballotDurationMax == 0) {
-        //     setUint(BALLOT_DURATION_MAX_NAME, infos.ballotDurationMax);
-        // }
-        // if (stakingMin == 0) {
-        //     setUint(STAKING_MIN_NAME, infos.stakingMin);
-        // }
-        // if (stakingMax == 0) {
-        //     setUint(STAKING_MAX_NAME, infos.stakingMax);
-        // }
-        // if (gasPrice == 0) {
-        //     setUint(GAS_PRICE_NAME, infos.gasPrice);
-        // }
-        // if (maxIdleBlockInterval == 0) {
-        //     setUint(MAX_IDLE_BLOCK_INTERVAL_NAME, infos.maxIdleBlockInterval);
-        // }
+    ) public initializer  {
+        require(_registry != _getImplementation(), "registry should not be same as implementation"); 
+        __Ownable_init();
+        setRegistry(_registry);
 
         for(uint i = 0;i<infos.length;i++){
             uint256 temp = getUint(names[i]);
@@ -86,126 +25,102 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
                 setUint(names[i], infos[i]);
             }
         }
-        //=====NXTMeta=====/
-        // uint256 blockCreationTime = getBlockCreationTime();
-        // uint256 blockRewardAmount = getBlockRewardAmount();
-        // uint256 maxPriorityFeePerGas = getMaxPriorityFeePerGas();
-        // (uint256 blockRewardDistributionBlockProducer,
-        // uint256 blockRewardDistributionStakingReward,
-        // uint256 blockRewardDistributionEcoSystem,
-        // uint256 blockRewardDistributionMaintanance) = getBlockRewardDistributionMethod();
-        // (uint256 gasLimit,
-        // uint256 baseFeeMaxChangeDenominator,
-        // uint256 elasticityMultiplier) = getGasLimitAndBaseFee();
-        // //=====NXTMeta=====/
-        // if (blockCreationTime == 0) {
-        //     setUint(BLOCK_CREATION_TIME, infos.blockCreationTime);
-        // }
-
-        // if (blockRewardAmount == 0) {
-        //     setUint(BLOCK_REWARD_AMOUNT, infos.blockRewardAmount);
-        // }
-
-        // if (maxPriorityFeePerGas == 0) {
-        //     setUint(MAX_PRIORITY_FEE_PER_GAS, infos.maxPriorityFeePerGas);
-        // }
-
-        // if (blockRewardDistributionBlockProducer == 0) {
-        //     setUint(BLOCK_REWARD_DISTRIBUTION_BLOCK_PRODUCER, infos.blockRewardDistributionBlockProducer);
-        // }
 
     }
+    function upgradeTo(address newImplementation) public override onlyOwner{
+        _upgradeToAndCallUUPS(newImplementation, '', false);
+    }
 
-    function getBlocksPer() public view returns (uint256) {
+    function getBlocksPer() public override view returns (uint256) {
         return getUint(BLOCKS_PER_NAME);
     }
 
-    function getBallotDurationMin() public view returns (uint256) {
+    function getBallotDurationMin() public override view returns (uint256) {
         return getUint(BALLOT_DURATION_MIN_NAME);
     }
 
-    function getBallotDurationMax() public view returns (uint256) {
+    function getBallotDurationMax() public override view returns (uint256) {
         return getUint(BALLOT_DURATION_MAX_NAME);
     }
 
-    function getStakingMin() public view returns (uint256) {
+    function getStakingMin() public override view returns (uint256) {
         return getUint(STAKING_MIN_NAME);
     }
 
-    function getStakingMax() public view returns (uint256) {
+    function getStakingMax() public override view returns (uint256) {
         return getUint(STAKING_MAX_NAME);
     }
 
-    // function getGasPrice() public view returns (uint256) {
+    // function getGasPrice() public override view returns (uint256) {
     //     return getUint(GAS_PRICE_NAME);
     // }
 
-    function getMaxIdleBlockInterval() public view returns (uint256) {
+    function getMaxIdleBlockInterval() public override view returns (uint256) {
         return getUint(MAX_IDLE_BLOCK_INTERVAL_NAME);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyGov{}
 
-    function setBlocksPer(uint256 _value) public onlyGov { 
+    function setBlocksPer(uint256 _value)  public onlyGov { 
         setUint(BLOCKS_PER_NAME, _value);
     }
 
-    function setBallotDurationMin(uint256 _value) public onlyGov { 
+    function setBallotDurationMin(uint256 _value)  public onlyGov { 
         setUint(BALLOT_DURATION_MIN_NAME, _value);
     }
 
-    function setBallotDurationMax(uint256 _value) public onlyGov { 
+    function setBallotDurationMax(uint256 _value)  public onlyGov { 
         setUint(BALLOT_DURATION_MAX_NAME, _value);
     }
 
-    function setStakingMin(uint256 _value) public onlyGov { 
+    function setStakingMin(uint256 _value)  public onlyGov { 
         setUint(STAKING_MIN_NAME, _value);
     }
 
-    function setStakingMax(uint256 _value) public onlyGov { 
+    function setStakingMax(uint256 _value)  public onlyGov { 
         setUint(STAKING_MAX_NAME, _value);
     }
 
-    // function setGasPrice(uint256 _value) public onlyGov { 
+    // function setGasPrice(uint256 _value)  public override onlyGov { 
     //     setUint(GAS_PRICE_NAME, _value);
     // }
     
-    function setMaxIdleBlockInterval(uint256 _value) public onlyGov { 
+    function setMaxIdleBlockInterval(uint256 _value)  public onlyGov { 
         setUint(MAX_IDLE_BLOCK_INTERVAL_NAME, _value);
     }
 
-    function setBlocksPerByBytes(bytes memory _value ) public onlyGov { 
+    function setBlocksPerByBytes(bytes memory _value )  public override onlyGov { 
         setBlocksPer(toUint(_value));
     }
 
-    function setBallotDurationMinByBytes(bytes memory _value ) public onlyGov { 
+    function setBallotDurationMinByBytes(bytes memory _value )  public override onlyGov { 
         setBallotDurationMin(toUint(_value));
     }
 
-    function setBallotDurationMaxByBytes(bytes memory _value ) public onlyGov { 
+    function setBallotDurationMaxByBytes(bytes memory _value )  public override onlyGov { 
         setBallotDurationMax(toUint(_value));
     }
 
-    function setStakingMinByBytes(bytes memory _value ) public onlyGov { 
+    function setStakingMinByBytes(bytes memory _value )  public override onlyGov { 
         setStakingMin(toUint(_value));
     }
 
-    function setStakingMaxByBytes(bytes memory _value ) public onlyGov { 
+    function setStakingMaxByBytes(bytes memory _value )  public override onlyGov { 
         setStakingMax(toUint(_value));
     }
 
-    // function setGasPriceByBytes(bytes memory _value ) public onlyGov { 
+    // function setGasPriceByBytes(bytes memory _value )  public override onlyGov { 
     //     setGasPrice(toUint(_value));
     // }
 
-    function setMaxIdleBlockIntervalByBytes(bytes memory _value ) public onlyGov { 
+    function setMaxIdleBlockIntervalByBytes(bytes memory _value )  public override onlyGov { 
         setMaxIdleBlockInterval(toUint(_value));
     }
 
     //=======NXTMeta=======/
 
 
-    function getBallotDurationMinMax() public view returns (uint256, uint256) {
+    function getBallotDurationMinMax() public override view returns (uint256, uint256) {
         return 
         (
             getUint(BALLOT_DURATION_MIN_NAME),
@@ -213,7 +128,7 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
         );
     }
 
-    function getStakingMinMax() public view returns (uint256, uint256) {
+    function getStakingMinMax() public override view returns (uint256, uint256) {
         return 
         (
             getUint(STAKING_MIN_NAME),
@@ -221,23 +136,23 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
         );
     }
 
-    function getBlockCreationTime() public view returns (uint256) {
+    function getBlockCreationTime() public override view returns (uint256) {
         return getUint(BLOCK_CREATION_TIME_NAME);
     }
 
-    function getBlockRewardAmount() public view returns (uint256) {
+    function getBlockRewardAmount() public override view returns (uint256) {
         return getUint(BLOCK_REWARD_AMOUNT_NAME);
     }
 
-    function getMaxPriorityFeePerGas() public view returns (uint256) {
+    function getMaxPriorityFeePerGas() public override view returns (uint256) {
         return getUint(MAX_PRIORITY_FEE_PER_GAS_NAME);
     }
 
-    function getMaxBaseFee() public view returns (uint256) {
+    function getMaxBaseFee() public override view returns (uint256) {
         return getUint(MAX_BASE_FEE_NAME);
     }
 
-    function getBlockRewardDistributionMethod() public view returns (uint256,uint256,uint256,uint256) {
+    function getBlockRewardDistributionMethod() public override view returns (uint256,uint256,uint256,uint256) {
         return (
             getUint(BLOCK_REWARD_DISTRIBUTION_BLOCK_PRODUCER_NAME),
             getUint(BLOCK_REWARD_DISTRIBUTION_STAKING_REWARD_NAME),
@@ -247,7 +162,7 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
 
     }
 
-    function getGasLimitAndBaseFee() public view returns (uint256, uint256, uint256) {
+    function getGasLimitAndBaseFee() public override view returns (uint256, uint256, uint256) {
         return (
             getUint(BLOCK_GASLIMIT_NAME),
             getUint(BASE_FEE_MAX_CHANGE_RATE_NAME),
@@ -255,35 +170,35 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
         );
     }
 
-    // function getStakingRewardAddress() public view returns(address){
+    // function getStakingRewardAddress() public override view returns(address){
     //     return getAddress(STAKING_REWARD_ADDRESS_NAME);
     // }
 
-    // function getEcofundAddress() public view returns(address){
+    // function getEcofundAddress() public override view returns(address){
     //     return getAddress(ECOFUND_ADDRESS_NAME);
     // }
 
-    // function getMaintananceAddress() public view returns(address){
+    // function getMaintananceAddress() public override view returns(address){
     //     return getAddress(MAINTANANCE_ADDRESS_NAME);
     // }
 
-    function setBallotDurationMinMax(uint256 _min, uint256 _max) public onlyGov { 
+    function setBallotDurationMinMax(uint256 _min, uint256 _max) public override onlyGov { 
         require(_min <= _max, "Minimum duration must be smaller and equal than maximum duration");
         setUint(BALLOT_DURATION_MIN_NAME, _min);
         setUint(BALLOT_DURATION_MAX_NAME, _max);
     }
 
-    function setStakingMinMax(uint256 _min, uint256 _max) public onlyGov { 
+    function setStakingMinMax(uint256 _min, uint256 _max)  public onlyGov { 
         require(_min <= _max, "Minimum staking must be smaller and equal than maximum staking");
         setUint(STAKING_MIN_NAME, _min);
         setUint(STAKING_MAX_NAME, _max);
     }
 
-    function setBlockCreationTime(uint256 _value) public onlyGov { 
+    function setBlockCreationTime(uint256 _value)  public onlyGov { 
         setUint(BLOCK_CREATION_TIME_NAME, _value);
     }
 
-    function setBlockRewardAmount(uint256 _value) public onlyGov { 
+    function setBlockRewardAmount(uint256 _value)  public onlyGov { 
         setUint(BLOCK_REWARD_AMOUNT_NAME, _value);
     }
 
@@ -294,7 +209,7 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
     function setMaxBaseFee(uint256 _value) public onlyGov { 
         setUint(MAX_BASE_FEE_NAME, _value);
     }
-
+    
     function setBlockRewardDistributionMethod(
         uint256 _block_producer,
         uint256 _staking_reward,
@@ -314,50 +229,40 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
         uint256 _baseFeeMaxChangeRate,
         uint256 _gasTargetPercentage,
         uint256 _maxBaseFee
-        ) public onlyGov { 
+        )  public onlyGov { 
         setUint(BLOCK_GASLIMIT_NAME, _block_GasLimit);
         setUint(BASE_FEE_MAX_CHANGE_RATE_NAME, _baseFeeMaxChangeRate);
         setUint(GAS_TARGET_PERCENTAGE_NAME, _gasTargetPercentage);
         setUint(MAX_BASE_FEE_NAME, _maxBaseFee);
     }
 
-    // function setStakingAddress(address _value) public onlyGov { 
-    //     setAddress(STAKING_REWARD_ADDRESS_NAME, _value);
-    // }
-    // function setEcofundAddress(address _value) public onlyGov { 
-    //     setAddress(ECOFUND_ADDRESS_NAME, _value);
-    // }
-    // function setMaintananceAddress(address _value) public onlyGov { 
-    //     setAddress(MAINTANANCE_ADDRESS_NAME, _value);
-    // }
-
-    function setBallotDurationMinMaxByBytes(bytes memory _value ) public onlyGov { 
+    function setBallotDurationMinMaxByBytes(bytes memory _value )  public override onlyGov { 
         (uint256 _min, uint256 _max) = to2Uint(_value);
         setBallotDurationMinMax(_min, _max);
     }
 
-    function setStakingMinMaxByBytes(bytes memory _value ) public onlyGov { 
+    function setStakingMinMaxByBytes(bytes memory _value )  public override onlyGov { 
         (uint256 _min, uint256 _max) = to2Uint(_value);
         setStakingMinMax(_min, _max);
     }
 
-    function setBlockCreationTimeByBytes(bytes memory _value ) public onlyGov { 
+    function setBlockCreationTimeByBytes(bytes memory _value )  public override onlyGov { 
         setBlockCreationTime(toUint(_value));
     }
 
-    function setBlockRewardAmountByBytes(bytes memory _value ) public onlyGov { 
+    function setBlockRewardAmountByBytes(bytes memory _value )  public override onlyGov { 
         setBlockRewardAmount(toUint(_value));
     }
 
-    function setMaxPriorityFeePerGasByBytes(bytes memory _value ) public onlyGov { 
+    function setMaxPriorityFeePerGasByBytes(bytes memory _value )  public override onlyGov { 
         setMaxPriorityFeePerGas(toUint(_value));
     }
 
-    function setMaxBaseFeeByBytes(bytes memory _value ) public onlyGov { 
+    function setMaxBaseFeeByBytes(bytes memory _value )  public override onlyGov { 
         setMaxBaseFee(toUint(_value));
     }
 
-    function setBlockRewardDistributionMethodByBytes(bytes memory _value ) public onlyGov {
+    function setBlockRewardDistributionMethodByBytes(bytes memory _value ) public override onlyGov {
         (uint256 _block_producer,
         uint256 _staking_reward,
         uint256 _ecosystem,
@@ -370,7 +275,7 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
             );
     } 
 
-    function setGasLimitAndBaseFeeByBytes(bytes memory _value ) public onlyGov { 
+    function setGasLimitAndBaseFeeByBytes(bytes memory _value )  public override onlyGov { 
         (
         uint256 _block_GasLimit,
         uint256 _baseFeeMaxChangeRate,
@@ -380,7 +285,7 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
         setGasLimitAndBaseFee( _block_GasLimit, _baseFeeMaxChangeRate, _gasTargetPercentage, _maxBaseFee);
     }
 
-    function checkVariableCondition(bytes32 envKey, bytes memory envVal) external pure returns(bool){
+    function checkVariableCondition(bytes32 envKey, bytes memory envVal) external pure override returns(bool){
 
         if(envKey == BLOCK_REWARD_DISTRIBUTION_METHOD_NAME){
             (
@@ -402,7 +307,7 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
         return true;
     }
 
-    function setVariable(bytes32 envKey, bytes memory envVal) external{
+    function setVariable(bytes32 envKey, bytes memory envVal) external override{
         if (envKey == BLOCKS_PER_NAME) {
             setBlocksPerByBytes(envVal);
         } 
@@ -432,58 +337,6 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
             setMaxBaseFeeByBytes(envVal);
         } 
     }
-
-    // function setStakingAddressByBytes(bytes memory _value ) public onlyGov { 
-    //     setStakingAddress(toAddress(_value));
-    // }
-
-    // function setEcofundAddressByBytes(bytes memory _value ) public onlyGov { 
-    //     setEcofundAddress(toAddress(_value));
-    // }
-
-    // function setMaintananceAddressByBytes(bytes memory _value ) public onlyGov { 
-    //     setMaintananceAddress(toAddress(_value));
-    // }
-
-    // function getTestInt() public view returns (int256) {
-    //     return getInt(TEST_INT);
-    // }
-
-    // function getTestAddress() public view returns (address) {
-    //     return getAddress(TEST_ADDRESS);
-    // }
-
-    // function getTestBytes32() public view returns (bytes32) {
-    //     return getBytes32(TEST_BYTES32);
-    // }
-
-    // function getTestBytes() public view returns (bytes) {
-    //     return getBytes(TEST_BYTES);
-    // }
-
-    // function getTestString() public view returns (string) {
-    //     return getString(TEST_STRING);
-    // }
-
-    // function setTestIntByBytes(bytes memory _value ) public onlyGov { 
-    //     setInt(TEST_INT, toInt(_value));
-    // }
-
-    // function setTestAddressByBytes(bytes memory _value ) public onlyGov { 
-    //     setAddress(TEST_ADDRESS, toAddress(_value));
-    // }
-
-    // function setTestBytes32ByBytes(bytes memory _value ) public onlyGov { 
-    //     setBytes32(TEST_BYTES32, toBytes32(_value));
-    // }
-
-    // function setTestBytesByBytes(bytes memory _value ) public onlyGov { 
-    //     setBytes(TEST_BYTES, _value);
-    // }
-
-    // function setTestStringByBytes(bytes memory _value ) public onlyGov { 
-    //     setString(TEST_STRING, string(_value));
-    // }
 
     function toBytes32(bytes memory _input) internal pure returns (bytes32 _output) {
         assembly {
@@ -534,4 +387,12 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable {
         //     _output := mload(add(_input, 20))
         // }
     }
+
+
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage in the inheritance chain.
+     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[49] private __gap;
 }

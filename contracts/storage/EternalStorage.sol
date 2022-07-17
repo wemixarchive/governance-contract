@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-
-
 /**
  * @title EternalStorage
  * @dev An ownable contract that can be used as a storage where the variables
@@ -140,4 +137,12 @@ contract EternalStorage {
     function _setBytes32(bytes32 h, bytes32 v) internal {
         s._bytes32[h] = v;
     }
+
+
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage in the inheritance chain.
+     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[49] private __gap;
 }

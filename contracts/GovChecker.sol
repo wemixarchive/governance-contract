@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "./interface/IRegistry.sol";
 import "./interface/IGov.sol";
-
 
 /**
  * @title GovChecker
  * @dev GovChecker Contract that uses Registry contract
  */
-contract GovChecker is Ownable {
+contract GovChecker is OwnableUpgradeable {
     IRegistry public reg;
 
     bytes32 public constant GOV_NAME = "GovernanceContract";
@@ -37,6 +36,11 @@ contract GovChecker is Ownable {
 
     modifier onlyGovMem() {
         require(IGov(getGovAddress()).isMember(msg.sender), "No Permission");
+        _;
+    }
+
+    modifier onlyGovStaker() {
+        require(IGov(getGovAddress()).isStaker(msg.sender), "No Permission");
         _;
     }
 
