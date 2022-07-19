@@ -10,6 +10,8 @@ const path = require("path");
 const sendTx = require("./scripts/sendTx_task").sendTxKeep;
 const setting = require("./scripts/setting_task").set;
 const changeEnv = require("./scripts/changeEnv_task").changeEnvVal;
+const deployTestGov = require("./scripts/deploy_test_task").deployGov;
+const addMember = require("./scripts/addMembers_task").addMembers;
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -20,6 +22,15 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
         console.log(account.address);
     }
 });
+
+task("addMember", "Add governance members")
+.addParam("pw").setAction(async (taskArgs, hre)=>{
+    await addMember(hre, taskArgs.pw);
+})
+task("deployGovTest", "Deploy governance contracts")
+.addParam("pw").setAction(async (taskArgs, hre)=>{
+    await deployTestGov(hre, taskArgs.pw);
+})
 
 task("changeMP", "Change maxPrioirtyFeePerGas")
     .addParam("pw")
@@ -86,7 +97,7 @@ module.exports = {
         },
         rpc:{
             url: rpcURL
-        }
+	    }
     },
     contractSizer: {
         runOnCompile: true,
