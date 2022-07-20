@@ -9,6 +9,8 @@ import "../interface/IEnvStorage.sol";
 
 contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable, IEnvStorage {
 
+    event UpgradeImplementation(address indexed implementation);
+
     function initialize(
         address _registry,
         bytes32[] memory names,
@@ -29,6 +31,7 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable, IEnvStorag
     }
     function upgradeTo(address newImplementation) public override onlyOwner{
         _upgradeToAndCallUUPS(newImplementation, '', false);
+        emit UpgradeImplementation(newImplementation);
     }
 
     function getBlocksPer() public override view returns (uint256) {

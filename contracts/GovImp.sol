@@ -28,6 +28,8 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
     }
 
     address constant ZERO = address(0);
+    uint256 public proposal_time_period = 0;
+    mapping(address=>uint256) public lastAddProposalTime;
 
     event MemberAdded(address indexed addr, address indexed voter);
     event MemberRemoved(address indexed addr, address indexed voter);
@@ -36,6 +38,8 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
     event MemberUpdated(address indexed addr, address indexed voter);
     // added for case that ballot's result could not be applicable.
     event NotApplicable(uint256 indexed ballotId, string reason);
+
+    event SetProposalTimePeriod(uint256 newPeriod);
 
     struct MemberInfo{
         address staker;
@@ -51,11 +55,16 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
     }
 
     modifier checkLockedAmount(){
-        address staker;
-        if(isStaker(msg.sender)) staker = msg.sender;
-        else if(isVoter(msg.sender)) staker = stakers[voterIdx[msg.sender]];
+        address staker = getStakerAddr(_msgSender());
         require(lockedBalanceOf(staker) <= getMaxStaking() && lockedBalanceOf(staker) >= getMinStaking(), "Invalid staking balance");
         _;
+    }
+
+    modifier checkTimePeriod(){
+        address staker = getStakerAddr(_msgSender());
+        require((block.timestamp - lastAddProposalTime[staker]) >= proposal_time_period, "Cannot add proposal too early");
+        _;
+        lastAddProposalTime[staker] = block.timestamp;
     }
 
     modifier checkMemberInfo(MemberInfo memory info){
@@ -79,12 +88,9 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
     )
         public initializer
     {
-        // require(_initialized == false, "Already initialized");
         require(lockAmount > 0, "lockAmount should be more then zero");
         __Ownable_init();
         setRegistry(registry);
-        // _setImplementation(implementation);
-        // _upgradeToAndCallUUPS(newImplementation, new bytes(0), false);
 
         // Lock
         IStaking staking = IStaking(getStakingAddress());
@@ -102,7 +108,6 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
 
         stakers[memberLength] = msg.sender;
         stakerIdx[msg.sender] = memberLength;
-        // stakerToVoter[msg.sender] = msg.sender;
 
         // Add node
         nodeLength = 1;
@@ -114,7 +119,6 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
         nodeIdxFromMember[msg.sender] = nodeLength;
         nodeToMember[nodeLength] = msg.sender;
 
-        // _initialized = true;
         modifiedBlock = block.number;
     }
 
@@ -124,11 +128,8 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
     )
         public initializer
     {
-        // require(_initialized == false, "Already initialized");
-
         __Ownable_init();
         setRegistry(registry);
-        // _upgradeToAndCallUUPS(newImplementation, new bytes(0), false);
 
         // _initialized = true;
         modifiedBlock = block.number;
@@ -204,6 +205,7 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
     )
         external
         onlyGovMem
+        checkTimePeriod
         checkLockedAmount
         checkMemberInfo(info)
         returns (uint256 ballotIdx)
@@ -231,6 +233,7 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
     )
         external
         onlyGovMem
+        checkTimePeriod
         checkLockedAmount
         returns (uint256 ballotIdx)
     {
@@ -288,6 +291,7 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
     )
         external
         onlyGovMem
+        checkTimePeriod
         checkLockedAmount
         checkMemberInfo(newInfo)
         returns (uint256 ballotIdx)
@@ -356,6 +360,7 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
     )
         external
         onlyGovMem
+        checkTimePeriod
         checkLockedAmount
         returns (uint256 ballotIdx)
     {
@@ -839,6 +844,17 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
 
     function checkVariableCondition(bytes32 envKey, bytes memory envVal) internal view returns(bool){
         return IEnvStorage(getEnvStorageAddress()).checkVariableCondition(envKey, envVal);
+    }
+
+    function getStakerAddr(address _addr) public view returns(address staker){
+        if(isStaker(_addr)) staker = msg.sender;
+        else if(isVoter(_addr)) staker = stakers[voterIdx[msg.sender]];
+    }
+
+    function setProposalTimePeriod(uint256 newPeriod) external onlyOwner{
+        require(newPeriod < 1 hours, "newPeriod is too long");
+        proposal_time_period = newPeriod;
+        emit SetProposalTimePeriod(newPeriod);
     }
 
     /**
