@@ -11,7 +11,6 @@ import "./interface/IEnvStorage.sol";
 import "./interface/IStaking.sol";
 
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
-
 contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, UUPSUpgradeable {
 
     enum VariableTypes {
@@ -243,16 +242,6 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
         require(lockedBalanceOf(staker) >= lockAmount,"Insufficient balance that can be unlocked." );
         ballotIdx = ballotLength + 1;
 
-        // address staker;
-        // address voter; // voter
-        // address reward;
-        // bytes name;
-        // bytes enode;
-        // bytes ip;
-        // uint256 port;
-        // uint256 lockAmount;
-        // bytes memo;
-        // uint256 duration;
         MemberInfo memory info = MemberInfo(
             ZERO, // new staker address
             ZERO,
@@ -384,18 +373,16 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
 
     function vote(uint256 ballotIdx, bool approval) external onlyGovMem nonReentrant checkLockedAmount {
         // Check if some ballot is in progress
-        checkUnfinalized(ballotIdx);
+        require(checkUnfinalized(), "Expired");
 
         // Check if the ballot can be voted
         uint256 ballotType = checkVotable(ballotIdx);
-
         // Vote
         createVote(ballotIdx, approval);
-
         // Finalize
         (, uint256 accept, uint256 reject) = getBallotVotingInfo(ballotIdx);
         uint256 threshold = getThreshold();
-        if (accept >= threshold || reject >= threshold) {
+        if (accept >= threshold || reject >= threshold || (accept + reject) == 10000) {
             finalizeVote(ballotIdx, ballotType, accept > reject, false);
         }
     }
@@ -416,26 +403,39 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
         return IEnvStorage(getEnvStorageAddress()).getBallotDurationMax();
     }
 
-    function getThreshold() public pure returns (uint256) { return 5100; } // 51% from 5100 of 10000
+    function getThreshold() public pure returns (uint256) { return 5001; } // 50.01% from 5001 of 10000
 
-    function checkUnfinalized(uint256 ballotIdx) private {
+    function checkUnfinalized() public view returns(bool){
         if (ballotInVoting != 0) {
             (, uint256 state, ) = getBallotState(ballotInVoting);
             (, uint256 endTime, ) = getBallotPeriod(ballotInVoting);
             if (state == uint256(BallotStates.InProgress)) {
-                if (endTime < block.timestamp) {
-                    finalizeBallot(ballotInVoting, uint256(BallotStates.Rejected));
-                    ballotInVoting = 0;
-                } else if (ballotIdx != ballotInVoting) {
-                    revert("Now in voting with different ballot");
-                }
+                if(endTime < block.timestamp) return false;
+                // require(endTime > block.timestamp, "Expired");
+                // require(ballotIdx == ballotInVoting, "Now in voting with different ballot");
+                // if (endTime < block.timestamp) {
+
+                //     finalizeBallot(ballotInVoting, uint256(BallotStates.Rejected));
+                //     ballotInVoting = 0;
+                //     // console.log("vote is finalized %s", ballotInVoting);
+                // } else if (ballotIdx != ballotInVoting) {
+                //     revert("Now in voting with different ballot");
+                // }
             }
         }
+        return true;
+    }
+
+    function finzalizeEndedVote() public onlyGovMem{
+        require(!checkUnfinalized(), "Voting is not ended");
+        finalizeBallot(ballotInVoting, uint256(BallotStates.Rejected));
+        ballotInVoting = 0;
     }
 
     function checkVotable(uint256 ballotIdx) private returns (uint256) {
         (uint256 ballotType, uint256 state, ) = getBallotState(ballotIdx);
         if (state == uint256(BallotStates.Ready)) {
+            require(ballotInVoting == 0, "Now in voting with different ballot");
             (, , uint256 duration) = getBallotPeriod(ballotIdx);
             if (duration < getMinVotingDuration()) {
                 startBallot(ballotIdx, block.timestamp, block.timestamp + getMinVotingDuration());
@@ -447,7 +447,9 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
             ballotInVoting = ballotIdx;
         } else if (state == uint256(BallotStates.InProgress)) {
             // Nothing to do
+            require(ballotIdx == ballotInVoting, "Now in voting with different ballot");
         } else {
+            // canceled
             revert("Expired");
         }
         return ballotType;
@@ -458,7 +460,7 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
         address staker;
         if(isStaker(msg.sender)) staker = msg.sender;
         else if(isVoter(msg.sender)) staker = stakers[voterIdx[msg.sender]];
-        uint256 weight = IStaking(getStakingAddress()).calcVotingWeightWithScaleFactor(staker, 1e4);
+        uint256 weight = IStaking(getStakingAddress()).calcVotingWeightWithScaleFactor(staker, 10000);
         uint256 decision = approval ? uint256(DecisionTypes.Accept) : uint256(DecisionTypes.Reject);
         IBallotStorage(getBallotStorageAddress()).createVote(
             voteIdx,
@@ -493,7 +495,7 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
             
         }
         finalizeBallot(ballotIdx, ballotState);
-        ballotInVoting = 0;
+        if(!self) ballotInVoting = 0;
     }
 
     function fromValidBallot(uint256 ballotIdx, uint256 targetType) private view {
@@ -862,5 +864,8 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
      * variables without shifting down storage in the inheritance chain.
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
-    uint256[49] private __gap;
+    uint256[30] private __gap;
 }
+
+
+

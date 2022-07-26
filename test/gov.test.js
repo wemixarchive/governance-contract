@@ -42,7 +42,7 @@ const envVal = "value";
 
 const envParams = {
     blocksPer: 1,
-    ballotDurationMin: 86400,
+    ballotDurationMin: 1,
     ballotDurationMax: 604800,
     stakingMin: "1500000000000000000000000",
     stakingMax: "1500000000000000000000000",
@@ -628,6 +628,31 @@ describe("Governance", function () {
             nPort.should.be.equal(BigNumber.from(port[1]));
         });
 
+        it("can vote approval to change enode only without voting", async () => {
+            await govDelegator.addProposalToChangeMember(
+                [deployer.address, deployer.address, user1.address, U2B(nodeName[1]), enode[1], U2B(ip[1]), port[1], amount, U2B(memo[0]), duration],
+                deployer.address
+            );
+            // await govDelegator.vote(1, true);
+            const len = await govDelegator.voteLength();
+            len.should.be.equal(BigNumber.from(0));
+            const inVoting = await govDelegator.getBallotInVoting();
+            inVoting.should.be.equal(BigNumber.from(0));
+            const state = await ballotStorage.getBallotState(1);
+            state[1].should.be.equal(BigNumber.from(ballotStates.Accepted));
+            state[2].should.equal(true);
+
+            const memberLen = await govDelegator.getMemberLength();
+            memberLen.should.be.equal(BigNumber.from(1));
+            const memberAddr = await govDelegator.getMember(1);
+            memberAddr.should.equal(deployer.address);
+            const [nName, nEnode, nIp, nPort] = await govDelegator.getNode(1);
+            U2S(nName).should.equal(nodeName[1]);
+            nEnode.should.equal(enode[1]);
+            U2S(nIp).should.equal(ip[1]);
+            nPort.should.be.equal(BigNumber.from(port[1]));
+        });
+
         it("cannot vote approval to change member with insufficient staking", async () => {
             await staking.connect(govMem1).deposit({ value: amount.sub(BigNumber.from("1000000000")) });
             await govDelegator.addProposalToChangeMember(
@@ -702,12 +727,20 @@ describe("Governance", function () {
             newMBF.should.be.equal(MBF);
 
             govDelegator = await ethers.getContractAt("TestGovImp", gov.address);
+            for(i=0;i<100;i++){
+                let testvar = await govDelegator.added(i);
+                testvar.should.be.equal(BigNumber.from(0));
+                await govDelegator.setAdded(i, i+1);
+                testvar = await govDelegator.added(i);
+                testvar.should.be.equal(BigNumber.from(i+1));
 
-            let testvar = await govDelegator.getTestVar();
-            testvar.should.be.equal(BigNumber.from(0));
-            await govDelegator.setTestVar(3);
-            testvar = await govDelegator.getTestVar();
-            testvar.should.be.equal(BigNumber.from(3));
+            }
+            newResult = await envDelegator.getGasLimitAndBaseFee();
+            result[0].should.be.equal(newResult[0]);
+            result[1].should.be.equal(newResult[1]);
+            result[2].should.be.equal(newResult[2]);
+            newMBF = await envDelegator.getMaxBaseFee();
+            newMBF.should.be.equal(MBF);
         });
 
         it("can vote approval to change environment", async () => {
@@ -749,6 +782,31 @@ describe("Governance", function () {
             ]);
             await govDelegator.vote(1, true);
             await expect(govDelegator.vote(1, true)).to.be.revertedWith("Expired");
+        });
+
+        it("cannot add proposal durring period time", async () => {
+            await govDelegator.addProposalToChangeEnv(
+                ethers.utils.keccak256(U2B("blocksPer")),
+                envTypes.Uint,
+                "0x0000000000000000000000000000000000000000000000000000000000000064",
+                U2B(memo[0]),
+                duration
+            );
+            await govDelegator.addProposalToChangeEnv(
+                ethers.utils.keccak256(U2B("blocksPer")),
+                envTypes.Uint,
+                "0x0000000000000000000000000000000000000000000000000000000000000064",
+                U2B(memo[0]),
+                duration
+            );
+            await govDelegator.setProposalTimePeriod(60);
+            await expect(govDelegator.addProposalToChangeEnv(
+                ethers.utils.keccak256(U2B("blocksPer")),
+                envTypes.Uint,
+                "0x0000000000000000000000000000000000000000000000000000000000000064",
+                U2B(memo[0]),
+                duration
+            )).to.be.revertedWith('Cannot add proposal too early');
         });
     });
 
@@ -1396,6 +1454,30 @@ describe("Governance", function () {
             await govDelegator.vote(2, true);
             await expect(govDelegator.connect(deployer).vote(2, true)).to.be.revertedWith("Expired");
         });
+        it("cannot add proposal durring period time", async () => {
+            await govDelegator.addProposalToChangeEnv(
+                ethers.utils.keccak256(U2B("blocksPer")),
+                envTypes.Uint,
+                "0x0000000000000000000000000000000000000000000000000000000000000064",
+                U2B(memo[0]),
+                duration
+            );
+            await govDelegator.addProposalToChangeEnv(
+                ethers.utils.keccak256(U2B("blocksPer")),
+                envTypes.Uint,
+                "0x0000000000000000000000000000000000000000000000000000000000000064",
+                U2B(memo[0]),
+                duration
+            );
+            await govDelegator.connect(deployer).setProposalTimePeriod(60);
+            await expect(govDelegator.addProposalToChangeEnv(
+                ethers.utils.keccak256(U2B("blocksPer")),
+                envTypes.Uint,
+                "0x0000000000000000000000000000000000000000000000000000000000000064",
+                U2B(memo[0]),
+                duration
+            )).to.be.revertedWith('Cannot add proposal too early');
+        });
     });
 
     describe("Two Member ", function () {
@@ -1631,6 +1713,94 @@ describe("Governance", function () {
             voting.should.be.equal(BigNumber.from(len - 1));
             await expect(govDelegator.vote(len, true)).to.be.revertedWith("Now in voting with different ballot");
         });
+
+        it("vote is ended when the sum of voting power is max", async () => {
+            //govMem2 signer
+            // let signer2 = (await ethers.getSigners())[2];
+            await staking.connect(govMem2).deposit({ value: amount });
+            await govDelegator.addProposalToAddMember([
+                govMem2.address,
+                govMem2.address,
+                govMem2.address,
+                U2B(nodeName[0]),
+                enode[0],
+                U2B(ip[0]),
+                port[0],
+                amount,
+                U2B(memo[0]),
+                duration,
+            ]);
+            const len = await govDelegator.ballotLength();
+            await govDelegator.vote(len, true);
+            const inVoting = await govDelegator.getBallotInVoting();
+            inVoting.should.be.equal(BigNumber.from(len));
+            const state = await ballotStorage.getBallotState(len);
+            state[1].should.be.equal(BigNumber.from(ballotStates.InProgress));
+            state[2].should.equal(false);
+
+            //govMem1 signer
+            // let signer1 = (await ethers.getSigners())[1];
+            await govDelegator.connect(govMem1).vote(len, false);
+            const inVoting2 = await govDelegator.getBallotInVoting();
+            inVoting2.should.be.equal(BigNumber.from(0));
+            const state2 = await ballotStorage.getBallotState(len);
+            state2[1].should.be.equal(BigNumber.from(ballotStates.Rejected));
+            state2[2].should.equal(true);
+        });
+
+        it("cannot vote approval when the voting is ended", async () => {
+            const delay_time = 1;
+            await govDelegator.addProposalToChangeEnv(
+                ethers.utils.keccak256(U2B("blocksPer")),
+                envTypes.Uint,
+                "0x0000000000000000000000000000000000000000000000000000000000000064",
+                U2B(memo[0]),
+                delay_time
+            );
+            let ballotLen = await govDelegator.ballotLength();
+            await govDelegator.vote(ballotLen, true);
+            let len = await govDelegator.voteLength();
+            len.should.be.equal(BigNumber.from(2));
+            let inVoting = await govDelegator.getBallotInVoting();
+            inVoting.should.be.equal(BigNumber.from(ballotLen));
+            let state = await ballotStorage.getBallotState(ballotLen);
+            state[1].should.be.equal(BigNumber.from(ballotStates.InProgress));
+            state[2].should.equal(false);
+
+            await sleep(delay_time * 2000);
+            await expect(govDelegator.connect(govMem1).vote(ballotLen, true)).to.be.revertedWith('Expired');
+            await govDelegator.finzalizeEndedVote();
+
+            inVoting = await govDelegator.getBallotInVoting();
+            inVoting.should.be.equal(BigNumber.from(0));
+        });
+
+        it("Non member cannot end voting ", async () => {
+            const delay_time = 1;
+            await govDelegator.addProposalToChangeEnv(
+                ethers.utils.keccak256(U2B("blocksPer")),
+                envTypes.Uint,
+                "0x0000000000000000000000000000000000000000000000000000000000000064",
+                U2B(memo[0]),
+                delay_time
+            );
+            let ballotLen = await govDelegator.ballotLength();
+            await govDelegator.vote(ballotLen, true);
+            let len = await govDelegator.voteLength();
+            len.should.be.equal(BigNumber.from(2));
+            let inVoting = await govDelegator.getBallotInVoting();
+            inVoting.should.be.equal(BigNumber.from(ballotLen));
+            let state = await ballotStorage.getBallotState(ballotLen);
+            state[1].should.be.equal(BigNumber.from(ballotStates.InProgress));
+            state[2].should.equal(false);
+    
+            await sleep(delay_time * 2000);
+            await expect(govDelegator.connect(govMem1).vote(ballotLen, true)).to.be.revertedWith('Expired');
+            await expect(govDelegator.connect(govMem3).finzalizeEndedVote()).to.be.revertedWith('No Permission');
+    
+            inVoting = await govDelegator.getBallotInVoting();
+            inVoting.should.be.equal(BigNumber.from(ballotLen));
+        });
     });
 
     describe("Others ", function () {
@@ -1704,4 +1874,8 @@ function type2Bytes(types, inputs) {
 
   let parameters = abiCoder.encode(types, inputs);
   return parameters;
+}
+
+function sleep(ms){
+    return new Promise((r)=> setTimeout(r, ms));
 }
