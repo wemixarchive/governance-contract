@@ -12,8 +12,8 @@ import "./interface/IRegistry.sol";
  *      Owner should set domain and permission.
  */
 contract Registry is Ownable, IRegistry {
-    // "Metadium Registry"
-    uint public magic = 0x4d6574616469756d205265676973747279;
+    // "Wemix Registry"
+    uint public magic = 0x57656d6978205265676973747279;
     uint public modifiedBlock;
 
     mapping(bytes32=>address) public contracts;
