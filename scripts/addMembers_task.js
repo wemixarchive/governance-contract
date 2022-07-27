@@ -1,16 +1,17 @@
-const addresses = require("../addresses"); // require("../contracts.json");
 const fs = require("fs");
+const { largeToString } = require("./utils");
 
-const accs = require("../accounts_test").accs;
-const deploy_config = require("../deploy_config_test.json");
+async function addMembers(hre, pw, addrPath, accPath, configPath) {
+    const addresses_file = fs.readFileSync(addrPath);
+    const addresses = JSON.parse(addresses_file);
+    const accs_file = fs.readFileSync(accPath);
+    const accs = JSON.parse(accs_file).accs;
+    const deploy_config_file = fs.readFileSync(configPath);
+    const deploy_config = JSON.parse(deploy_config_file);
 
-const amount = "1500000" + "0".repeat(18);
-const duration = 86400;
-
-async function addMembers(hre, pw) {
     const ethers = hre.ethers;
 
-    const BigNumber = hre.ethers.BigNumber; 
+    const BigNumber = hre.ethers.BigNumber;
 
     const U2B = ethers.utils.toUtf8Bytes;
 
@@ -24,12 +25,14 @@ async function addMembers(hre, pw) {
     members.shift();
 
     let firstMember;
+    console.log("unlock accounts");
     let accounts = await Promise.all(
-        accs.map((acc, idx)=>{
-            return ethers.Wallet.fromEncryptedJson(JSON.stringify(acc), pw).then(console.log("unlock",idx))
+        accs.map((acc) => {
+            return ethers.Wallet.fromEncryptedJson(JSON.stringify(acc), pw).then();
         })
-    )
-    for(i=0;i<accounts.length;i++){
+    );
+    console.log("unlock accounts fin");
+    for (i = 0; i < accounts.length; i++) {
         accounts[i] = accounts[i].connect(provider);
     }
     firstMember = accounts.shift();
@@ -41,12 +44,14 @@ async function addMembers(hre, pw) {
     let govDelegator = await ethers.getContractAt("GovImp", addresses.GOV_ADDRESS);
     let ballotLen = await govDelegator.ballotLength();
     let txs = [];
-    for (idx = 0; idx < accounts.length; idx++) {
-        console.log("staking ", idx);
 
-        tx = await staking.connect(accounts[idx]).deposit({ value: amount, gasLimit: txParam.gasLimit, gasPrice: txParam.gasPrice });
+    const duration = await govDelegator.getMinVotingDuration();
+    console.log("staking");
+    for (idx = 0; idx < accounts.length; idx++) {
+        tx = await staking.connect(accounts[idx]).deposit({ value: largeToString(members[idx].stake), gasLimit: txParam.gasLimit, gasPrice: txParam.gasPrice });
         txs.push(tx);
     }
+    console.log("staking fin");
     for (idx = 0; idx < accounts.length; idx++) {
         let govMemberLen = idx + 1; //await govDelegator.getMemberLength();
         console.log("Current member length : " + govMemberLen);
@@ -64,7 +69,7 @@ async function addMembers(hre, pw) {
                     members[idx].id,
                     U2B(members[idx].ip),
                     members[idx].port,
-                    amount,
+                    largeToString(members[idx].stake),
                     U2B("add member " + idx),
                     duration,
                 ],
@@ -94,14 +99,13 @@ async function addMembers(hre, pw) {
             console.log("txs.json updated!");
         }
     });
-    for(i=0;i<txs.length;i++){
+    for (i = 0; i < txs.length; i++) {
         hash = txs[i].hash;
-        receipt = await ethers.provider.getTransactionReceipt(hash)
+        receipt = await ethers.provider.getTransactionReceipt(hash);
 
-        if(receipt.status == 0){
-            console.log(i, "is not ok")
+        if (receipt.status == 0) {
+            console.log(i, "is not ok");
         }
-        else{console.log(i,"is ok")}
     }
 }
-module.exports = {addMembers}
+module.exports = { addMembers };

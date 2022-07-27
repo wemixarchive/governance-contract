@@ -10,7 +10,9 @@ const path = require("path");
 const sendTx = require("./scripts/sendTx_task").sendTxKeep;
 const setting = require("./scripts/setting_task").set;
 const changeEnv = require("./scripts/changeEnv_task").changeEnvVal;
+const deployGov = require("./scripts/deploy_task").deployGov;
 const deployTestGov = require("./scripts/deploy_test_task").deployGov;
+const deployLocalGov = require("./scripts/deploy_local_task").deployGov;
 const addMember = require("./scripts/addMembers_task").addMembers;
 
 // This is a sample Hardhat task. To learn how to create your own go to
@@ -23,15 +25,28 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
     }
 });
 
+task("deployGov", "Deploy governance contracts")
+.addParam("pw").addParam('acc').addParam('conf').setAction(async (taskArgs, hre)=>{
+    await deployGov(hre, taskArgs.pw, taskArgs.acc, taskArgs.conf);
+})
+
 task("addMember", "Add governance members")
-.addParam("pw").setAction(async (taskArgs, hre)=>{
-    await addMember(hre, taskArgs.pw);
+.addParam("pw")
+.addParam("addr")
+.addParam("acc")
+.addParam("conf")
+.setAction(async (taskArgs, hre)=>{
+    await addMember(hre, taskArgs.pw, taskArgs.addr, taskArgs.acc, taskArgs.conf);
 })
 task("deployGovTest", "Deploy governance contracts")
 .addParam("pw").setAction(async (taskArgs, hre)=>{
     await deployTestGov(hre, taskArgs.pw);
 })
 
+task("deployLocalTest", "Deploy governance contracts").addParam("conf")
+.setAction(async (taskArgs, hre)=>{
+    await deployLocalGov(hre, taskArgs.conf);
+})
 task("changeMP", "Change maxPrioirtyFeePerGas")
     .addParam("pw")
     .addParam("envValue")
@@ -91,13 +106,17 @@ module.exports = {
                 initialIndex: 0,
                 accountsBalance: "1000000000" + "0".repeat(18),
             },
+            // forking:{
+            //     url: 'https://api.test.wemix.com'
+            // },
+            allowUnlimitedContractSize : true
         },
         localhost: {
             url: "http://127.0.0.1:8545",
         },
         rpc:{
             url: rpcURL
-	    }
+        }
     },
     contractSizer: {
         runOnCompile: true,
