@@ -11,6 +11,11 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable, IEnvStorag
 
     event UpgradeImplementation(address indexed implementation);
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     function initialize(
         address _registry,
         bytes32[] memory names,
