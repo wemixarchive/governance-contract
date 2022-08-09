@@ -108,6 +108,10 @@ contract BallotStorage is  GovChecker, BallotEnums, IBallotStorage {
         address indexed updatedBy
     );
 
+    event SetPrevBallotStorage (
+        address indexed previous
+    );
+
     mapping(uint=>BallotBasic) internal ballotBasicMap;
     mapping(uint=>BallotMember) internal ballotMemberMap;
     mapping(uint=>BallotAddress) internal ballotAddressMap;
@@ -249,6 +253,7 @@ contract BallotStorage is  GovChecker, BallotEnums, IBallotStorage {
     function setPreviousBallotStorage(address _address) public onlyOwner {
         require(_address != address(0), "Invalid address");
         previousBallotStorage = _address;
+        emit SetPrevBallotStorage(_address);
     }
 
     //For MemberAdding/MemberRemoval/MemberSwap
