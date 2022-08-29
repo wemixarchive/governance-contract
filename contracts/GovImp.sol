@@ -518,9 +518,7 @@ contract GovImp is
 
     function createVote(uint256 ballotIdx, bool approval) private {
         uint256 voteIdx = voteLength + 1;
-        address staker;
-        if (isStaker(msg.sender)) staker = msg.sender;
-        else if (isVoter(msg.sender)) staker = stakers[voterIdx[msg.sender]];
+        address staker = getStakerAddr(msg.sender);
         uint256 weight = IStaking(getStakingAddress())
             .calcVotingWeightWithScaleFactor(staker, 10000);
         uint256 decision = approval
@@ -1012,8 +1010,8 @@ contract GovImp is
     }
 
     function getStakerAddr(address _addr) public view returns (address staker) {
-        if (isStaker(_addr)) staker = msg.sender;
-        else if (isVoter(_addr)) staker = stakers[voterIdx[msg.sender]];
+        if (isStaker(_addr)) staker = _addr;
+        else if (isVoter(_addr)) staker = stakers[voterIdx[_addr]];
     }
 
     function setProposalTimePeriod(uint256 newPeriod) external onlyOwner {
