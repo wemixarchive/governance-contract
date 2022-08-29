@@ -141,6 +141,8 @@ contract GovImp is
         node.enode = enode;
         node.ip = ip;
         node.port = port;
+        checkNodeInfo[getNodeInfoHash(enode, ip, port)] = true;
+        
         nodeIdxFromMember[msg.sender] = nodeLength;
         nodeToMember[nodeLength] = msg.sender;
 
@@ -212,6 +214,8 @@ contract GovImp is
             node.enode = enode;
             node.ip = ip;
             node.port = port;
+            checkNodeInfo[getNodeInfoHash(enode, ip, port)] = true;
+
             nodeToMember[idx] = addr;
             nodeIdxFromMember[addr] = idx;
         }
@@ -230,6 +234,10 @@ contract GovImp is
     {
         require(!isMember(info.staker), "Already member");
         require(info.staker == info.voter, "Staker is not voter");
+        require(
+            !checkNodeInfo[getNodeInfoHash(info.enode, info.ip, info.port)],
+            "Duplicated node info"
+        );
         ballotIdx = ballotLength + 1;
         createBallotForMember(
             ballotIdx, // ballot id
@@ -635,6 +643,8 @@ contract GovImp is
         node.enode = enode;
         node.ip = ip;
         node.port = port;
+        checkNodeInfo[getNodeInfoHash(enode, ip, port)] = true;
+
         nodeToMember[nNodeIdx] = newStaker;
         nodeIdxFromMember[newStaker] = nNodeIdx;
         node.name = name;
@@ -787,15 +797,24 @@ contract GovImp is
             }
             lock(newStaker, lockAmount);
         }
-
         // Change node
         uint256 nodeIdx = nodeIdxFromMember[oldStaker];
-        Node storage node = nodes[nodeIdx];
-        node.name = name;
-        node.enode = enode;
-        node.ip = ip;
-        node.port = port;
-        modifiedBlock = block.number;
+        {
+            Node storage node = nodes[nodeIdx];
+            // bytes32 nodeHash = getNodeInfoHash(node.enode, node.ip, node.port);
+            bytes32 newNodeHash = getNodeInfoHash(enode, ip, port);
+            if (checkNodeInfo[newNodeHash] && getNodeInfoHash(node.enode, node.ip, node.port) != newNodeHash) {
+                emit NotApplicable(ballotIdx, "Duplicated node info");
+                return false;
+            }
+
+            node.name = name;
+            node.enode = enode;
+            node.ip = ip;
+            node.port = port;
+            modifiedBlock = block.number;
+            checkNodeInfo[newNodeHash] = true;
+        }
 
         {
             address oldReward = rewards[memberIdx];
@@ -1018,6 +1037,14 @@ contract GovImp is
         require(newPeriod < 1 hours, "newPeriod is too long");
         proposal_time_period = newPeriod;
         emit SetProposalTimePeriod(newPeriod);
+    }
+
+    function getNodeInfoHash(
+        bytes memory enode,
+        bytes memory ip,
+        uint port
+    ) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked(enode, ip, port));
     }
 
     /**
