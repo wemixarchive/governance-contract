@@ -108,8 +108,8 @@ contract Staking is GovChecker, ReentrancyGuard, IStaking {
         _lock(payee, lockAmount);
     }
 
-    function lockMore(address payee, uint256 lockAmount) external onlyGovStaker {
-        _lock(payee, lockAmount);
+    function lockMore(uint256 lockAmount) external onlyGovStaker {
+        _lock(msg.sender, lockAmount);
     }
 
     function _lock(address payee, uint256 lockAmount) internal {
