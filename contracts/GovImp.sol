@@ -142,7 +142,7 @@ contract GovImp is
         node.ip = ip;
         node.port = port;
         checkNodeInfo[getNodeInfoHash(enode, ip, port)] = true;
-        
+
         nodeIdxFromMember[msg.sender] = nodeLength;
         nodeToMember[nodeLength] = msg.sender;
 
@@ -803,7 +803,15 @@ contract GovImp is
             Node storage node = nodes[nodeIdx];
             // bytes32 nodeHash = getNodeInfoHash(node.enode, node.ip, node.port);
             bytes32 newNodeHash = getNodeInfoHash(enode, ip, port);
-            if (checkNodeInfo[newNodeHash] && getNodeInfoHash(node.enode, node.ip, node.port) != newNodeHash) {
+
+            // console.logBool(checkNodeInfo[newNodeHash]);
+            // console.logBytes32(getNodeInfoHash(node.enode, node.ip, node.port));
+            // console.logBytes32(newNodeHash);
+
+            if (
+                checkNodeInfo[newNodeHash] &&
+                getNodeInfoHash(node.enode, node.ip, node.port) != newNodeHash
+            ) {
                 emit NotApplicable(ballotIdx, "Duplicated node info");
                 return false;
             }
@@ -824,13 +832,15 @@ contract GovImp is
         }
         {
             address oldVoter = voters[memberIdx];
-            if (oldVoter != newVoter && isVoter(newVoter)) {
-                emit NotApplicable(ballotIdx, "Already a voter");
-                return false;
+            if (oldVoter != newVoter) {
+                if (isVoter(newVoter)) {
+                    emit NotApplicable(ballotIdx, "Already a voter");
+                    return false;
+                }
+                voters[memberIdx] = newVoter;
+                voterIdx[newVoter] = memberIdx;
+                voterIdx[oldVoter] = 0;
             }
-            voters[memberIdx] = newVoter;
-            voterIdx[newVoter] = memberIdx;
-            voterIdx[oldVoter] = 0;
         }
 
         if (oldStaker != newStaker) {
