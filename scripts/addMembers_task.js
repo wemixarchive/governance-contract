@@ -40,7 +40,7 @@ async function addMembers(hre, pw, addrPath, accPath, configPath) {
     GL = "30000000"; //ethers.BigNumber.from(21000 * 1500);
     maxPFee = "100" + "0".repeat(9);
     let txParam = { gasLimit: GL, gasPrice: "110" + "0".repeat(9) };
-    let staking = await ethers.getContractAt("Staking", addresses.STAKING_ADDRESS);
+    let staking = await ethers.getContractAt("StakingImp", addresses.STAKING_ADDRESS);
     let govDelegator = await ethers.getContractAt("GovImp", addresses.GOV_ADDRESS);
     let ballotLen = await govDelegator.ballotLength();
     let txs = [];

@@ -35,18 +35,20 @@ async function deployGov(hre, pw, accsPath, configPath) {
     let BallotStorage = await hre.ethers.getContractFactory("BallotStorage", deployer);
     let EnvStorage = await hre.ethers.getContractFactory("EnvStorage", deployer);
     let GovImp = await hre.ethers.getContractFactory("GovImp", deployer);
+    let StakingImp = await hre.ethers.getContractFactory("StakingImp", deployer);
     let txnonce = await ethers.provider.getTransactionCount(deployer.address);
     console.log("deploy reg, envimp");
-    const [registry, envStorageImp] = await Promise.all([
+    const [registry, envStorageImp, stakingImp] = await Promise.all([
         Registry.deploy({ gasLimit: txParam.gasLimit, gasPrice: txParam.gasPrice, nonce: txnonce++ }),
         EnvStorageImp.deploy({ gasLimit: txParam.gasLimit, gasPrice: txParam.gasPrice, nonce: txnonce++ }), //await EnvStorageImp.new();
+        StakingImp.deploy({ gasLimit: txParam.gasLimit, gasPrice: txParam.gasPrice, nonce: txnonce++ }), //await EnvStorageImp.new();
     ]);
     // console.log("Waiting reg, envimp")
     // await Promise.all([ registry.deployed(), envStorageImp.deployed()])
 
     console.log("deploy staking, ballotStorage, envStorage, govImp");
     const [staking, ballotStorage, envStorage, govImp] = await Promise.all([
-        Staking.deploy(registry.address, "0x", { gasLimit: txParam.gasLimit, gasPrice: txParam.gasPrice, nonce: txnonce++ }), //await Staking.new(registry.address,"");
+        Staking.deploy(stakingImp.address, { gasLimit: txParam.gasLimit, gasPrice: txParam.gasPrice, nonce: txnonce++ }), //await Staking.new(registry.address,"");
         BallotStorage.deploy(registry.address, { gasLimit: txParam.gasLimit, gasPrice: txParam.gasPrice, nonce: txnonce++ }), //await BallotStorage.new(registry.address);
         EnvStorage.deploy(envStorageImp.address, { gasLimit: txParam.gasLimit, gasPrice: txParam.gasPrice, nonce: txnonce++ }),
         GovImp.deploy({ gasLimit: txParam.gasLimit, gasPrice: txParam.gasPrice, nonce: txnonce++ }),
@@ -58,6 +60,7 @@ async function deployGov(hre, pw, accsPath, configPath) {
 
     let Gov = await hre.ethers.getContractFactory("Gov", deployer);
     const gov = await Gov.deploy(govImp.address, { gasLimit: txParam.gasLimit, gasPrice: txParam.gasPrice, nonce: txnonce++ });
+    const stakingDelegator = await hre.ethers.getContractAt("StakingImp", staking.address, deployer);
 
     // console.log("Waiting for receipt...")
     // await Promise.all([staking.deployed(), ballotStorage.deployed(), envStorage.deployed(), govImp.deployed(), gov.deployed()]);
@@ -114,7 +117,9 @@ async function deployGov(hre, pw, accsPath, configPath) {
     // // Initialize for staking
     console.log("staking amount ", amount.toString());
     txParam = { gasLimit: GL, gasPrice: await ethers.provider.getGasPrice() };
-    tx = await staking.connect(deployer).deposit({ value: amount, gasLimit: txParam.gasLimit, gasPrice: txParam.gasPrice, nonce: txnonce++ });
+    tx = await stakingDelegator.init(registry.address, '0x',{  gasLimit: txParam.gasLimit, gasPrice: txParam.gasPrice, nonce: txnonce++ });
+    txs.push(tx)
+    tx = await stakingDelegator.connect(deployer).deposit({ value: amount, gasLimit: txParam.gasLimit, gasPrice: txParam.gasPrice, nonce: txnonce++ });
     txs.push(tx)
     // Initialize governance
     txParam = { gasLimit: GL, gasPrice: await ethers.provider.getGasPrice() };
@@ -132,12 +137,15 @@ async function deployGov(hre, pw, accsPath, configPath) {
         deploy_config.members[0].port,
         { gasLimit: txParam.gasLimit, gasPrice: txParam.gasPrice, nonce: txnonce++ }
     );
-    txs.push(tx)
+    txs.push(tx);
+    // tx = await registry.setMagicNumber("0x57656d6978205265676973747279");
+    // txs.push(tx);
     txs.push(registry.deployTransaction);
     txs.push(envStorage.deployTransaction);
     txs.push(envStorageImp.deployTransaction);
     txs.push(ballotStorage.deployTransaction);
     txs.push(staking.deployTransaction);
+    txs.push(stakingImp.deployTransaction);
     txs.push(gov.deployTransaction);
     txs.push(govImp.deployTransaction);
     let txFile = {}
@@ -156,7 +164,7 @@ async function deployGov(hre, pw, accsPath, configPath) {
     }
     receiptFile.receipts = receipts;
 
-    fs.writeFileSync('receipts.json', JSON.stringify(receiptFile, null, 2), 'utf-8');
+    fs.writeFileSync('govDeploy_receipts.json', JSON.stringify(receiptFile, null, 2), 'utf-8');
     console.log("Writing Contract Address To contracts.json");
 
     const contractData = {};
