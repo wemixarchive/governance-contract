@@ -22,6 +22,8 @@ contract Registry is Ownable, IRegistry {
     event SetContractDomain(address setter, bytes32 indexed name, address indexed addr);
     event SetPermission(bytes32 indexed _contract, address indexed granted, bool status);
 
+    constructor() Ownable(){}
+    
     /*
      * @dev Function to set contract(can be general address) domain
      *      Only owner can use this function

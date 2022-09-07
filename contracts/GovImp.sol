@@ -111,6 +111,7 @@ contract GovImp is
         uint port
     ) public initializer {
         require(lockAmount > 0, "lockAmount should be more then zero");
+        __ReentrancyGuard_init();
         __Ownable_init();
         setRegistry(registry);
 
@@ -150,6 +151,7 @@ contract GovImp is
     }
 
     function initOnce(address registry, bytes memory data) public initializer {
+        __ReentrancyGuard_init();
         __Ownable_init();
         setRegistry(registry);
 
@@ -480,7 +482,7 @@ contract GovImp is
         return true;
     }
 
-    function finzalizeEndedVote() public onlyGovMem {
+    function finalizeEndedVote() public onlyGovMem {
         require(!checkUnfinalized(), "Voting is not ended");
         finalizeBallot(ballotInVoting, uint256(BallotStates.Rejected));
         ballotInVoting = 0;
