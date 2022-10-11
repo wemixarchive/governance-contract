@@ -828,9 +828,11 @@ contract GovImp is
 
         {
             address oldReward = rewards[memberIdx];
-            rewards[memberIdx] = newReward;
-            rewardIdx[newReward] = memberIdx;
-            rewardIdx[oldReward] = 0;
+            if (oldReward != newReward) {
+                rewards[memberIdx] = newReward;
+                rewardIdx[newReward] = memberIdx;
+                rewardIdx[oldReward] = 0;
+            }
         }
         {
             address oldVoter = voters[memberIdx];
