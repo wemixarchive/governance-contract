@@ -142,7 +142,10 @@ contract GovImp is
         node.enode = enode;
         node.ip = ip;
         node.port = port;
-        checkNodeInfo[getNodeInfoHash(enode, ip, port)] = true;
+        checkNodeName[name] = true;
+        checkNodeEnode[enode] = true;
+
+        checkNodeIpPort[keccak256(abi.encodePacked(ip, port))] = true;
 
         nodeIdxFromMember[msg.sender] = nodeLength;
         nodeToMember[nodeLength] = msg.sender;
@@ -216,7 +219,10 @@ contract GovImp is
             node.enode = enode;
             node.ip = ip;
             node.port = port;
-            checkNodeInfo[getNodeInfoHash(enode, ip, port)] = true;
+            // checkNodeInfo[getNodeInfoHash(enode, ip, port)] = true;
+            checkNodeName[name] = true;
+            checkNodeEnode[enode] = true;
+            checkNodeIpPort[keccak256(abi.encodePacked(ip, port))] = true;
 
             nodeToMember[idx] = addr;
             nodeIdxFromMember[addr] = idx;
@@ -237,7 +243,7 @@ contract GovImp is
         require(!isMember(info.staker), "Already member");
         require(info.staker == info.voter, "Staker is not voter");
         require(
-            !checkNodeInfo[getNodeInfoHash(info.enode, info.ip, info.port)],
+            checkNodeInfoAdd(info.name, info.enode, info.ip, info.port),
             "Duplicated node info"
         );
         ballotIdx = ballotLength + 1;
@@ -642,10 +648,14 @@ contract GovImp is
         uint256 nNodeIdx = nodeLength + 1;
         Node storage node = nodes[nNodeIdx];
 
+        node.name = name;
         node.enode = enode;
         node.ip = ip;
         node.port = port;
-        checkNodeInfo[getNodeInfoHash(enode, ip, port)] = true;
+        // checkNodeInfo[getNodeInfoHash(enode, ip, port)] = true;
+        checkNodeName[name] = true;
+        checkNodeEnode[enode] = true;
+        checkNodeIpPort[keccak256(abi.encodePacked(ip, port))] = true;
 
         nodeToMember[nNodeIdx] = newStaker;
         nodeIdxFromMember[newStaker] = nNodeIdx;
@@ -715,11 +725,15 @@ contract GovImp is
         }
         memberLength = memberLength - 1;
         // Remove node
+
+        Node storage node = nodes[removeIdx];
+        checkNodeEnode[node.enode] = false;
+        checkNodeName[node.name] = false;
+        checkNodeIpPort[keccak256(abi.encodePacked(node.ip, node.port))] = false;
         if (nodeIdxFromMember[oldStaker] != nodeLength) {
             removeIdx = nodeIdxFromMember[oldStaker];
             endAddr = nodeToMember[nodeLength];
 
-            Node storage node = nodes[removeIdx];
             node.name = nodes[nodeLength].name;
             node.enode = nodes[nodeLength].enode;
             node.ip = nodes[nodeLength].ip;
@@ -803,34 +817,37 @@ contract GovImp is
         uint256 nodeIdx = nodeIdxFromMember[oldStaker];
         {
             Node storage node = nodes[nodeIdx];
-            // bytes32 nodeHash = getNodeInfoHash(node.enode, node.ip, node.port);
-            bytes32 newNodeHash = getNodeInfoHash(enode, ip, port);
-
-            // console.logBool(checkNodeInfo[newNodeHash]);
-            // console.logBytes32(getNodeInfoHash(node.enode, node.ip, node.port));
-            // console.logBytes32(newNodeHash);
 
             if (
-                checkNodeInfo[newNodeHash] &&
-                getNodeInfoHash(node.enode, node.ip, node.port) != newNodeHash
+                //if node info is not same
+                // node info can not duplicate
+                !checkNodeInfoChange(name, enode, ip, port, node)
             ) {
                 emit NotApplicable(ballotIdx, "Duplicated node info");
                 return false;
             }
+            checkNodeName[node.name] = false;
+            checkNodeEnode[node.enode] = false;
+            checkNodeIpPort[keccak256(abi.encodePacked(node.ip, node.port))] = false;
 
             node.name = name;
             node.enode = enode;
             node.ip = ip;
             node.port = port;
             modifiedBlock = block.number;
-            checkNodeInfo[newNodeHash] = true;
+            // checkNodeInfo[getNodeInfoHash(enode, ip, port)] = true;
+            checkNodeName[name] = true;
+            checkNodeEnode[enode] = true;
+            checkNodeIpPort[keccak256(abi.encodePacked(ip, port))] = true;
         }
 
         {
             address oldReward = rewards[memberIdx];
-            rewards[memberIdx] = newReward;
-            rewardIdx[newReward] = memberIdx;
-            rewardIdx[oldReward] = 0;
+            if (oldReward != newReward) {
+                rewards[memberIdx] = newReward;
+                rewardIdx[newReward] = memberIdx;
+                rewardIdx[oldReward] = 0;
+            }
         }
         {
             address oldVoter = voters[memberIdx];
@@ -1051,12 +1068,45 @@ contract GovImp is
         emit SetProposalTimePeriod(newPeriod);
     }
 
-    function getNodeInfoHash(
+    function checkNodeInfoAdd(
+        bytes memory name,
         bytes memory enode,
         bytes memory ip,
         uint port
-    ) internal pure returns (bytes32) {
-        return keccak256(abi.encodePacked(enode, ip, port));
+    ) internal view returns (bool check) {
+        //Enode can not be duplicated
+        //IP:port can not be duplicated
+        //Name can not be duplicated
+        check = true;
+        if(checkNodeEnode[enode]) 
+            check = false;
+        if(checkNodeName[name])
+            check = false;
+
+        bytes32 hvalue = keccak256(abi.encodePacked(ip, port));
+        if(checkNodeIpPort[hvalue])
+            check = false;
+    }
+
+    function checkNodeInfoChange(
+        bytes memory name,
+        bytes memory enode,
+        bytes memory ip,
+        uint port,
+        Node memory nodeInfo
+    ) internal view returns (bool check) {
+        //Enode can not be duplicated
+        //IP:port can not be duplicated
+        //Name can not be duplicated
+        check = true;
+        if((keccak256(nodeInfo.enode) != keccak256(enode) && checkNodeEnode[enode]) )
+            check = false;
+        if((keccak256(nodeInfo.name) != keccak256(name) && checkNodeName[name]))
+            check = false;
+
+        bytes32 hvalue = keccak256(abi.encodePacked(ip, port));
+        if((keccak256(abi.encodePacked(nodeInfo.ip, nodeInfo.port)) != hvalue && checkNodeIpPort[hvalue]))
+            check = false;
     }
 
     /**

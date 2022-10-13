@@ -27,15 +27,31 @@ const zeroAddress = "0x" + "0".repeat(40);
 // const EnvStorageImp = artifacts.require('EnvStorageImp.sol');
 
 const amount = BigNumber.from("1500000" + "0".repeat(18));
-const nodeName = ["Meta001", "Meta002"];
+const nodeName = ["Meta001", "Meta002", "Meta003", "Meta004"];
+const changeNodeName = ["Meta001", "Meta002", "Meta003", "Meta004"];
 const enode = [
     // eslint-disable-next-line max-len
     "0x6f8a80d14311c39f35f516fa664deaaaa13e85b2f7493f37f6144d86991ec012937307647bd3b9a82abe2974e1407241d54947bbb39763a4cac9f77166ad92a0",
     // eslint-disable-next-line max-len
     "0x777777777711c39f35f516fa664deaaaa13e85b2f7493f37f6144d86991ec012937307647bd3b9a82abe2974e1407241d54947bbb39763a4cac9f77166ad92a0",
+    // eslint-disable-next-line max-len
+    "0x888777777711c39f35f516fa664deaaaa13e85b2f7493f37f6144d86991ec012937307647bd3b9a82abe2974e1407241d54947bbb39763a4cac9f77166ad92a1",
+    // eslint-disable-next-line max-len
+    "0x999777777711c39f35f516fa664deaaaa13e85b2f7493f37f6144d86991ec012937307647bd3b9a82abe2974e1407241d54947bbb39763a4cac9f77166ad92a1"
 ];
-const ip = ["127.0.0.1", "127.0.0.2"];
-const port = [8542, 8542];
+const changeEnode = [
+    // eslint-disable-next-line max-len
+    "0x0f8a80d14311c39f35f516fa664deaaaa13e85b2f7493f37f6144d86991ec012937307647bd3b9a82abe2974e1407241d54947bbb39763a4cac9f77166ad92a0",
+    // eslint-disable-next-line max-len
+    "0x177777777711c39f35f516fa664deaaaa13e85b2f7493f37f6144d86991ec012937307647bd3b9a82abe2974e1407241d54947bbb39763a4cac9f77166ad92a0",
+    // eslint-disable-next-line max-len
+    "0x288777777711c39f35f516fa664deaaaa13e85b2f7493f37f6144d86991ec012937307647bd3b9a82abe2974e1407241d54947bbb39763a4cac9f77166ad92a1",
+    // eslint-disable-next-line max-len
+    "0x399777777711c39f35f516fa664deaaaa13e85b2f7493f37f6144d86991ec012937307647bd3b9a82abe2974e1407241d54947bbb39763a4cac9f77166ad92a1"
+];
+const ip = ["127.0.0.1", "127.0.0.2", "127.0.0.3", "127.0.0.4"];
+const changeIp = ["127.0.0.5", "127.0.0.6", "127.0.0.7", "127.0.0.8"];
+const port = [8542, 8542, 8542,8542];
 const memo = ["memo1", "memo2"];
 const envName = "key";
 const envVal = "value";
@@ -83,7 +99,7 @@ const envTypes = {
 
 describe("Governance", function () {
     let deployer, govMem1, govMem2, govMem3, govMem4, govMem5, user1;
-    let registry, staking, ballotStorage, govImp, gov, govDelegator, envStorage, envStorageImp, envDelegator;
+    let registry, staking, stakingImp, ballotStorage, govImp, gov, govDelegator, envStorage, envStorageImp, envDelegator;
 
     beforeEach("deploy", async () => {
         let accs = await hre.ethers.getSigners();
@@ -111,9 +127,14 @@ describe("Governance", function () {
         let BallotStorage = await hre.ethers.getContractFactory("BallotStorage");
         // console.log("ballot deploy")
         ballotStorage = await BallotStorage.deploy(registry.address); //await BallotStorage.new(registry.address);
+        let StakingImp = await hre.ethers.getContractFactory("StakingImp");
+        stakingImp = await StakingImp.deploy();
         let Staking = await hre.ethers.getContractFactory("Staking");
         // console.log("staking deploy")
-        staking = await Staking.deploy(registry.address, "0x"); //await Staking.new(registry.address,"");
+        staking = await Staking.deploy(stakingImp.address); //await Staking.new(registry.address,"");
+        staking = await hre.ethers.getContractAt("StakingImp", staking.address, deployer);
+        await staking.init(registry.address, "0x");
+
         let GovImp = await hre.ethers.getContractFactory("GovImp");
         // console.log("govImp deploy")
         govImp = await GovImp.deploy();
@@ -121,7 +142,6 @@ describe("Governance", function () {
         // console.log("gov deploy")
         gov = await Gov.deploy(govImp.address);
 
-        // console.log("set contracts in registry")
         await registry.setContractDomain(B322S("EnvStorage"), envStorage.address);
         await registry.setContractDomain(B322S("BallotStorage"), ballotStorage.address);
         await registry.setContractDomain(B322S("Staking"), staking.address);
@@ -140,6 +160,7 @@ describe("Governance", function () {
         await envDelegator.initialize(registry.address, envNamesBytes, envVariables);
 
         // Initialize for staking
+        // await staking.connect(deployer).deposit({ value: amount });
         await staking.connect(deployer).deposit({ value: amount });
 
         govDelegator = await hre.ethers.getContractAt("GovImp", gov.address); //await GovImp.at(govDelegator.address);
@@ -178,7 +199,7 @@ describe("Governance", function () {
             U2S(nName).should.equal(nodeName[0]);
             nEnode.should.equal(enode[0]);
             U2S(nIp).should.equal(ip[0]);
-            nPort.should.be.equal(BigNumber.from(port[0]));
+            expect(nPort).be.equal(BigNumber.from(port[0]));
         });
 
         it("cannot init twice", async () => {
@@ -228,9 +249,9 @@ describe("Governance", function () {
                 govMem1.address,
                 govMem1.address,
                 govMem1.address,
-                U2B(nodeName[0]),
-                enode[0],
-                U2B(ip[0]),
+                U2B(nodeName[1]),
+                enode[1],
+                U2B(ip[1]),
                 port[0],
                 amount,
                 U2B(memo[0]),
@@ -248,9 +269,9 @@ describe("Governance", function () {
                 govMem1.address,
                 govMem1.address,
                 govMem1.address,
-                U2B(nodeName[0]),
-                enode[0],
-                U2B(ip[0]),
+                U2B(nodeName[1]),
+                enode[1],
+                U2B(ip[1]),
                 port[0],
                 amount,
                 U2B(memo[1]),
@@ -318,6 +339,206 @@ describe("Governance", function () {
             newVoter.should.be.equal(voter1.address);
             let newReward = await govDelegator.getReward(1);
             newReward.should.be.equal(user1.address);
+        });
+
+        it(`can addProposal to change member's other addresses self without voting twice about node name`, async () => {
+            let oldMember = await govDelegator.getMember(1);
+            oldMember.should.be.equal(deployer.address);
+            let oldVoter = await govDelegator.getVoter(1);
+            oldVoter.should.be.equal(deployer.address);
+            let oldReward = await govDelegator.getVoter(1);
+            oldReward.should.be.equal(deployer.address);
+            // console.log(result);
+            await govDelegator.addProposalToChangeMember(
+                [deployer.address, deployer.address, deployer.address, U2B(nodeName[1]), enode[0], U2B(ip[0]), port[0], amount, U2B(memo[0]), duration],
+                deployer.address
+            );
+            let len = await govDelegator.ballotLength();
+            len.should.be.equal(BigNumber.from(1));
+
+            let inVoting = await govDelegator.getBallotInVoting();
+            inVoting.should.be.equal(BigNumber.from(0));
+            let state = await ballotStorage.getBallotState(len);
+            state[1].should.be.equal(BigNumber.from(ballotStates.Accepted));
+            state[2].should.equal(true);
+
+            let newMember = await govDelegator.getMember(1);
+            newMember.should.be.equal(deployer.address);
+            let newVoter = await govDelegator.getVoter(1);
+            newVoter.should.be.equal(deployer.address);
+            let newReward = await govDelegator.getReward(1);
+            newReward.should.be.equal(deployer.address);
+
+
+            await govDelegator.addProposalToChangeMember(
+                [deployer.address, deployer.address, deployer.address, U2B(nodeName[0]), enode[0], U2B(ip[0]), port[0], amount, U2B(memo[0]), duration],
+                deployer.address
+            );
+            len = await govDelegator.ballotLength();
+            len.should.be.equal(BigNumber.from(2));
+
+            inVoting = await govDelegator.getBallotInVoting();
+            inVoting.should.be.equal(BigNumber.from(0));
+            state = await ballotStorage.getBallotState(len);
+            state[1].should.be.equal(BigNumber.from(ballotStates.Accepted));
+            state[2].should.equal(true);
+
+            newMember = await govDelegator.getMember(1);
+            newMember.should.be.equal(deployer.address);
+            newVoter = await govDelegator.getVoter(1);
+            newVoter.should.be.equal(deployer.address);
+            newReward = await govDelegator.getReward(1);
+            newReward.should.be.equal(deployer.address);
+        });
+
+        it(`can addProposal to change member's other addresses self without voting twice about enode`, async () => {
+            let oldMember = await govDelegator.getMember(1);
+            oldMember.should.be.equal(deployer.address);
+            let oldVoter = await govDelegator.getVoter(1);
+            oldVoter.should.be.equal(deployer.address);
+            let oldReward = await govDelegator.getVoter(1);
+            oldReward.should.be.equal(deployer.address);
+            // console.log(result);
+            await govDelegator.addProposalToChangeMember(
+                [deployer.address, deployer.address, deployer.address, U2B(nodeName[0]), enode[1], U2B(ip[0]), port[0], amount, U2B(memo[0]), duration],
+                deployer.address
+            );
+            let len = await govDelegator.ballotLength();
+            len.should.be.equal(BigNumber.from(1));
+
+            let inVoting = await govDelegator.getBallotInVoting();
+            inVoting.should.be.equal(BigNumber.from(0));
+            let state = await ballotStorage.getBallotState(len);
+            state[1].should.be.equal(BigNumber.from(ballotStates.Accepted));
+            state[2].should.equal(true);
+
+            let newMember = await govDelegator.getMember(1);
+            newMember.should.be.equal(deployer.address);
+            let newVoter = await govDelegator.getVoter(1);
+            newVoter.should.be.equal(deployer.address);
+            let newReward = await govDelegator.getReward(1);
+            newReward.should.be.equal(deployer.address);
+
+
+            await govDelegator.addProposalToChangeMember(
+                [deployer.address, deployer.address, deployer.address, U2B(nodeName[0]), enode[0], U2B(ip[0]), port[0], amount, U2B(memo[0]), duration],
+                deployer.address
+            );
+            len = await govDelegator.ballotLength();
+            len.should.be.equal(BigNumber.from(2));
+
+            inVoting = await govDelegator.getBallotInVoting();
+            inVoting.should.be.equal(BigNumber.from(0));
+            state = await ballotStorage.getBallotState(len);
+            state[1].should.be.equal(BigNumber.from(ballotStates.Accepted));
+            state[2].should.equal(true);
+
+            newMember = await govDelegator.getMember(1);
+            newMember.should.be.equal(deployer.address);
+            newVoter = await govDelegator.getVoter(1);
+            newVoter.should.be.equal(deployer.address);
+            newReward = await govDelegator.getReward(1);
+            newReward.should.be.equal(deployer.address);
+        });
+
+        it(`can addProposal to change member's other addresses self without voting twice about ipport`, async () => {
+            let oldMember = await govDelegator.getMember(1);
+            oldMember.should.be.equal(deployer.address);
+            let oldVoter = await govDelegator.getVoter(1);
+            oldVoter.should.be.equal(deployer.address);
+            let oldReward = await govDelegator.getVoter(1);
+            oldReward.should.be.equal(deployer.address);
+            // console.log(result);
+            await govDelegator.addProposalToChangeMember(
+                [deployer.address, deployer.address, deployer.address, U2B(nodeName[0]), enode[0], U2B(ip[1]), port[0], amount, U2B(memo[0]), duration],
+                deployer.address
+            );
+            let len = await govDelegator.ballotLength();
+            len.should.be.equal(BigNumber.from(1));
+
+            let inVoting = await govDelegator.getBallotInVoting();
+            inVoting.should.be.equal(BigNumber.from(0));
+            let state = await ballotStorage.getBallotState(len);
+            state[1].should.be.equal(BigNumber.from(ballotStates.Accepted));
+            state[2].should.equal(true);
+
+            let newMember = await govDelegator.getMember(1);
+            newMember.should.be.equal(deployer.address);
+            let newVoter = await govDelegator.getVoter(1);
+            newVoter.should.be.equal(deployer.address);
+            let newReward = await govDelegator.getReward(1);
+            newReward.should.be.equal(deployer.address);
+
+
+            await govDelegator.addProposalToChangeMember(
+                [deployer.address, deployer.address, deployer.address, U2B(nodeName[0]), enode[0], U2B(ip[0]), port[0], amount, U2B(memo[0]), duration],
+                deployer.address
+            );
+            len = await govDelegator.ballotLength();
+            len.should.be.equal(BigNumber.from(2));
+
+            inVoting = await govDelegator.getBallotInVoting();
+            inVoting.should.be.equal(BigNumber.from(0));
+            state = await ballotStorage.getBallotState(len);
+            state[1].should.be.equal(BigNumber.from(ballotStates.Accepted));
+            state[2].should.equal(true);
+
+            newMember = await govDelegator.getMember(1);
+            newMember.should.be.equal(deployer.address);
+            newVoter = await govDelegator.getVoter(1);
+            newVoter.should.be.equal(deployer.address);
+            newReward = await govDelegator.getReward(1);
+            newReward.should.be.equal(deployer.address);
+        });
+
+        it(`can addProposal to change member's other addresses self without voting twice about ipport2`, async () => {
+            let oldMember = await govDelegator.getMember(1);
+            oldMember.should.be.equal(deployer.address);
+            let oldVoter = await govDelegator.getVoter(1);
+            oldVoter.should.be.equal(deployer.address);
+            let oldReward = await govDelegator.getVoter(1);
+            oldReward.should.be.equal(deployer.address);
+            // console.log(result);
+            await govDelegator.addProposalToChangeMember(
+                [deployer.address, deployer.address, deployer.address, U2B(nodeName[0]), enode[0], U2B(ip[0]), port[1], amount, U2B(memo[0]), duration],
+                deployer.address
+            );
+            let len = await govDelegator.ballotLength();
+            len.should.be.equal(BigNumber.from(1));
+
+            let inVoting = await govDelegator.getBallotInVoting();
+            inVoting.should.be.equal(BigNumber.from(0));
+            let state = await ballotStorage.getBallotState(len);
+            state[1].should.be.equal(BigNumber.from(ballotStates.Accepted));
+            state[2].should.equal(true);
+
+            let newMember = await govDelegator.getMember(1);
+            newMember.should.be.equal(deployer.address);
+            let newVoter = await govDelegator.getVoter(1);
+            newVoter.should.be.equal(deployer.address);
+            let newReward = await govDelegator.getReward(1);
+            newReward.should.be.equal(deployer.address);
+
+
+            await govDelegator.addProposalToChangeMember(
+                [deployer.address, deployer.address, deployer.address, U2B(nodeName[0]), enode[0], U2B(ip[0]), port[0], amount, U2B(memo[0]), duration],
+                deployer.address
+            );
+            len = await govDelegator.ballotLength();
+            len.should.be.equal(BigNumber.from(2));
+
+            inVoting = await govDelegator.getBallotInVoting();
+            inVoting.should.be.equal(BigNumber.from(0));
+            state = await ballotStorage.getBallotState(len);
+            state[1].should.be.equal(BigNumber.from(ballotStates.Accepted));
+            state[2].should.equal(true);
+
+            newMember = await govDelegator.getMember(1);
+            newMember.should.be.equal(deployer.address);
+            newVoter = await govDelegator.getVoter(1);
+            newVoter.should.be.equal(deployer.address);
+            newReward = await govDelegator.getReward(1);
+            newReward.should.be.equal(deployer.address);
         });
 
         // it('can addProposal to change staker with voting', async () => {
@@ -397,9 +618,9 @@ describe("Governance", function () {
                 govMem1.address,
                 govMem1.address,
                 govMem1.address,
-                U2B(nodeName[0]),
-                enode[0],
-                U2B(ip[0]),
+                U2B(nodeName[1]),
+                enode[1],
+                U2B(ip[1]),
                 port[0],
                 amount,
                 U2B(memo[0]),
@@ -434,9 +655,9 @@ describe("Governance", function () {
                 govMem1.address,
                 govMem1.address,
                 govMem1.address,
-                U2B(nodeName[0]),
-                enode[0],
-                U2B(ip[0]),
+                U2B(nodeName[1]),
+                enode[1],
+                U2B(ip[1]),
                 port[0],
                 amount,
                 U2B(memo[0]),
@@ -461,9 +682,9 @@ describe("Governance", function () {
                 govMem1.address,
                 govMem1.address,
                 govMem1.address,
-                U2B(nodeName[0]),
-                enode[0],
-                U2B(ip[0]),
+                U2B(nodeName[1]),
+                enode[1],
+                U2B(ip[1]),
                 port[0],
                 amount,
                 U2B(memo[0]),
@@ -486,9 +707,9 @@ describe("Governance", function () {
                 govMem1.address,
                 govMem1.address,
                 govMem1.address,
-                U2B(nodeName[0]),
-                enode[0],
-                U2B(ip[0]),
+                U2B(nodeName[1]),
+                enode[1],
+                U2B(ip[1]),
                 port[0],
                 amount,
                 U2B(memo[0]),
@@ -548,9 +769,9 @@ describe("Governance", function () {
                 govMem1.address,
                 govMem1.address,
                 govMem1.address,
-                U2B(nodeName[0]),
-                enode[0],
-                U2B(ip[0]),
+                U2B(nodeName[1]),
+                enode[1],
+                U2B(ip[1]),
                 port[0],
                 amount,
                 U2B(memo[0]),
@@ -727,13 +948,12 @@ describe("Governance", function () {
             newMBF.should.be.equal(MBF);
 
             govDelegator = await ethers.getContractAt("TestGovImp", gov.address);
-            for(i=0;i<100;i++){
+            for (i = 0; i < 100; i++) {
                 let testvar = await govDelegator.added(i);
                 testvar.should.be.equal(BigNumber.from(0));
-                await govDelegator.setAdded(i, i+1);
+                await govDelegator.setAdded(i, i + 1);
                 testvar = await govDelegator.added(i);
-                testvar.should.be.equal(BigNumber.from(i+1));
-
+                testvar.should.be.equal(BigNumber.from(i + 1));
             }
             newResult = await envDelegator.getGasLimitAndBaseFee();
             result[0].should.be.equal(newResult[0]);
@@ -772,9 +992,9 @@ describe("Governance", function () {
                 govMem1.address,
                 govMem1.address,
                 govMem1.address,
-                U2B(nodeName[0]),
-                enode[0],
-                U2B(ip[0]),
+                U2B(nodeName[1]),
+                enode[1],
+                U2B(ip[1]),
                 port[0],
                 amount,
                 U2B(memo[0]),
@@ -800,13 +1020,15 @@ describe("Governance", function () {
                 duration
             );
             await govDelegator.setProposalTimePeriod(60);
-            await expect(govDelegator.addProposalToChangeEnv(
-                ethers.utils.keccak256(U2B("blocksPer")),
-                envTypes.Uint,
-                "0x0000000000000000000000000000000000000000000000000000000000000064",
-                U2B(memo[0]),
-                duration
-            )).to.be.revertedWith('Cannot add proposal too early');
+            await expect(
+                govDelegator.addProposalToChangeEnv(
+                    ethers.utils.keccak256(U2B("blocksPer")),
+                    envTypes.Uint,
+                    "0x0000000000000000000000000000000000000000000000000000000000000064",
+                    U2B(memo[0]),
+                    duration
+                )
+            ).to.be.revertedWith("Cannot add proposal too early");
         });
     });
 
@@ -861,9 +1083,9 @@ describe("Governance", function () {
                 govMem1.address,
                 govMem1.address,
                 govMem1.address,
-                U2B(nodeName[0]),
-                enode[0],
-                U2B(ip[0]),
+                U2B(nodeName[1]),
+                enode[1],
+                U2B(ip[1]),
                 port[0],
                 amount,
                 U2B(memo[0]),
@@ -881,9 +1103,9 @@ describe("Governance", function () {
                 govMem1.address,
                 govMem1.address,
                 govMem1.address,
-                U2B(nodeName[0]),
-                enode[0],
-                U2B(ip[0]),
+                U2B(nodeName[1]),
+                enode[1],
+                U2B(ip[1]),
                 port[0],
                 amount,
                 U2B(memo[1]),
@@ -960,9 +1182,9 @@ describe("Governance", function () {
                 govMem1.address,
                 govMem1.address,
                 govMem1.address,
-                U2B(nodeName[0]),
-                enode[0],
-                U2B(ip[0]),
+                U2B(nodeName[1]),
+                enode[1],
+                U2B(ip[1]),
                 port[0],
                 amount,
                 U2B(memo[0]),
@@ -1005,9 +1227,9 @@ describe("Governance", function () {
                 govMem1.address,
                 govMem1.address,
                 govMem1.address,
-                U2B(nodeName[0]),
-                enode[0],
-                U2B(ip[0]),
+                U2B(nodeName[1]),
+                enode[1],
+                U2B(ip[1]),
                 port[0],
                 amount,
                 U2B(memo[0]),
@@ -1015,10 +1237,12 @@ describe("Governance", function () {
             ]);
             // console.log(result);
             let memberLen = await govDelegator.getMemberLength();
-            await govDelegator.connect(deployer).addProposalToChangeMember(
+            await govDelegator
+                .connect(deployer)
+                .addProposalToChangeMember(
                     [deployer.address, govMem1.address, user1.address, U2B(nodeName[0]), enode[0], U2B(ip[0]), port[0], amount, U2B(memo[0]), duration],
                     deployer.address
-            )
+                );
             govDelegator = govDelegator.connect(govMem1);
 
             let newMember = await govDelegator.getMember(memberLen);
@@ -1027,7 +1251,7 @@ describe("Governance", function () {
             newVoter.should.be.equal(govMem1.address);
             let newReward = await govDelegator.getReward(memberLen);
             newReward.should.be.equal(user1.address);
-            
+
             await govDelegator.vote(2, true);
 
             const len = await govDelegator.voteLength();
@@ -1048,51 +1272,45 @@ describe("Governance", function () {
         });
 
         it(`cannot addProposal to change member which is already voter`, async () => {
-          await staking.connect(govMem1).deposit({ value: amount });
-          await govDelegator.addProposalToChangeMember([
-              govMem1.address,
-              govMem1.address,
-              govMem1.address,
-              U2B(nodeName[0]),
-              enode[0],
-              U2B(ip[0]),
-              port[0],
-              amount,
-              U2B(memo[0]),
-              duration,
-          ], deployer.address);
-          let memberLen = await govDelegator.getMemberLength();
-          await govDelegator.connect(deployer).addProposalToChangeMember(
-                  [deployer.address, govMem1.address, user1.address, U2B(nodeName[0]), enode[0], U2B(ip[0]), port[0], amount, U2B(memo[0]), duration],
-                  deployer.address
-          )
-          govDelegator = govDelegator.connect(govMem1);
+            await staking.connect(govMem1).deposit({ value: amount });
+            await govDelegator.addProposalToChangeMember(
+                [govMem1.address, govMem1.address, govMem1.address, U2B(nodeName[0]), enode[0], U2B(ip[0]), port[0], amount, U2B(memo[0]), duration],
+                deployer.address
+            );
+            let memberLen = await govDelegator.getMemberLength();
+            await govDelegator
+                .connect(deployer)
+                .addProposalToChangeMember(
+                    [deployer.address, govMem1.address, user1.address, U2B(nodeName[0]), enode[0], U2B(ip[0]), port[0], amount, U2B(memo[0]), duration],
+                    deployer.address
+                );
+            govDelegator = govDelegator.connect(govMem1);
 
-          let newMember = await govDelegator.getMember(memberLen);
-          newMember.should.be.equal(deployer.address);
-          let newVoter = await govDelegator.getVoter(memberLen);
-          newVoter.should.be.equal(govMem1.address);
-          let newReward = await govDelegator.getReward(memberLen);
-          newReward.should.be.equal(user1.address);
-          
-          await govDelegator.vote(2, true);
+            let newMember = await govDelegator.getMember(memberLen);
+            newMember.should.be.equal(deployer.address);
+            let newVoter = await govDelegator.getVoter(memberLen);
+            newVoter.should.be.equal(govMem1.address);
+            let newReward = await govDelegator.getReward(memberLen);
+            newReward.should.be.equal(user1.address);
 
-          const len = await govDelegator.voteLength();
-          len.should.be.equal(BigNumber.from(1));
-          const inVoting = await govDelegator.getBallotInVoting();
-          inVoting.should.be.equal(BigNumber.from(0));
-          const state = await ballotStorage.getBallotState(2);
-          state[1].should.be.equal(BigNumber.from(ballotStates.Rejected));
-          state[2].should.equal(true);
-          memberLen = await govDelegator.getMemberLength();
-          memberLen.should.be.equal(BigNumber.from(1));
-          const nodeLen = await govDelegator.getNodeLength();
-          nodeLen.should.be.equal(BigNumber.from(memberLen));
-          const lock = await staking.lockedBalanceOf(govMem1.address);
-          lock.should.be.equal(BigNumber.from(0));
-          const bal = await staking.balanceOf(govMem1.address);
-          bal.should.be.equal(BigNumber.from(amount));
-      });
+            await govDelegator.vote(2, true);
+
+            const len = await govDelegator.voteLength();
+            len.should.be.equal(BigNumber.from(1));
+            const inVoting = await govDelegator.getBallotInVoting();
+            inVoting.should.be.equal(BigNumber.from(0));
+            const state = await ballotStorage.getBallotState(2);
+            state[1].should.be.equal(BigNumber.from(ballotStates.Rejected));
+            state[2].should.equal(true);
+            memberLen = await govDelegator.getMemberLength();
+            memberLen.should.be.equal(BigNumber.from(1));
+            const nodeLen = await govDelegator.getNodeLength();
+            nodeLen.should.be.equal(BigNumber.from(memberLen));
+            const lock = await staking.lockedBalanceOf(govMem1.address);
+            lock.should.be.equal(BigNumber.from(0));
+            const bal = await staking.balanceOf(govMem1.address);
+            bal.should.be.equal(BigNumber.from(amount));
+        });
 
         // it('can addProposal to change staker with voting', async () => {
         //   await staking.connect(govMem1).deposit({value:amount});
@@ -1171,9 +1389,9 @@ describe("Governance", function () {
                 govMem1.address,
                 govMem1.address,
                 govMem1.address,
-                U2B(nodeName[0]),
-                enode[0],
-                U2B(ip[0]),
+                U2B(nodeName[1]),
+                enode[1],
+                U2B(ip[1]),
                 port[0],
                 amount,
                 U2B(memo[0]),
@@ -1209,9 +1427,9 @@ describe("Governance", function () {
                 govMem1.address,
                 govMem1.address,
                 govMem1.address,
-                U2B(nodeName[0]),
-                enode[0],
-                U2B(ip[0]),
+                U2B(nodeName[1]),
+                enode[1],
+                U2B(ip[1]),
                 port[0],
                 amount,
                 U2B(memo[0]),
@@ -1236,9 +1454,9 @@ describe("Governance", function () {
                 govMem1.address,
                 govMem1.address,
                 govMem1.address,
-                U2B(nodeName[0]),
-                enode[0],
-                U2B(ip[0]),
+                U2B(nodeName[1]),
+                enode[1],
+                U2B(ip[1]),
                 port[0],
                 amount,
                 U2B(memo[0]),
@@ -1261,9 +1479,9 @@ describe("Governance", function () {
                 govMem1.address,
                 govMem1.address,
                 govMem1.address,
-                U2B(nodeName[0]),
-                enode[0],
-                U2B(ip[0]),
+                U2B(nodeName[1]),
+                enode[1],
+                U2B(ip[1]),
                 port[0],
                 amount,
                 U2B(memo[0]),
@@ -1403,9 +1621,9 @@ describe("Governance", function () {
                 govMem1.address,
                 govMem1.address,
                 govMem1.address,
-                U2B(nodeName[0]),
-                enode[0],
-                U2B(ip[0]),
+                U2B(nodeName[1]),
+                enode[1],
+                U2B(ip[1]),
                 port[0],
                 amount,
                 U2B(memo[0]),
@@ -1423,9 +1641,9 @@ describe("Governance", function () {
                 govMem1.address,
                 govMem1.address,
                 govMem1.address,
-                U2B(nodeName[0]),
-                enode[0],
-                U2B(ip[0]),
+                U2B(nodeName[1]),
+                enode[1],
+                U2B(ip[1]),
                 port[0],
                 amount,
                 U2B(memo[0]),
@@ -1443,9 +1661,9 @@ describe("Governance", function () {
                 govMem1.address,
                 govMem1.address,
                 govMem1.address,
-                U2B(nodeName[0]),
-                enode[0],
-                U2B(ip[0]),
+                U2B(nodeName[1]),
+                enode[1],
+                U2B(ip[1]),
                 port[0],
                 amount,
                 U2B(memo[0]),
@@ -1470,13 +1688,15 @@ describe("Governance", function () {
                 duration
             );
             await govDelegator.connect(deployer).setProposalTimePeriod(60);
-            await expect(govDelegator.addProposalToChangeEnv(
-                ethers.utils.keccak256(U2B("blocksPer")),
-                envTypes.Uint,
-                "0x0000000000000000000000000000000000000000000000000000000000000064",
-                U2B(memo[0]),
-                duration
-            )).to.be.revertedWith('Cannot add proposal too early');
+            await expect(
+                govDelegator.addProposalToChangeEnv(
+                    ethers.utils.keccak256(U2B("blocksPer")),
+                    envTypes.Uint,
+                    "0x0000000000000000000000000000000000000000000000000000000000000064",
+                    U2B(memo[0]),
+                    duration
+                )
+            ).to.be.revertedWith("Cannot add proposal too early");
         });
     });
 
@@ -1489,9 +1709,9 @@ describe("Governance", function () {
                 govMem1.address,
                 govMem1.address,
                 govMem1.address,
-                U2B(nodeName[0]),
-                enode[0],
-                U2B(ip[0]),
+                U2B(nodeName[1]),
+                enode[1],
+                U2B(ip[1]),
                 port[0],
                 amount,
                 U2B(memo[0]),
@@ -1545,6 +1765,90 @@ describe("Governance", function () {
             len.should.be.equal(BigNumber.from(2));
         });
 
+        it.only("can addProposal to add member where info is the removed member's with same govMem", async () => {
+            await govDelegator.addProposalToRemoveMember(govMem1.address, amount, U2B(memo[0]), duration);
+            let len = await govDelegator.ballotLength();
+            len.should.be.equal(BigNumber.from(2));
+
+            await govDelegator.vote(len, true);
+            let inVoting = await govDelegator.getBallotInVoting();
+            inVoting.should.be.equal(BigNumber.from(len));
+            let state = await ballotStorage.getBallotState(len);
+            state[1].should.be.equal(BigNumber.from(ballotStates.InProgress));
+            state[2].should.equal(false);
+
+            await govDelegator.connect(govMem1).vote(len, true);
+            inVoting = await govDelegator.getBallotInVoting();
+            inVoting.should.be.equal(BigNumber.from(0));
+            state = await ballotStorage.getBallotState(len);
+            state[1].should.be.equal(BigNumber.from(ballotStates.Accepted));
+            state[2].should.equal(true);
+
+            await staking.connect(govMem1).deposit({ value: amount });
+            await govDelegator.addProposalToAddMember([
+                govMem1.address,
+                govMem1.address,
+                govMem1.address,
+                U2B(nodeName[1]),
+                enode[1],
+                U2B(ip[1]),
+                port[0],
+                amount,
+                U2B(memo[0]),
+                duration,
+            ]);
+            len = await govDelegator.ballotLength();
+            await govDelegator.vote(len, true);
+            inVoting = await govDelegator.getBallotInVoting();
+            inVoting.should.be.equal(BigNumber.from(0));
+            state = await ballotStorage.getBallotState(len);
+            state[1].should.be.equal(BigNumber.from(ballotStates.Accepted));
+            state[2].should.equal(true);
+        });
+
+        it.only("can addProposal to add member where info is the removed member's", async () => {
+            await govDelegator.addProposalToRemoveMember(govMem1.address, amount, U2B(memo[0]), duration);
+            let len = await govDelegator.ballotLength();
+            len.should.be.equal(BigNumber.from(2));
+
+            await govDelegator.vote(len, true);
+            let inVoting = await govDelegator.getBallotInVoting();
+            inVoting.should.be.equal(BigNumber.from(len));
+            let state = await ballotStorage.getBallotState(len);
+            state[1].should.be.equal(BigNumber.from(ballotStates.InProgress));
+            state[2].should.equal(false);
+
+            await govDelegator.connect(govMem1).vote(len, true);
+            inVoting = await govDelegator.getBallotInVoting();
+            inVoting.should.be.equal(BigNumber.from(0));
+            state = await ballotStorage.getBallotState(len);
+            state[1].should.be.equal(BigNumber.from(ballotStates.Accepted));
+            state[2].should.equal(true);
+
+            console.log("member removed")
+
+            await staking.connect(govMem2).deposit({ value: amount });
+            await govDelegator.addProposalToAddMember([
+                govMem2.address,
+                govMem2.address,
+                govMem2.address,
+                U2B(nodeName[1]),
+                enode[1],
+                U2B(ip[1]),
+                port[0],
+                amount,
+                U2B(memo[0]),
+                duration,
+            ]);
+            len = await govDelegator.ballotLength();
+            await govDelegator.vote(len, true);
+            inVoting = await govDelegator.getBallotInVoting();
+            inVoting.should.be.equal(BigNumber.from(0));
+            state = await ballotStorage.getBallotState(len);
+            state[1].should.be.equal(BigNumber.from(ballotStates.Accepted));
+            state[2].should.equal(true);
+        });
+
         it("can vote to add member", async () => {
             //govMem2 signer
             // let signer2 = (await ethers.getSigners())[2];
@@ -1553,9 +1857,9 @@ describe("Governance", function () {
                 govMem2.address,
                 govMem2.address,
                 govMem2.address,
-                U2B(nodeName[0]),
-                enode[0],
-                U2B(ip[0]),
+                U2B(nodeName[2]),
+                enode[2],
+                U2B(ip[2]),
                 port[0],
                 amount,
                 U2B(memo[0]),
@@ -1585,9 +1889,9 @@ describe("Governance", function () {
                 govMem2.address,
                 govMem2.address,
                 govMem2.address,
-                U2B(nodeName[0]),
-                enode[0],
-                U2B(ip[0]),
+                U2B(nodeName[2]),
+                enode[2],
+                U2B(ip[2]),
                 port[0],
                 amount,
                 U2B(memo[0]),
@@ -1685,9 +1989,9 @@ describe("Governance", function () {
                 govMem2.address,
                 govMem2.address,
                 govMem2.address,
-                U2B(nodeName[0]),
-                enode[0],
-                U2B(ip[0]),
+                U2B(nodeName[2]),
+                enode[2],
+                U2B(ip[2]),
                 port[0],
                 amount,
                 U2B(memo[0]),
@@ -1699,9 +2003,9 @@ describe("Governance", function () {
                 govMem3.address,
                 govMem3.address,
                 govMem3.address,
-                U2B(nodeName[0]),
-                enode[0],
-                U2B(ip[0]),
+                U2B(nodeName[3]),
+                enode[3],
+                U2B(ip[3]),
                 port[0],
                 amount,
                 U2B(memo[0]),
@@ -1722,9 +2026,9 @@ describe("Governance", function () {
                 govMem2.address,
                 govMem2.address,
                 govMem2.address,
-                U2B(nodeName[0]),
-                enode[0],
-                U2B(ip[0]),
+                U2B(nodeName[2]),
+                enode[2],
+                U2B(ip[2]),
                 port[0],
                 amount,
                 U2B(memo[0]),
@@ -1768,8 +2072,8 @@ describe("Governance", function () {
             state[2].should.equal(false);
 
             await sleep(delay_time * 2000);
-            await expect(govDelegator.connect(govMem1).vote(ballotLen, true)).to.be.revertedWith('Expired');
-            await govDelegator.finzalizeEndedVote();
+            await expect(govDelegator.connect(govMem1).vote(ballotLen, true)).to.be.revertedWith("Expired");
+            await govDelegator.finalizeEndedVote();
 
             inVoting = await govDelegator.getBallotInVoting();
             inVoting.should.be.equal(BigNumber.from(0));
@@ -1793,11 +2097,11 @@ describe("Governance", function () {
             let state = await ballotStorage.getBallotState(ballotLen);
             state[1].should.be.equal(BigNumber.from(ballotStates.InProgress));
             state[2].should.equal(false);
-    
+
             await sleep(delay_time * 2000);
-            await expect(govDelegator.connect(govMem1).vote(ballotLen, true)).to.be.revertedWith('Expired');
-            await expect(govDelegator.connect(govMem3).finzalizeEndedVote()).to.be.revertedWith('No Permission');
-    
+            await expect(govDelegator.connect(govMem1).vote(ballotLen, true)).to.be.revertedWith("Expired");
+            await expect(govDelegator.connect(govMem3).finalizeEndedVote()).to.be.revertedWith("No Permission");
+
             inVoting = await govDelegator.getBallotInVoting();
             inVoting.should.be.equal(BigNumber.from(ballotLen));
         });
@@ -1807,9 +2111,9 @@ describe("Governance", function () {
         it("cannot init", async () => {
             //govMem1 signer
             await staking.connect(govMem1).deposit({ value: amount });
-            await expect(
-                govDelegator.connect(govMem1).init(registry.address, amount, U2B(nodeName[0]), enode[0], U2B(ip[0]), port[0])
-            ).to.be.revertedWith("Initializable: contract is already initialized");
+            await expect(govDelegator.connect(govMem1).init(registry.address, amount, U2B(nodeName[0]), enode[0], U2B(ip[0]), port[0])).to.be.revertedWith(
+                "Initializable: contract is already initialized"
+            );
         });
 
         it("cannot addProposal", async () => {
@@ -1854,9 +2158,9 @@ describe("Governance", function () {
                 govMem2.address,
                 govMem2.address,
                 govMem2.address,
-                U2B(nodeName[0]),
-                enode[0],
-                U2B(ip[0]),
+                U2B(nodeName[2]),
+                enode[2],
+                U2B(ip[2]),
                 port[0],
                 amount,
                 U2B(memo[0]),
@@ -1869,13 +2173,13 @@ describe("Governance", function () {
 });
 
 function type2Bytes(types, inputs) {
-  const ABICoder = ethers.utils.AbiCoder;
-  const abiCoder = new ABICoder();
+    const ABICoder = ethers.utils.AbiCoder;
+    const abiCoder = new ABICoder();
 
-  let parameters = abiCoder.encode(types, inputs);
-  return parameters;
+    let parameters = abiCoder.encode(types, inputs);
+    return parameters;
 }
 
-function sleep(ms){
-    return new Promise((r)=> setTimeout(r, ms));
+function sleep(ms) {
+    return new Promise((r) => setTimeout(r, ms));
 }
