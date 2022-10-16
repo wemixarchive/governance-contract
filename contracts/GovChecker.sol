@@ -18,6 +18,8 @@ contract GovChecker is OwnableUpgradeable {
     bytes32 public constant ENV_STORAGE_NAME = "EnvStorage";
     bytes32 public constant REWARD_POOL_NAME = "RewardPool";
     bytes32 public constant MAINTENANCE_NAME = "Maintenance";
+    bytes32 public constant ECOSYSTEM_NAME = "Ecosystem";
+    bytes32 public constant STAKING_REWARD_NAME = "StakingReward";
 
     /*
      * @dev Function to set registry address. Contract that wants to use registry should setRegistry first.
@@ -74,5 +76,17 @@ contract GovChecker is OwnableUpgradeable {
 
     function getRewardPoolAddress() internal view returns (address) {
         return getContractAddress(REWARD_POOL_NAME);
+    }
+
+    function getEcosystemAddress() internal view returns (address) {
+        return getContractAddress(ECOSYSTEM_NAME);
+    }
+
+    function getStakingRewardAddress() internal view returns (address) {
+        return getContractAddress(STAKING_REWARD_NAME);
+    }
+
+    function getMaintenanceAddress() internal view returns (address) {
+        return getContractAddress(MAINTENANCE_NAME);
     }
 }

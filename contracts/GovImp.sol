@@ -153,22 +153,26 @@ contract GovImp is
         modifiedBlock = block.number;
     }
 
-    function initOnce(address registry, bytes memory data) public initializer {
-        __ReentrancyGuard_init();
-        __Ownable_init();
-        setRegistry(registry);
+    function initOnce(uint256 lockAmount, bytes memory data) public onlyOwner {
 
         // _initialized = true;
         modifiedBlock = block.number;
 
-        // []{uint addr, bytes name, bytes enode, bytes ip, uint port}
-        // 32 bytes, [32 bytes, <data>] * 3, 32 bytes
-        address addr;
+        // Lock
+        IStaking staking = IStaking(getStakingAddress());
+
+        require(lockAmount >= getMinStaking() && getMaxStaking() >= lockAmount, "Invalid lock amount");
+
+        // []{uint staker, uint voter, uint reward, bytes name, bytes enode, bytes ip, uint port}
+        // 32 bytes, 32 bytes, 32 bytes, [32 bytes, <data>] * 3, 32 bytes
+        address staker;
+        address voter;
+        address reward;
         bytes memory name;
         bytes memory enode;
         bytes memory ip;
         uint port;
-        uint idx = 0;
+        uint idx = memberLength;
 
         uint ix;
         uint eix;
@@ -178,7 +182,19 @@ contract GovImp is
         eix = ix + data.length;
         while (ix < eix) {
             assembly {
-                addr := mload(ix)
+                staker := mload(ix)
+            }
+            ix += 0x20;
+            require(ix < eix);
+
+            assembly {
+                voter := mload(ix)
+            }
+            ix += 0x20;
+            require(ix < eix);
+
+            assembly {
+                reward := mload(ix)
             }
             ix += 0x20;
             require(ix < eix);
@@ -207,12 +223,25 @@ contract GovImp is
             ix += 0x20;
 
             idx += 1;
-            voters[idx] = addr;
-            voterIdx[addr] = idx;
-            rewards[idx] = addr;
-            rewardIdx[addr] = idx;
-            stakers[idx] = addr;
-            stakerIdx[addr] = idx;
+            require(!isMember(staker) && !isMember(voter), "Already member");
+            voters[idx] = voter;
+            voterIdx[voter] = idx;
+            rewards[idx] = reward;
+            rewardIdx[reward] = idx;
+            stakers[idx] = staker;
+            stakerIdx[staker] = idx;
+
+            require(
+                staking.availableBalanceOf(staker) >= lockAmount,
+                "Insufficient staking"
+            );
+
+            require(
+                checkNodeInfoAdd(name, enode, ip, port),
+                "Duplicated node info"
+            );
+
+            lock(staker, lockAmount);
 
             Node storage node = nodes[idx];
             node.name = name;
@@ -224,8 +253,8 @@ contract GovImp is
             checkNodeEnode[enode] = true;
             checkNodeIpPort[keccak256(abi.encodePacked(ip, port))] = true;
 
-            nodeToMember[idx] = addr;
-            nodeIdxFromMember[addr] = idx;
+            nodeToMember[idx] = staker;
+            nodeIdxFromMember[staker] = idx;
         }
         memberLength = idx;
         nodeLength = idx;
@@ -729,7 +758,9 @@ contract GovImp is
         Node storage node = nodes[removeIdx];
         checkNodeEnode[node.enode] = false;
         checkNodeName[node.name] = false;
-        checkNodeIpPort[keccak256(abi.encodePacked(node.ip, node.port))] = false;
+        checkNodeIpPort[
+            keccak256(abi.encodePacked(node.ip, node.port))
+        ] = false;
         if (nodeIdxFromMember[oldStaker] != nodeLength) {
             removeIdx = nodeIdxFromMember[oldStaker];
             endAddr = nodeToMember[nodeLength];
@@ -828,7 +859,9 @@ contract GovImp is
             }
             checkNodeName[node.name] = false;
             checkNodeEnode[node.enode] = false;
-            checkNodeIpPort[keccak256(abi.encodePacked(node.ip, node.port))] = false;
+            checkNodeIpPort[
+                keccak256(abi.encodePacked(node.ip, node.port))
+            ] = false;
 
             node.name = name;
             node.enode = enode;
@@ -1078,14 +1111,11 @@ contract GovImp is
         //IP:port can not be duplicated
         //Name can not be duplicated
         check = true;
-        if(checkNodeEnode[enode]) 
-            check = false;
-        if(checkNodeName[name])
-            check = false;
+        if (checkNodeEnode[enode]) check = false;
+        if (checkNodeName[name]) check = false;
 
         bytes32 hvalue = keccak256(abi.encodePacked(ip, port));
-        if(checkNodeIpPort[hvalue])
-            check = false;
+        if (checkNodeIpPort[hvalue]) check = false;
     }
 
     function checkNodeInfoChange(
@@ -1099,14 +1129,20 @@ contract GovImp is
         //IP:port can not be duplicated
         //Name can not be duplicated
         check = true;
-        if((keccak256(nodeInfo.enode) != keccak256(enode) && checkNodeEnode[enode]) )
-            check = false;
-        if((keccak256(nodeInfo.name) != keccak256(name) && checkNodeName[name]))
-            check = false;
+        if (
+            (keccak256(nodeInfo.enode) != keccak256(enode) &&
+                checkNodeEnode[enode])
+        ) check = false;
+        if (
+            (keccak256(nodeInfo.name) != keccak256(name) && checkNodeName[name])
+        ) check = false;
 
         bytes32 hvalue = keccak256(abi.encodePacked(ip, port));
-        if((keccak256(abi.encodePacked(nodeInfo.ip, nodeInfo.port)) != hvalue && checkNodeIpPort[hvalue]))
-            check = false;
+        if (
+            (keccak256(abi.encodePacked(nodeInfo.ip, nodeInfo.port)) !=
+                hvalue &&
+                checkNodeIpPort[hvalue])
+        ) check = false;
     }
 
     /**

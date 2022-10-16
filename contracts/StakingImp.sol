@@ -145,7 +145,7 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
         if (amount == 0) return;
         unlock(from, amount);
         _balance[from] = _balance[from] - amount;
-        address rewardPool = getRewardPoolAddress();
+        address rewardPool = getEcosystemAddress();
         _balance[rewardPool] = _balance[rewardPool] + amount;
 
         emit TransferLocked(from, amount, _balance[from], availableBalanceOf(from));
