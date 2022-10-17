@@ -153,7 +153,11 @@ contract GovImp is
         modifiedBlock = block.number;
     }
 
-    function initOnce(uint256 lockAmount, bytes memory data) public onlyOwner {
+    function initOnce(address registry, uint256 lockAmount, bytes memory data) public initializer {
+
+        __ReentrancyGuard_init();
+        __Ownable_init();
+        setRegistry(registry);
 
         // _initialized = true;
         modifiedBlock = block.number;
