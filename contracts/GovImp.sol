@@ -153,7 +153,7 @@ contract GovImp is
         modifiedBlock = block.number;
     }
 
-    function initOnce(address registry, bytes memory data) public initializer {
+    function initOnce(address registry, uint256 lockAmount, bytes memory data) public initializer {
         __ReentrancyGuard_init();
         __Ownable_init();
         setRegistry(registry);
@@ -161,9 +161,16 @@ contract GovImp is
         // _initialized = true;
         modifiedBlock = block.number;
 
-        // []{uint addr, bytes name, bytes enode, bytes ip, uint port}
-        // 32 bytes, [32 bytes, <data>] * 3, 32 bytes
-        address addr;
+        // Lock
+        IStaking staking = IStaking(getStakingAddress());
+
+        require(lockAmount >= getMinStaking() && getMaxStaking() >= lockAmount, "Invalid lock amount");
+
+        // []{uint staker, uint voter, uint reward, bytes name, bytes enode, bytes ip, uint port}
+        // 32 bytes, 32 bytes, 32 bytes, [32 bytes, <data>] * 3, 32 bytes
+        address staker;
+        address voter;
+        address reward;
         bytes memory name;
         bytes memory enode;
         bytes memory ip;
@@ -178,7 +185,19 @@ contract GovImp is
         eix = ix + data.length;
         while (ix < eix) {
             assembly {
-                addr := mload(ix)
+                staker := mload(ix)
+            }
+            ix += 0x20;
+            require(ix < eix);
+
+            assembly {
+                voter := mload(ix)
+            }
+            ix += 0x20;
+            require(ix < eix);
+
+            assembly {
+                reward := mload(ix)
             }
             ix += 0x20;
             require(ix < eix);
@@ -207,12 +226,25 @@ contract GovImp is
             ix += 0x20;
 
             idx += 1;
-            voters[idx] = addr;
-            voterIdx[addr] = idx;
-            rewards[idx] = addr;
-            rewardIdx[addr] = idx;
-            stakers[idx] = addr;
-            stakerIdx[addr] = idx;
+            require(!isMember(staker) && !isMember(voter), "Already member");
+            voters[idx] = voter;
+            voterIdx[voter] = idx;
+            rewards[idx] = reward;
+            rewardIdx[reward] = idx;
+            stakers[idx] = staker;
+            stakerIdx[staker] = idx;
+
+            require(
+                staking.availableBalanceOf(staker) >= lockAmount,
+                "Insufficient staking"
+            );
+
+            require(
+                checkNodeInfoAdd(name, enode, ip, port),
+                "Duplicated node info"
+            );
+
+            lock(staker, lockAmount);
 
             Node storage node = nodes[idx];
             node.name = name;
@@ -224,8 +256,8 @@ contract GovImp is
             checkNodeEnode[enode] = true;
             checkNodeIpPort[keccak256(abi.encodePacked(ip, port))] = true;
 
-            nodeToMember[idx] = addr;
-            nodeIdxFromMember[addr] = idx;
+            nodeToMember[idx] = staker;
+            nodeIdxFromMember[staker] = idx;
         }
         memberLength = idx;
         nodeLength = idx;
