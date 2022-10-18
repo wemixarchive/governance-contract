@@ -166,8 +166,10 @@ describe("Governance", function () {
         govDelegator = await hre.ethers.getContractAt("GovImp", gov.address); //await GovImp.at(govDelegator.address);
         // Initialize governance
         // console.log("init gov")
-        await govDelegator.init(registry.address, amount, U2B(nodeName[0]), enode[0], U2B(ip[0]), port[0]);
-        let data = await govDelegator.getNode(1);
+        const configJson = require('../deploy_config_local_solo.json')
+        const initData = getInitialGovernanceMembersAndNodes(configJson, ethers)
+        // await govDelegator.init(registry.address, amount, U2B(nodeName[0]), enode[0], U2B(ip[0]), port[0]);
+        await govDelegator.initOnce(registry.address, amount, initData.nodes)
     });
 
     // For short check
@@ -1765,7 +1767,7 @@ describe("Governance", function () {
             len.should.be.equal(BigNumber.from(2));
         });
 
-        it.only("can addProposal to add member where info is the removed member's with same govMem", async () => {
+        it("can addProposal to add member where info is the removed member's with same govMem", async () => {
             await govDelegator.addProposalToRemoveMember(govMem1.address, amount, U2B(memo[0]), duration);
             let len = await govDelegator.ballotLength();
             len.should.be.equal(BigNumber.from(2));
@@ -1806,7 +1808,7 @@ describe("Governance", function () {
             state[2].should.equal(true);
         });
 
-        it.only("can addProposal to add member where info is the removed member's", async () => {
+        it("can addProposal to add member where info is the removed member's", async () => {
             await govDelegator.addProposalToRemoveMember(govMem1.address, amount, U2B(memo[0]), duration);
             let len = await govDelegator.ballotLength();
             len.should.be.equal(BigNumber.from(2));
@@ -2171,6 +2173,55 @@ describe("Governance", function () {
         });
     });
 });
+
+function getInitialGovernanceMembersAndNodes(data, ethers) {
+    var nodes = "0x",
+        stakes = "0x";
+
+    for (var i = 0, l = data.members.length; i < l; i++) {
+        var m = data.members[i],
+            id,
+            staker, voter, reward;
+        if (m.id.length != 128 && m.id.length != 130) throw "Invalid enode id " + m.id;
+        id = m.id.length == 128 ? m.id : m.id.substr(2);
+        staker = m.staker.indexOf("0x") != 0 ? m.staker : m.staker.substr(2);
+        voter = m.voter.indexOf("0x") != 0 ? m.voter : m.voter.substr(2);
+        reward = m.reward.indexOf("0x") != 0 ? m.reward : m.reward.substr(2);
+        nodes +=
+            ethers.utils.hexZeroPad("0x" + staker, 32).substr(2) +
+            ethers.utils.hexZeroPad("0x" + voter, 32).substr(2) +
+            ethers.utils.hexZeroPad("0x" + reward, 32).substr(2) +
+            packNum(m.name.length) +
+            str2hex(m.name).substr(2) +
+            packNum(id.length / 2) +
+            id +
+            packNum(m.ip.length) +
+            str2hex(m.ip).substr(2) +
+            packNum(m.port);
+
+        stakes += ethers.utils.hexZeroPad("0x" + staker, 32).substr(2) + packNum(toBigInt(m.stake));
+    }
+    return {
+        nodes: nodes,
+        stakes: stakes,
+        staker: data.staker,
+        ecosystem: data.ecosystem,
+        maintenance: data.maintenance,
+    };
+};
+
+function packNum(num) {
+    // return web3.padLeft(web3.toHex(num).substr(2), 64, "0")
+    return ethers.utils.hexZeroPad(num, 32).slice(2);
+};
+
+function toBigInt(v) {
+    return ethers.BigNumber.from(v.toLocaleString("fullwide", { useGrouping: false }));
+};
+
+function str2hex(s) {
+    return ethers.utils.hexlify(ethers.utils.toUtf8Bytes(s));
+};
 
 function type2Bytes(types, inputs) {
     const ABICoder = ethers.utils.AbiCoder;
