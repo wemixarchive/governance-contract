@@ -61,8 +61,6 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
             ix += 0x20;
 
             _balance[addr] = amount;
-            _lockedBalance[addr] = amount;
-            _totalLockedBalance += amount;
         }
     }
 
