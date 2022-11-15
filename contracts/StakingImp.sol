@@ -29,7 +29,7 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
         _disableInitializers();
     }
 
-    function init(address registry, bytes memory data) external initializer {
+    function init(address registry, bytes memory data) external payable initializer {
         _totalLockedBalance = 0;
         // _transferOwnership(_msgSender());
         __ReentrancyGuard_init();

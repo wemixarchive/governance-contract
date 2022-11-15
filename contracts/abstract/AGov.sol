@@ -21,12 +21,6 @@ abstract contract AGov is GovChecker, IGov {
     mapping(uint256 => address) internal stakers;
     mapping(address => uint256) public stakerIdx;
 
-    //For a node duplicate check
-    // mapping(bytes32=>bool) internal checkNodeInfo;
-    mapping(bytes=>bool) internal checkNodeName;
-    mapping(bytes=>bool) internal checkNodeEnode;
-    mapping(bytes32=>bool) internal checkNodeIpPort;
-
     // For enode
     struct Node {
         bytes name;

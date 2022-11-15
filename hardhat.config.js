@@ -1,5 +1,8 @@
 require("@nomiclabs/hardhat-waffle");
 const { task } = require("hardhat/config");
+
+require('@openzeppelin/hardhat-upgrades');
+
 require("hardhat-gas-reporter");
 require("hardhat-contract-sizer");
 
@@ -8,11 +11,9 @@ require("dotenv").config();
 const path = require("path");
 
 const sendTx = require("./scripts/sendTx_task").sendTxKeep;
-const setting = require("./scripts/setting_task").set;
 const changeEnv = require("./scripts/changeEnv_task").changeEnvVal;
 const deployGov = require("./scripts/deploy_task").deployGov;
 const deployTestGov = require("./scripts/deploy_test_task").deployGov;
-const deployLocalGov = require("./scripts/deploy_local_task").deployGov;
 const addMember = require("./scripts/addMembers_task").addMembers;
 
 // This is a sample Hardhat task. To learn how to create your own go to
@@ -95,52 +96,55 @@ task("sendTx", "send tx")
  * @type import('hardhat/config').HardhatUserConfig
  */
 
-const privateKey = process.env.SK;
-const rpcURL = process.env.rpc;
 
-module.exports = {
-    networks: {
-        hardhat: {
-            accounts: {
-                mnemonic: "test test test test test test test test test test test junk",
-                initialIndex: 0,
-                accountsBalance: "1000000000" + "0".repeat(18),
-            },
-            // forking:{
-            //     url: 'https://api.test.wemix.com'
-            // },
-            allowUnlimitedContractSize : true
-        },
-        localhost: {
-            url: "http://127.0.0.1:8545",
-        },
-        rpc:{
-            url: rpcURL
-        }
-    },
-    contractSizer: {
-        runOnCompile: true,
-    },
-    solidity: {
-        compilers: [
-            {
-                version: "0.8.6",
-                settings: {
-                    optimizer: {
-                        enabled: true,
-                        runs: 200,
-                    },
-                },
-            },
-        ],
-    },
-    paths: {
-        sources: path.join(__dirname, "./contracts"),
-    },
-    mocha: {
-        timeout: 1000000,
-    },
-    gasReporter: {
-        enabled: true,
-    },
-};
+ module.exports = {
+     networks: {
+         hardhat: {
+             accounts: {
+                 mnemonic: "test test test test test test test test test test test junk",
+                 initialIndex: 0,
+                 accountsBalance: "100000000000" + "0".repeat(18),
+                 count : 40
+             },
+             forking:{
+                 url: 'https://api.test.wemix.com'
+             },
+             allowUnlimitedContractSize : true
+         },
+         localhost: {
+             url: "http://127.0.0.1:8545",
+         },
+         wtestnet: {
+             url: 'https://api.test.wemix.com'
+         },
+         wemix: {
+             url: 'https://api.wemix.com'
+         }
+     },
+     contractSizer: {
+         runOnCompile: true,
+     },
+     solidity: {
+         compilers: [
+             {
+                 version: "0.8.6",
+                 settings: {
+                     optimizer: {
+                         enabled: true,
+                         runs: 200,
+                     },
+                 },
+             },
+         ],
+     },
+     paths: {
+         sources: path.join(__dirname, "./contracts"),
+     },
+     mocha: {
+         timeout: 1000000,
+     },
+     gasReporter: {
+         enabled: true,
+     },
+ };
+ 
