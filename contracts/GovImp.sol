@@ -33,8 +33,6 @@ contract GovImp is
     }
 
     address constant ZERO = address(0);
-    uint256 public proposal_time_period = 0;
-    mapping(address => uint256) public lastAddProposalTime;
 
     event MemberAdded(address indexed addr, address indexed voter);
     event MemberRemoved(address indexed addr, address indexed voter);
@@ -1141,10 +1139,31 @@ contract GovImp is
             check = false;
     }
 
+
+    uint256 public proposal_time_period;
+    mapping(address => uint256) public lastAddProposalTime;
+
+    //For a node duplicate check
+    // mapping(bytes32=>bool) internal checkNodeInfo;
+    mapping(bytes=>bool) internal checkNodeName;
+    mapping(bytes=>bool) internal checkNodeEnode;
+    mapping(bytes32=>bool) internal checkNodeIpPort;
+    
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
      * variables without shifting down storage in the inheritance chain.
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
-    uint256[30] private __gap;
+    uint256[46] private __gap;
+
+    function reInit() external reinitializer(2) onlyOwner{
+        unchecked {
+            for(uint256 i=0; i<getMemberLength();i++){
+                Node memory node = nodes[i];
+                checkNodeName[node.name] = true;
+                checkNodeEnode[node.enode] = true;
+                checkNodeIpPort[keccak256(abi.encodePacked(node.ip, node.port))] = true;
+            }
+        }
+    }
 }
