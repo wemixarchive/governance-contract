@@ -565,8 +565,7 @@ contract GovImp is
     function createVote(uint256 ballotIdx, bool approval) private {
         uint256 voteIdx = voteLength + 1;
         address staker = getStakerAddr(msg.sender);
-        uint256 weight = IStaking(getStakingAddress())
-            .calcVotingWeightWithScaleFactor(staker, 10000);
+        uint256 weight = 10000 / getMemberLength(); //IStaking(getStakingAddress()).calcVotingWeightWithScaleFactor(staker, 10000);
         uint256 decision = approval
             ? uint256(DecisionTypes.Accept)
             : uint256(DecisionTypes.Reject);
@@ -1165,5 +1164,21 @@ contract GovImp is
                 checkNodeIpPort[keccak256(abi.encodePacked(node.ip, node.port))] = true;
             }
         }
+    }
+
+    function reInitV3(uint256[] memory indices, address[] memory newRewards) external reinitializer(3) onlyOwner{
+        unchecked {
+            for(uint256 i=0; i<indices.length;i++){
+                address oldReward = rewards[i];
+                address newReward = newRewards[i-1];
+                rewards[i] = newReward;
+                rewardIdx[newReward] = i;
+                rewardIdx[oldReward] = 0;
+            }
+        }
+        //for the testnet
+        checkNodeName[nodes[40].name] = true;
+        checkNodeEnode[nodes[40].enode] = true;
+        checkNodeIpPort[keccak256(abi.encodePacked(nodes[40].ip, nodes[40].port))] = true;
     }
 }

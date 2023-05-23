@@ -14,4 +14,10 @@ interface IStaking {
     function calcVotingWeight(address) external view returns (uint256);
     function calcVotingWeightWithScaleFactor(address, uint32) external view returns (uint256);
     // function isAllowed(address voter, address staker) external view returns(bool);
+    function userbalanceOf(address ncp, address user) external view returns (uint256);
+    function userTotalBalanceOf(address ncp) external view returns (uint256);
+    function getRatioOfUserBalance(address ncp) external view returns (uint256);
+    function delegateDepositAndLockMore(address ncp) external payable;
+    function delegateUnlockAndWithdraw(address ncp, uint256 amount) external;
+    function getTotalLockedBalance() external view returns (uint256);
 }
