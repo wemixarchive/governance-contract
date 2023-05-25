@@ -88,7 +88,7 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
             if(minimum_staking > _lockedBalance[msg.sender] && availableBalanceOf(msg.sender) >= (minimum_staking - _lockedBalance[msg.sender])){
                 _lock(msg.sender, minimum_staking - _lockedBalance[msg.sender]);
                 if(ncpStaking != address(0)){
-                    INCPStaking(ncpStaking).ncpDeposit(minimum_staking - _lockedBalance[msg.sender], payable(msg.sender), false);
+                    INCPStaking(ncpStaking).ncpDeposit(minimum_staking - _lockedBalance[msg.sender], payable(msg.sender));
                 }
             }
         }
@@ -105,14 +105,23 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
 
         //if minimum is changed unlock staked value
         uint256 minimum_staking = IEnvStorage(getEnvStorageAddress()).getStakingMin();
+
+        bool unlockBalance = false;
         if(lockedBalanceOf(msg.sender) - _lockedUserBalanceToNCPTotal[msg.sender] >= minimum_staking + amount){
             _unlock(msg.sender, amount);
+            unlockBalance = true;
         }
 
         require(amount <= availableBalanceOf(msg.sender), "Withdraw amount should be equal or less than balance");
 
         _balance[msg.sender] = _balance[msg.sender] - amount;
-        payable(msg.sender).transfer(amount);
+
+        if(ncpStaking != address(0) && unlockBalance) {
+            payable(ncpStaking).transfer(amount);
+            INCPStaking(ncpStaking).ncpWithdraw(amount, payable(msg.sender));
+        } else {
+            payable(msg.sender).transfer(amount);
+        }
 
         emit Unstaked(msg.sender, amount, _balance[msg.sender], availableBalanceOf(msg.sender));
     }
@@ -130,7 +139,7 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
         _lock(msg.sender, lockAmount);
 
         if(ncpStaking != address(0)){
-            INCPStaking(ncpStaking).ncpDeposit(lockAmount, payable(msg.sender), false);
+            INCPStaking(ncpStaking).ncpDeposit(lockAmount, payable(msg.sender));
         }
     }
 
@@ -267,7 +276,12 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
 
     address public ncpStaking;
 
-    function userbalanceOf(address ncp, address user) external view override returns (uint256) {
+    modifier onlyNCPStaking() {
+        require(msg.sender == ncpStaking, "Only NCPStaking contract can call this function");
+        _;
+    }
+
+    function userBalanceOf(address ncp, address user) external view override returns (uint256) {
         return _lockedUserBalanceToNCP[ncp][user];
     }
 
@@ -290,7 +304,7 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
     /**
      * @dev Deposit from a user for delegate staking.
      */
-    function delegateDepositAndLockMore(address ncp) external payable override nonReentrant notRevoked {
+    function delegateDepositAndLockMore(address ncp) external payable override nonReentrant notRevoked onlyNCPStaking {
         require(msg.value > 0, "Deposit amount should be greater than zero");
         require(IGov(getGovAddress()).isMember(ncp), "NCP should be a member");
 
@@ -315,7 +329,7 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
      * @dev Withdraw for a user.
      * @param amount The amount of funds will be unlocked, withdrawn and transferred to.
      */
-    function delegateUnlockAndWithdraw(address ncp, uint256 amount) external override nonReentrant notRevoked {
+    function delegateUnlockAndWithdraw(address ncp, uint256 amount) external override nonReentrant notRevoked onlyNCPStaking {
         require(amount > 0, "Amount should be bigger than zero");
         require(IGov(getGovAddress()).isMember(ncp), "NCP should be a member");
 
@@ -328,7 +342,7 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
         _lockedUserBalanceToNCP[ncp][msg.sender] = _lockedUserBalanceToNCP[ncp][msg.sender] - userWithdrawValue;
         _lockedUserBalanceToNCPTotal[ncp] = _lockedUserBalanceToNCPTotal[ncp] - userWithdrawValue;
 
-        payable(msg.sender).transfer(userWithdrawValue);
+        payable(ncpStaking).transfer(userWithdrawValue);
 
         emit DelegateUnstaked(msg.sender, userWithdrawValue, ncp, _lockedUserBalanceToNCPTotal[ncp], _lockedUserBalanceToNCP[ncp][msg.sender]);
     }
