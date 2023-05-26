@@ -117,7 +117,7 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
         _balance[msg.sender] = _balance[msg.sender] - amount;
 
         if(ncpStaking != address(0) && unlockBalance) {
-            payable(ncpStaking).transfer(amount);
+            payable(ncpStaking).call{value:amount}("");
             INCPStaking(ncpStaking).ncpWithdraw(amount, payable(msg.sender));
         } else {
             payable(msg.sender).transfer(amount);
