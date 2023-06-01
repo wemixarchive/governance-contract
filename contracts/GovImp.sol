@@ -858,13 +858,6 @@ contract GovImp is
                 emit NotApplicable(ballotIdx, "Invalid reward address");
                 return false;
             }
-            // console.log("aa %s %s %s", oldReward, memberIdx, newReward);
-            // if (oldReward != newReward) {
-            //     if (isReward(newReward)) {
-            //         emit NotApplicable(ballotIdx, "Already a reward");
-            //         return false;
-            //     }
-            // }
         }
         {
             address oldVoter = voters[memberIdx];
@@ -872,12 +865,6 @@ contract GovImp is
                 emit NotApplicable(ballotIdx, "Invalid voters address");
                 return false;
             }
-            // if (oldVoter != newVoter) {
-            //     if (isVoter(newVoter)) {
-            //         emit NotApplicable(ballotIdx, "Already a voter");
-            //         return false;
-            //     }
-            // }
         }
         return true;
     }
@@ -921,8 +908,6 @@ contract GovImp is
                 lockAmount
             )
         ) return false;
-        console.log("%s %s %s", newStaker, newVoter, newReward);
-        console.logBool(isReward(newReward));
 
         //old staker
         uint256 memberIdx = stakerIdx[oldStaker];
