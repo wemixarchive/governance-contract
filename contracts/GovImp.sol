@@ -357,10 +357,16 @@ contract GovImp is
         require(isMember(oldStaker), "Non-member");
 
         require(
-            (voters[stakerIdx[oldStaker]] == newInfo.voter ||
-                !isMember(newInfo.voter)) &&
-            (rewards[stakerIdx[oldStaker]] == newInfo.reward ||
-                !isReward(newInfo.reward)) ,
+            (
+                voters[stakerIdx[oldStaker]] == newInfo.voter ||
+                newInfo.voter == oldStaker ||
+                (!isMember(newInfo.voter)) && !isReward(newInfo.voter)
+            ) &&
+            (
+                rewards[stakerIdx[oldStaker]] == newInfo.reward ||
+                newInfo.reward == oldStaker ||
+                (!isMember(newInfo.reward)) && !isReward(newInfo.reward)
+            ),
             "Already a member"
         );
 
@@ -854,14 +860,14 @@ contract GovImp is
 
         {
             address oldReward = rewards[memberIdx];
-            if((oldReward != newReward) && ( isMember(newReward) || isReward(newReward))){
+            if((oldStaker != newReward) && (oldReward != newReward) && ( isMember(newReward) || isReward(newReward))){
                 emit NotApplicable(ballotIdx, "Invalid reward address");
                 return false;
             }
         }
         {
             address oldVoter = voters[memberIdx];
-            if((oldVoter != newVoter) && (isMember(newVoter) || isReward(newVoter))){
+            if((oldStaker != newVoter) && (oldVoter != newVoter) && (isMember(newVoter) || isReward(newVoter))){
                 emit NotApplicable(ballotIdx, "Invalid voters address");
                 return false;
             }
