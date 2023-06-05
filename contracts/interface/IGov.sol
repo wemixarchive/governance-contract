@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 interface IGov {
+    function isReward(address addr) external view returns (bool);
     function isVoter(address addr) external view returns (bool);
     function isStaker(address addr) external view returns (bool);
     function isMember(address) external view returns (bool);

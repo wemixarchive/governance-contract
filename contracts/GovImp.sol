@@ -224,7 +224,7 @@ contract GovImp is
             ix += 0x20;
 
             idx += 1;
-            require(!isMember(staker) && !isMember(voter), "Already member");
+            require(!isMember(staker) && !isMember(voter) && !isReward(reward), "Already member");
             voters[idx] = voter;
             voterIdx[voter] = idx;
             rewards[idx] = reward;
@@ -270,8 +270,8 @@ contract GovImp is
         checkMemberInfo(info)
         returns (uint256 ballotIdx)
     {
-        require(!isMember(info.staker), "Already member");
-        require(info.staker == info.voter, "Staker is not voter");
+        require(!isMember(info.staker) && !isReward(info.staker), "Already member");
+        require(info.staker == info.voter && info.staker == info.reward, "Staker is not voter");
         require(
             checkNodeInfoAdd(info.name, info.enode, info.ip, info.port),
             "Duplicated node info"
@@ -357,13 +357,20 @@ contract GovImp is
         require(isMember(oldStaker), "Non-member");
 
         require(
-            voters[stakerIdx[oldStaker]] == newInfo.voter ||
-                !isMember(newInfo.voter),
-            "Already a voter"
+            (
+                voters[stakerIdx[oldStaker]] == newInfo.voter ||
+                newInfo.voter == oldStaker ||
+                (!isMember(newInfo.voter)) && !isReward(newInfo.voter)
+            ) &&
+            (
+                rewards[stakerIdx[oldStaker]] == newInfo.reward ||
+                newInfo.reward == oldStaker ||
+                (!isMember(newInfo.reward)) && !isReward(newInfo.reward)
+            ),
+            "Already a member"
         );
 
         ballotIdx = ballotLength + 1;
-
         createBallotForMember(
             ballotIdx, // ballot id
             uint256(BallotTypes.MemberChange), // ballot type
@@ -565,8 +572,7 @@ contract GovImp is
     function createVote(uint256 ballotIdx, bool approval) private {
         uint256 voteIdx = voteLength + 1;
         address staker = getStakerAddr(msg.sender);
-        uint256 weight = IStaking(getStakingAddress())
-            .calcVotingWeightWithScaleFactor(staker, 10000);
+        uint256 weight = 10000 / getMemberLength(); //IStaking(getStakingAddress()).calcVotingWeightWithScaleFactor(staker, 10000);
         uint256 decision = approval
             ? uint256(DecisionTypes.Accept)
             : uint256(DecisionTypes.Reject);
@@ -641,6 +647,11 @@ contract GovImp is
         if (isMember(newStaker)) {
             // new staker is already a member or a voter/
             emit NotApplicable(ballotIdx, "Already a member");
+            return false;
+        }
+        if (isReward(newReward)) {
+            // new staker is already a member or a voter/
+            emit NotApplicable(ballotIdx, "Already a rewarder");
             return false;
         }
 
@@ -783,6 +794,87 @@ contract GovImp is
         emit MemberRemoved(oldStaker, oldVoter);
     }
 
+    function checkChangeMember(
+        uint256 ballotIdx,
+        bool self,
+        address oldStaker,
+        address newStaker,
+        address newVoter,
+        address newReward,
+        bytes memory name,
+        bytes memory enode,
+        bytes memory ip,
+        uint256 port,
+        uint256 lockAmount
+    ) private returns (bool) {
+        if (!self) {
+            fromValidBallot(ballotIdx, uint256(BallotTypes.MemberChange));
+        }
+
+        if (!isMember(oldStaker)) {
+            emit NotApplicable(ballotIdx, "Old address is not a member");
+            return false; // Non-member. it is abnormal case.
+        }
+
+        //old staker
+        uint256 memberIdx = stakerIdx[oldStaker];
+        if (oldStaker != newStaker) {
+            if (isMember(newStaker)) {
+                emit NotApplicable(
+                    ballotIdx,
+                    "new address is already a member"
+                );
+                return false; // already member. it is abnormal case.
+            }
+            if (newStaker != newVoter && newStaker != newReward) {
+                emit NotApplicable(ballotIdx, "Invalid voter address");
+                return false;
+            }
+            // Lock
+            if (lockAmount < getMinStaking() || getMaxStaking() < lockAmount) {
+                emit NotApplicable(ballotIdx, "Invalid lock amount");
+                return false;
+            }
+            if (availableBalanceOf(newStaker) < lockAmount) {
+                emit NotApplicable(
+                    ballotIdx,
+                    "Insufficient balance that can be locked"
+                );
+                return false;
+            }
+        }
+        // Change node
+        uint256 nodeIdx = nodeIdxFromMember[oldStaker];
+        {
+            Node memory node = nodes[nodeIdx];
+
+            if (
+                //if node info is not same
+                // node info can not duplicate
+                !checkNodeInfoChange(name, enode, ip, port, node)
+            ) {
+                emit NotApplicable(ballotIdx, "Duplicated node info");
+                return false;
+            }
+        }
+
+        {
+            address oldReward = rewards[memberIdx];
+            if((oldStaker != newReward) && (oldReward != newReward) && ( isMember(newReward) || isReward(newReward))){
+                emit NotApplicable(ballotIdx, "Invalid reward address");
+                return false;
+            }
+        }
+        {
+            address oldVoter = voters[memberIdx];
+            if((oldStaker != newVoter) && (oldVoter != newVoter) && (isMember(newVoter) || isReward(newVoter))){
+                emit NotApplicable(ballotIdx, "Invalid voters address");
+                return false;
+            }
+        }
+        return true;
+    }
+
     // isMember=> isStaker and isVoter
     // vote => onlyVoter, staker can change voter without voting, default = staker == voter
     // voter can change staker with voting.(changeMember)
@@ -806,41 +898,32 @@ contract GovImp is
             emit NotApplicable(ballotIdx, "Old address is not a member");
             return false; // Non-member. it is abnormal case.
         }
+        
+        if (
+            !checkChangeMember(
+                ballotIdx,
+                self,
+                oldStaker,
+                newStaker,
+                newVoter,
+                newReward,
+                name,
+                enode,
+                ip,
+                port,
+                lockAmount
+            )
+        ) return false;
 
         //old staker
         uint256 memberIdx = stakerIdx[oldStaker];
         if (oldStaker != newStaker) {
-            if (isMember(newStaker)) {
-                emit NotApplicable(
-                    ballotIdx,
-                    "new address is already a member"
-                );
-                return false; // already member. it is abnormal case.
-            }
-            if (newStaker != newVoter && newStaker != newReward) {
-                emit NotApplicable(ballotIdx, "Invalid voter address");
-                return false;
-            }
 
             // Change member
             stakers[memberIdx] = newStaker;
             stakerIdx[newStaker] = memberIdx;
             stakerIdx[oldStaker] = 0;
-            // stakerToVoter[oldStaker] = ZERO;
-            // stakerToVoter[newStaker] = newVoter;
 
-            // Lock
-            if (lockAmount < getMinStaking() || getMaxStaking() < lockAmount) {
-                emit NotApplicable(ballotIdx, "Invalid lock amount");
-                return false;
-            }
-            if (availableBalanceOf(newStaker) < lockAmount) {
-                emit NotApplicable(
-                    ballotIdx,
-                    "Insufficient balance that can be locked"
-                );
-                return false;
-            }
             lock(newStaker, lockAmount);
         }
         // Change node
@@ -848,14 +931,6 @@ contract GovImp is
         {
             Node storage node = nodes[nodeIdx];
 
-            if (
-                //if node info is not same
-                // node info can not duplicate
-                !checkNodeInfoChange(name, enode, ip, port, node)
-            ) {
-                emit NotApplicable(ballotIdx, "Duplicated node info");
-                return false;
-            }
             checkNodeName[node.name] = false;
             checkNodeEnode[node.enode] = false;
             checkNodeIpPort[keccak256(abi.encodePacked(node.ip, node.port))] = false;
@@ -882,10 +957,6 @@ contract GovImp is
         {
             address oldVoter = voters[memberIdx];
             if (oldVoter != newVoter) {
-                if (isVoter(newVoter)) {
-                    emit NotApplicable(ballotIdx, "Already a voter");
-                    return false;
-                }
                 voters[memberIdx] = newVoter;
                 voterIdx[newVoter] = memberIdx;
                 voterIdx[oldVoter] = 0;
@@ -1165,5 +1236,21 @@ contract GovImp is
                 checkNodeIpPort[keccak256(abi.encodePacked(node.ip, node.port))] = true;
             }
         }
+    }
+
+    function reInitV3(uint256[] memory indices, address[] memory newRewards) external reinitializer(3) onlyOwner{
+        unchecked {
+            for(uint256 i=0; i<indices.length;i++){
+                address oldReward = rewards[i];
+                address newReward = newRewards[i-1];
+                rewards[i] = newReward;
+                rewardIdx[newReward] = i;
+                rewardIdx[oldReward] = 0;
+            }
+        }
+        //for the testnet
+        checkNodeName[nodes[40].name] = true;
+        checkNodeEnode[nodes[40].enode] = true;
+        checkNodeIpPort[keccak256(abi.encodePacked(nodes[40].ip, nodes[40].port))] = true;
     }
 }
