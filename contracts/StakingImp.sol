@@ -343,7 +343,9 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
         _lockedUserBalanceToNCP[ncp][msg.sender] = _lockedUserBalanceToNCP[ncp][msg.sender] - userWithdrawValue;
         _lockedUserBalanceToNCPTotal[ncp] = _lockedUserBalanceToNCPTotal[ncp] - userWithdrawValue;
 
-        payable(ncpStaking).transfer(userWithdrawValue);
+        // payable(ncpStaking).transfer(userWithdrawValue);
+        ( bool succ, ) = payable(ncpStaking).call{value:userWithdrawValue}("");
+        require(succ, "Transfer to NCP staking failed");
 
         emit DelegateUnstaked(msg.sender, userWithdrawValue, ncp, _lockedUserBalanceToNCPTotal[ncp], _lockedUserBalanceToNCP[ncp][msg.sender]);
     }
