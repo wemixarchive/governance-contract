@@ -1214,11 +1214,12 @@ contract GovImp is
     uint256 public proposal_time_period;
     mapping(address => uint256) public lastAddProposalTime;
 
-    //For a node duplicate check
-    // mapping(bytes32=>bool) internal checkNodeInfo;
-    mapping(bytes=>bool) internal checkNodeName;
-    mapping(bytes=>bool) internal checkNodeEnode;
-    mapping(bytes32=>bool) internal checkNodeIpPort;
+    // //For a node duplicate check
+    // // testnet value is here
+    // // mapping(bytes32=>bool) internal checkNodeInfo;
+    // mapping(bytes=>bool) internal checkNodeName;
+    // mapping(bytes=>bool) internal checkNodeEnode;
+    // mapping(bytes32=>bool) internal checkNodeIpPort;
     
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
