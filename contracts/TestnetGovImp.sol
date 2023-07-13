@@ -1265,74 +1265,8 @@ contract TestnetGovImp is
         ] = true;
     }
 
-    function setMembersForMigration(
-        uint256 id,
-        address staker,
-        address voter,
-        address reward,
-        uint256 stakerLastAddProposalTime,
-        bytes memory name,
-        bytes memory enode,
-        bytes memory ip,
-        uint port
-    ) external override {
-                stakers[id] = staker;
-                stakerIdx[stakers[id]] = id;
-                voters[id] = voter;
-                voterIdx[voters[id]] = id;
-                rewards[id] = reward;
-                rewardIdx[rewards[id]] = id;
-                memberLength = id;
-                
-                Node memory node = Node(name, enode, ip, port);
-                require(checkNodeInfoChange(
-                    node.name,
-                    node.enode,
-                    node.ip,
-                    node.port,
-                    node
-                ), "node info is duplicated");
-                checkNodeName[node.name] = true;
-                checkNodeEnode[node.enode] = true;
-                checkNodeIpPort[
-                    keccak256(abi.encodePacked(node.ip, node.port))
-                ] = true;
-                nodes[id] = node;
-                nodeIdxFromMember[staker] = id;
-                nodeToMember[id] = staker;
-                nodeLength = id;
-    // uint256 public proposal_time_period;
-    // mapping(address => uint256) public lastAddProposalTime;
-                lastAddProposalTime[staker] = stakerLastAddProposalTime;
-    }
-
-    function setBallotForMigration(
-        uint256 oldballotLength,
-        uint256 oldvoteLength,
-        uint256 oldballotInVoting
-    ) external override {
-        ballotLength = oldballotLength;
-        voteLength = oldvoteLength;
-        ballotInVoting = oldballotInVoting;
-    }
-
-    function setProposalTimePeriodForMigration(uint256 newPeriod) external override {
-        proposal_time_period = newPeriod;
-    }
-
-    function initMigration(
-        address registry,
-        uint256 oldModifiedBlock
-    ) external override initializer {
-        __ReentrancyGuard_init();
-        __Ownable_init();
-        setRegistry(registry);
-
-        modifiedBlock = oldModifiedBlock;
-    }
-
     function maigration(address newGov) external onlyOwner {
-        IGov(newGov).initMigration(address(reg), modifiedBlock);
+        IGov(newGov).initMigration(address(reg), modifiedBlock, owner());
         unchecked{
             for (uint256 i = 1; i < getMemberLength()+1; i++) {
                 IGov(newGov).setMembersForMigration(
