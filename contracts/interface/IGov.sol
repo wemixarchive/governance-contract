@@ -34,5 +34,5 @@ interface IGov {
     ) external;
 
     function setProposalTimePeriodForMigration(uint256 newPeriod) external;
-    function initMigration(address registry, uint256 oldModifiedBlock) external;
+    function initMigration(address registry, uint256 oldModifiedBlock, address oldOwner) external;
 }

@@ -1313,12 +1313,14 @@ contract GovImp is
 
     function initMigration(
         address registry,
-        uint256 oldModifiedBlock
+        uint256 oldModifiedBlock,
+        address oldOwner
     ) external override initializer {
         __ReentrancyGuard_init();
         __Ownable_init();
         setRegistry(registry);
 
         modifiedBlock = oldModifiedBlock;
+        transferOwnership(oldOwner);
     }
 }
