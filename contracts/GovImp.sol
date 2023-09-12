@@ -149,6 +149,7 @@ contract GovImp is
         nodeToMember[nodeLength] = msg.sender;
 
         modifiedBlock = block.number;
+        emit MemberAdded(msg.sender, msg.sender);
     }
 
     function initOnce(address registry, uint256 lockAmount, bytes memory data) public initializer {
@@ -231,6 +232,7 @@ contract GovImp is
             rewardIdx[reward] = idx;
             stakers[idx] = staker;
             stakerIdx[staker] = idx;
+            emit MemberAdded(staker, voter); // staker, voter
 
             require(
                 staking.availableBalanceOf(staker) >= lockAmount,
@@ -1293,6 +1295,8 @@ contract GovImp is
         nodeToMember[id] = staker;
         nodeLength = id;
         lastAddProposalTime[staker] = stakerLastAddProposalTime;
+
+        emit MemberAdded(staker, voter);
     }
 
     function setBallotForMigration(
