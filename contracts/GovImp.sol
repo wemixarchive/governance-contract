@@ -89,6 +89,9 @@ contract GovImp is
         require(info.name.length > 0, "Invalid node name");
         require(info.ip.length > 0, "Invalid node IP");
         require(info.port > 0, "Invalid node port");
+        require(info.enode.length > 0, "Invalid node enode");
+        require(info.memo.length > 0, "Invalid memo");
+        require(info.duration > 0, "Invalid duration");
         require(
             info.lockAmount >= getMinStaking() &&
                 info.lockAmount <= getMaxStaking(),
