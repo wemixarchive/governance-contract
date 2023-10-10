@@ -702,7 +702,6 @@ contract GovImp is
 
         nodeToMember[nNodeIdx] = newStaker;
         nodeIdxFromMember[newStaker] = nNodeIdx;
-        node.name = name;
         memberLength = nMemIdx;
         nodeLength = nNodeIdx;
         modifiedBlock = block.number;
