@@ -632,7 +632,7 @@ contract GovImp is
         require(state == uint(BallotStates.InProgress), "Invalid voting state");
         (, uint256 accept, uint256 reject) = getBallotVotingInfo(ballotIdx);
         require(
-            accept >= getThreshold() || reject >= getThreshold(),
+            accept >= getThreshold() || reject >= getThreshold() || (accept + reject) == 10000,
             "Not yet finalized"
         );
     }
