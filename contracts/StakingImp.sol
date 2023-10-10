@@ -186,7 +186,7 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
     
     function _unlock(address payee, uint256 unlockAmount) internal {
         if (unlockAmount == 0) return;
-        // require(_lockedBalance[payee] >= unlockAmount, "Unlock amount should be equal or less than balance locked");
+        require(_lockedBalance[payee] >= unlockAmount, "Unlock amount should be equal or less than balance locked");
         _lockedBalance[payee] = _lockedBalance[payee] - unlockAmount;
         _totalLockedBalance = _totalLockedBalance - unlockAmount;
 
