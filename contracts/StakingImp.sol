@@ -17,7 +17,7 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
     mapping(address => uint256) private _balance;
     mapping(address => uint256) private _lockedBalance;
     uint256 private _totalLockedBalance;
-    bool private revoked = false;
+    bool private revoked;
 
     //====NXTMeta====//
     event Staked(address indexed payee, uint256 amount, uint256 total, uint256 available);
@@ -38,6 +38,7 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
 
     function init(address registry, bytes memory data) external initializer {
         _totalLockedBalance = 0;
+        revoked = false;
         // _transferOwnership(_msgSender());
         __ReentrancyGuard_init();
         __Ownable_init();
