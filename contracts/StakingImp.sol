@@ -30,6 +30,7 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
     //====Phase2-Staking====//
     event DelegateStaked(address indexed payee, uint256 amount, address indexed ncp, uint256 ncpTotalLocked, uint256 userTotalLocked);
     event DelegateUnstaked(address indexed payee, uint256 amount, address indexed ncp, uint256 ncpTotalLocked, uint256 userTotalLocked);
+    event NCPAddrChanged(address indexed ncp);
 
     constructor(){
         _disableInitializers();
@@ -300,6 +301,7 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
     function setNCPStaking(address _ncpStaking) external onlyOwner {
         require(_ncpStaking != address(0), "NCPStaking is the zero address");
         ncpStaking = _ncpStaking;
+        emit NCPAddrChanged(_ncpStaking);
     }
 
     /**
