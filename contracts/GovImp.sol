@@ -108,7 +108,7 @@ contract GovImp is
         bytes memory ip,
         uint port
     ) public initializer {
-        require(lockAmount > 0, "lockAmount should be more then zero");
+        require(lockAmount >= getMinStaking() && getMaxStaking() >= lockAmount, "Invalid lock amount");
         __ReentrancyGuard_init();
         __Ownable_init();
         setRegistry(registry);
