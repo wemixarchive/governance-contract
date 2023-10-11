@@ -47,6 +47,8 @@ contract GovImp is
     event NotApplicable(uint256 indexed ballotId, string reason);
 
     event SetProposalTimePeriod(uint256 newPeriod);
+    // added for announced that migration gov data
+    event GovDataMigrated(address indexed from);
 
     struct MemberInfo {
         address staker;
@@ -87,6 +89,9 @@ contract GovImp is
         require(info.name.length > 0, "Invalid node name");
         require(info.ip.length > 0, "Invalid node IP");
         require(info.port > 0, "Invalid node port");
+        require(info.enode.length > 0, "Invalid node enode");
+        require(info.memo.length > 0, "Invalid memo");
+        require(info.duration > 0, "Invalid duration");
         require(
             info.lockAmount >= getMinStaking() &&
                 info.lockAmount <= getMaxStaking(),
@@ -108,7 +113,7 @@ contract GovImp is
         bytes memory ip,
         uint port
     ) public initializer {
-        require(lockAmount > 0, "lockAmount should be more then zero");
+        require(lockAmount >= getMinStaking() && getMaxStaking() >= lockAmount, "Invalid lock amount");
         __ReentrancyGuard_init();
         __Ownable_init();
         setRegistry(registry);
@@ -627,7 +632,7 @@ contract GovImp is
         require(state == uint(BallotStates.InProgress), "Invalid voting state");
         (, uint256 accept, uint256 reject) = getBallotVotingInfo(ballotIdx);
         require(
-            accept >= getThreshold() || reject >= getThreshold(),
+            accept >= getThreshold() || reject >= getThreshold() || (accept + reject) == 10000,
             "Not yet finalized"
         );
     }
@@ -702,7 +707,6 @@ contract GovImp is
 
         nodeToMember[nNodeIdx] = newStaker;
         nodeIdxFromMember[newStaker] = nNodeIdx;
-        node.name = name;
         memberLength = nMemIdx;
         nodeLength = nNodeIdx;
         modifiedBlock = block.number;
@@ -1241,22 +1245,6 @@ contract GovImp is
         }
     }
 
-    function reInitV3(uint256[] memory indices, address[] memory newRewards) external reinitializer(3) onlyOwner{
-        unchecked {
-            for(uint256 i=0; i<indices.length;i++){
-                address oldReward = rewards[i];
-                address newReward = newRewards[i-1];
-                rewards[i] = newReward;
-                rewardIdx[newReward] = i;
-                rewardIdx[oldReward] = 0;
-            }
-        }
-        //for the testnet
-        checkNodeName[nodes[40].name] = true;
-        checkNodeEnode[nodes[40].enode] = true;
-        checkNodeIpPort[keccak256(abi.encodePacked(nodes[40].ip, nodes[40].port))] = true;
-    }
-
     function setMembersForMigration(
         uint256 id,
         address staker,
@@ -1326,5 +1314,6 @@ contract GovImp is
 
         modifiedBlock = oldModifiedBlock;
         transferOwnership(oldOwner);
+        emit GovDataMigrated(msg.sender);
     }
 }

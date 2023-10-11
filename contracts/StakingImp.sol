@@ -17,7 +17,7 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
     mapping(address => uint256) private _balance;
     mapping(address => uint256) private _lockedBalance;
     uint256 private _totalLockedBalance;
-    bool private revoked = false;
+    bool private revoked;
 
     //====NXTMeta====//
     event Staked(address indexed payee, uint256 amount, uint256 total, uint256 available);
@@ -30,6 +30,7 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
     //====Phase2-Staking====//
     event DelegateStaked(address indexed payee, uint256 amount, address indexed ncp, uint256 ncpTotalLocked, uint256 userTotalLocked);
     event DelegateUnstaked(address indexed payee, uint256 amount, address indexed ncp, uint256 ncpTotalLocked, uint256 userTotalLocked);
+    event NCPAddrChanged(address indexed ncp);
 
     constructor(){
         _disableInitializers();
@@ -37,6 +38,7 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
 
     function init(address registry, bytes memory data) external initializer {
         _totalLockedBalance = 0;
+        revoked = false;
         // _transferOwnership(_msgSender());
         __ReentrancyGuard_init();
         __Ownable_init();
@@ -186,7 +188,7 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
     
     function _unlock(address payee, uint256 unlockAmount) internal {
         if (unlockAmount == 0) return;
-        // require(_lockedBalance[payee] >= unlockAmount, "Unlock amount should be equal or less than balance locked");
+        require(_lockedBalance[payee] >= unlockAmount, "Unlock amount should be equal or less than balance locked");
         _lockedBalance[payee] = _lockedBalance[payee] - unlockAmount;
         _totalLockedBalance = _totalLockedBalance - unlockAmount;
 
@@ -300,6 +302,7 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
     function setNCPStaking(address _ncpStaking) external onlyOwner {
         require(_ncpStaking != address(0), "NCPStaking is the zero address");
         ncpStaking = _ncpStaking;
+        emit NCPAddrChanged(_ncpStaking);
     }
 
     /**
