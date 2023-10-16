@@ -405,7 +405,7 @@ contract GovImp is
         address newGovAddr,
         bytes memory memo,
         uint256 duration
-    ) external onlyGovMem checkLockedAmount returns (uint256 ballotIdx) {
+    ) external onlyGovMem checkTimePeriod checkLockedAmount returns (uint256 ballotIdx) {
         require(newGovAddr != ZERO, "Implementation cannot be zero");
         require(newGovAddr != _getImplementation(), "Same contract address");
         //check newGov has proxiableUUID
