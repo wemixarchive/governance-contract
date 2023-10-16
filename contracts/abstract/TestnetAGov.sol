@@ -2,10 +2,10 @@
 pragma solidity ^0.8.0;
 
 import "../interface/IStaking.sol";
-import "../interface/IGov.sol";
+import "../interface/ITestnetGov.sol";
 import "../GovChecker.sol";
 
-abstract contract AGov is GovChecker, IGov {
+abstract contract TestnetAGov is GovChecker, ITestnetGov {
     uint public modifiedBlock;
 
     // For voting member
@@ -24,9 +24,9 @@ abstract contract AGov is GovChecker, IGov {
     //For a node duplicate check
     // mainnet value is here
     // mapping(bytes32=>bool) internal checkNodeInfo;
-    mapping(bytes=>bool) internal checkNodeName;
-    mapping(bytes=>bool) internal checkNodeEnode;
-    mapping(bytes32=>bool) internal checkNodeIpPort;
+    // mapping(bytes=>bool) internal checkNodeName;
+    // mapping(bytes=>bool) internal checkNodeEnode;
+    // mapping(bytes32=>bool) internal checkNodeIpPort;
 
     // For enode
     struct Node {

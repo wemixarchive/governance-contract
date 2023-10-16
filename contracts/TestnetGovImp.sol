@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "./abstract/BallotEnums.sol";
 import "./abstract/EnvConstants.sol";
-import "./abstract/AGov.sol";
+import "./abstract/TestnetAGov.sol";
 
 import "./interface/IBallotStorage.sol";
 import "./interface/IEnvStorage.sol";
@@ -12,8 +12,8 @@ import "./interface/IStaking.sol";
 
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
-contract GovImp is
-    AGov,
+contract TestnetGovImp is
+    TestnetAGov,
     ReentrancyGuardUpgradeable,
     BallotEnums,
     EnvConstants,
@@ -47,8 +47,6 @@ contract GovImp is
     event NotApplicable(uint256 indexed ballotId, string reason);
 
     event SetProposalTimePeriod(uint256 newPeriod);
-    // added for announced that migration gov data
-    event GovDataMigrated(address indexed from);
 
     struct MemberInfo {
         address staker;
@@ -89,9 +87,6 @@ contract GovImp is
         require(info.name.length > 0, "Invalid node name");
         require(info.ip.length > 0, "Invalid node IP");
         require(info.port > 0, "Invalid node port");
-        require(info.enode.length > 0, "Invalid node enode");
-        require(info.memo.length > 0, "Invalid memo");
-        require(info.duration > 0, "Invalid duration");
         require(
             info.lockAmount >= getMinStaking() &&
                 info.lockAmount <= getMaxStaking(),
@@ -113,7 +108,7 @@ contract GovImp is
         bytes memory ip,
         uint port
     ) public initializer {
-        require(lockAmount >= getMinStaking() && getMaxStaking() >= lockAmount, "Invalid lock amount");
+        require(lockAmount > 0, "lockAmount should be more then zero");
         __ReentrancyGuard_init();
         __Ownable_init();
         setRegistry(registry);
@@ -154,10 +149,13 @@ contract GovImp is
         nodeToMember[nodeLength] = msg.sender;
 
         modifiedBlock = block.number;
-        emit MemberAdded(msg.sender, msg.sender);
     }
 
-    function initOnce(address registry, uint256 lockAmount, bytes memory data) public initializer {
+    function initOnce(
+        address registry,
+        uint256 lockAmount,
+        bytes memory data
+    ) public initializer {
         __ReentrancyGuard_init();
         __Ownable_init();
         setRegistry(registry);
@@ -168,7 +166,10 @@ contract GovImp is
         // Lock
         IStaking staking = IStaking(getStakingAddress());
 
-        require(lockAmount >= getMinStaking() && getMaxStaking() >= lockAmount, "Invalid lock amount");
+        require(
+            lockAmount >= getMinStaking() && getMaxStaking() >= lockAmount,
+            "Invalid lock amount"
+        );
 
         // []{uint staker, uint voter, uint reward, bytes name, bytes enode, bytes ip, uint port}
         // 32 bytes, 32 bytes, 32 bytes, [32 bytes, <data>] * 3, 32 bytes
@@ -230,14 +231,16 @@ contract GovImp is
             ix += 0x20;
 
             idx += 1;
-            require(!isMember(staker) && !isMember(voter) && !isReward(reward), "Already member");
+            require(
+                !isMember(staker) && !isMember(voter) && !isReward(reward),
+                "Already member"
+            );
             voters[idx] = voter;
             voterIdx[voter] = idx;
             rewards[idx] = reward;
             rewardIdx[reward] = idx;
             stakers[idx] = staker;
             stakerIdx[staker] = idx;
-            emit MemberAdded(staker, voter); // staker, voter
 
             require(
                 staking.availableBalanceOf(staker) >= lockAmount,
@@ -269,7 +272,9 @@ contract GovImp is
     }
 
     //Add member address = staker address = voter address
-    function addProposalToAddMember(MemberInfo memory info)
+    function addProposalToAddMember(
+        MemberInfo memory info
+    )
         external
         onlyGovMem
         checkTimePeriod
@@ -277,8 +282,14 @@ contract GovImp is
         checkMemberInfo(info)
         returns (uint256 ballotIdx)
     {
-        require(!isMember(info.staker) && !isReward(info.staker), "Already member");
-        require(info.staker == info.voter && info.staker == info.reward, "Staker is not voter");
+        require(
+            !isMember(info.staker) && !isReward(info.staker),
+            "Already member"
+        );
+        require(
+            info.staker == info.voter && info.staker == info.reward,
+            "Staker is not voter"
+        );
         require(
             checkNodeInfoAdd(info.name, info.enode, info.ip, info.port),
             "Duplicated node info"
@@ -364,16 +375,12 @@ contract GovImp is
         require(isMember(oldStaker), "Non-member");
 
         require(
-            (
-                voters[stakerIdx[oldStaker]] == newInfo.voter ||
+            (voters[stakerIdx[oldStaker]] == newInfo.voter ||
                 newInfo.voter == oldStaker ||
-                (!isMember(newInfo.voter)) && !isReward(newInfo.voter)
-            ) &&
-            (
-                rewards[stakerIdx[oldStaker]] == newInfo.reward ||
-                newInfo.reward == oldStaker ||
-                (!isMember(newInfo.reward)) && !isReward(newInfo.reward)
-            ),
+                ((!isMember(newInfo.voter)) && !isReward(newInfo.voter))) &&
+                (rewards[stakerIdx[oldStaker]] == newInfo.reward ||
+                    newInfo.reward == oldStaker ||
+                    ((!isMember(newInfo.reward)) && !isReward(newInfo.reward))),
             "Already a member"
         );
 
@@ -466,12 +473,10 @@ contract GovImp is
         ballotLength = ballotIdx;
     }
 
-    function vote(uint256 ballotIdx, bool approval)
-        external
-        onlyGovMem
-        nonReentrant
-        checkLockedAmount
-    {
+    function vote(
+        uint256 ballotIdx,
+        bool approval
+    ) external onlyGovMem nonReentrant checkLockedAmount {
         // Check if some ballot is in progress
         require(checkUnfinalized(), "Expired");
 
@@ -623,16 +628,16 @@ contract GovImp is
         if (!self) ballotInVoting = 0;
     }
 
-    function fromValidBallot(uint256 ballotIdx, uint256 targetType)
-        private
-        view
-    {
+    function fromValidBallot(
+        uint256 ballotIdx,
+        uint256 targetType
+    ) private view {
         (uint256 ballotType, uint256 state, ) = getBallotState(ballotIdx);
         require(ballotType == targetType, "Invalid voting type");
         require(state == uint(BallotStates.InProgress), "Invalid voting state");
         (, uint256 accept, uint256 reject) = getBallotVotingInfo(ballotIdx);
         require(
-            accept >= getThreshold() || reject >= getThreshold() || (accept + reject) == 10000,
+            accept >= getThreshold() || reject >= getThreshold(),
             "Not yet finalized"
         );
     }
@@ -707,6 +712,7 @@ contract GovImp is
 
         nodeToMember[nNodeIdx] = newStaker;
         nodeIdxFromMember[newStaker] = nNodeIdx;
+        node.name = name;
         memberLength = nMemIdx;
         nodeLength = nNodeIdx;
         modifiedBlock = block.number;
@@ -776,7 +782,9 @@ contract GovImp is
         Node storage node = nodes[removeIdx];
         checkNodeEnode[node.enode] = false;
         checkNodeName[node.name] = false;
-        checkNodeIpPort[keccak256(abi.encodePacked(node.ip, node.port))] = false;
+        checkNodeIpPort[
+            keccak256(abi.encodePacked(node.ip, node.port))
+        ] = false;
         if (nodeIdxFromMember[oldStaker] != nodeLength) {
             removeIdx = nodeIdxFromMember[oldStaker];
             endAddr = nodeToMember[nodeLength];
@@ -866,14 +874,22 @@ contract GovImp is
 
         {
             address oldReward = rewards[memberIdx];
-            if((oldStaker != newReward) && (oldReward != newReward) && ( isMember(newReward) || isReward(newReward))){
+            if (
+                (oldStaker != newReward) &&
+                (oldReward != newReward) &&
+                (isMember(newReward) || isReward(newReward))
+            ) {
                 emit NotApplicable(ballotIdx, "Invalid reward address");
                 return false;
             }
         }
         {
             address oldVoter = voters[memberIdx];
-            if((oldStaker != newVoter) && (oldVoter != newVoter) && (isMember(newVoter) || isReward(newVoter))){
+            if (
+                (oldStaker != newVoter) &&
+                (oldVoter != newVoter) &&
+                (isMember(newVoter) || isReward(newVoter))
+            ) {
                 emit NotApplicable(ballotIdx, "Invalid voters address");
                 return false;
             }
@@ -904,7 +920,7 @@ contract GovImp is
             emit NotApplicable(ballotIdx, "Old address is not a member");
             return false; // Non-member. it is abnormal case.
         }
-        
+
         if (
             !checkChangeMember(
                 ballotIdx,
@@ -924,7 +940,6 @@ contract GovImp is
         //old staker
         uint256 memberIdx = stakerIdx[oldStaker];
         if (oldStaker != newStaker) {
-
             // Change member
             stakers[memberIdx] = newStaker;
             stakerIdx[newStaker] = memberIdx;
@@ -939,7 +954,9 @@ contract GovImp is
 
             checkNodeName[node.name] = false;
             checkNodeEnode[node.enode] = false;
-            checkNodeIpPort[keccak256(abi.encodePacked(node.ip, node.port))] = false;
+            checkNodeIpPort[
+                keccak256(abi.encodePacked(node.ip, node.port))
+            ] = false;
 
             node.name = name;
             node.enode = enode;
@@ -1045,11 +1062,7 @@ contract GovImp is
         IBallotStorage(getBallotStorageAddress()).updateBallotMemo(id, memo);
     }
 
-    function startBallot(
-        uint256 id,
-        uint256 s,
-        uint256 e
-    ) private {
+    function startBallot(uint256 id, uint256 s, uint256 e) private {
         IBallotStorage(getBallotStorageAddress()).startBallot(id, s, e);
     }
 
@@ -1057,44 +1070,28 @@ contract GovImp is
         IBallotStorage(getBallotStorageAddress()).finalizeBallot(id, state);
     }
 
-    function getBallotState(uint256 id)
-        private
-        view
-        returns (
-            uint256,
-            uint256,
-            bool
-        )
-    {
+    function getBallotState(
+        uint256 id
+    ) private view returns (uint256, uint256, bool) {
         return IBallotStorage(getBallotStorageAddress()).getBallotState(id);
     }
 
-    function getBallotPeriod(uint256 id)
-        private
-        view
-        returns (
-            uint256,
-            uint256,
-            uint256
-        )
-    {
+    function getBallotPeriod(
+        uint256 id
+    ) private view returns (uint256, uint256, uint256) {
         return IBallotStorage(getBallotStorageAddress()).getBallotPeriod(id);
     }
 
-    function getBallotVotingInfo(uint256 id)
-        private
-        view
-        returns (
-            uint256,
-            uint256,
-            uint256
-        )
-    {
+    function getBallotVotingInfo(
+        uint256 id
+    ) private view returns (uint256, uint256, uint256) {
         return
             IBallotStorage(getBallotStorageAddress()).getBallotVotingInfo(id);
     }
 
-    function getBallotMember(uint256 id)
+    function getBallotMember(
+        uint256 id
+    )
         private
         view
         returns (
@@ -1120,9 +1117,10 @@ contract GovImp is
         IStaking(getStakingAddress()).unlock(addr, amount);
     }
 
-    function transferLockedAndUnlock(address addr, uint256 unlockAmount)
-        private
-    {
+    function transferLockedAndUnlock(
+        address addr,
+        uint256 unlockAmount
+    ) private {
         IStaking staking = IStaking(getStakingAddress());
         uint256 locked = staking.lockedBalanceOf(addr);
         if (locked > unlockAmount) {
@@ -1146,17 +1144,14 @@ contract GovImp is
 
     //====NXTMeta=====/
 
-    function _authorizeUpgrade(address newImplementation)
-        internal
-        override
-        onlyGovMem
-    {}
+    function _authorizeUpgrade(
+        address newImplementation
+    ) internal override onlyGovMem {}
 
-    function checkVariableCondition(bytes32 envKey, bytes memory envVal)
-        internal
-        view
-        returns (bool)
-    {
+    function checkVariableCondition(
+        bytes32 envKey,
+        bytes memory envVal
+    ) internal view returns (bool) {
         return
             IEnvStorage(getEnvStorageAddress()).checkVariableCondition(
                 envKey,
@@ -1185,14 +1180,11 @@ contract GovImp is
         //IP:port can not be duplicated
         //Name can not be duplicated
         check = true;
-        if(checkNodeEnode[enode]) 
-            check = false;
-        if(checkNodeName[name])
-            check = false;
+        if (checkNodeEnode[enode]) check = false;
+        if (checkNodeName[name]) check = false;
 
         bytes32 hvalue = keccak256(abi.encodePacked(ip, port));
-        if(checkNodeIpPort[hvalue])
-            check = false;
+        if (checkNodeIpPort[hvalue]) check = false;
     }
 
     function checkNodeInfoChange(
@@ -1206,27 +1198,32 @@ contract GovImp is
         //IP:port can not be duplicated
         //Name can not be duplicated
         check = true;
-        if((keccak256(nodeInfo.enode) != keccak256(enode) && checkNodeEnode[enode]) )
-            check = false;
-        if((keccak256(nodeInfo.name) != keccak256(name) && checkNodeName[name]))
-            check = false;
+        if (
+            (keccak256(nodeInfo.enode) != keccak256(enode) &&
+                checkNodeEnode[enode])
+        ) check = false;
+        if (
+            (keccak256(nodeInfo.name) != keccak256(name) && checkNodeName[name])
+        ) check = false;
 
         bytes32 hvalue = keccak256(abi.encodePacked(ip, port));
-        if((keccak256(abi.encodePacked(nodeInfo.ip, nodeInfo.port)) != hvalue && checkNodeIpPort[hvalue]))
-            check = false;
+        if (
+            (keccak256(abi.encodePacked(nodeInfo.ip, nodeInfo.port)) !=
+                hvalue &&
+                checkNodeIpPort[hvalue])
+        ) check = false;
     }
-
 
     uint256 public proposal_time_period;
     mapping(address => uint256) public lastAddProposalTime;
 
-    // //For a node duplicate check
-    // // testnet value is here
-    // // mapping(bytes32=>bool) internal checkNodeInfo;
-    // mapping(bytes=>bool) internal checkNodeName;
-    // mapping(bytes=>bool) internal checkNodeEnode;
-    // mapping(bytes32=>bool) internal checkNodeIpPort;
-    
+    //For a node duplicate check
+    // testnet value is here
+    // mapping(bytes32=>bool) internal checkNodeInfo;
+    mapping(bytes=>bool) internal checkNodeName;
+    mapping(bytes=>bool) internal checkNodeEnode;
+    mapping(bytes32=>bool) internal checkNodeIpPort;
+
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
      * variables without shifting down storage in the inheritance chain.
@@ -1234,86 +1231,58 @@ contract GovImp is
      */
     uint256[46] private __gap;
 
-    function reInit() external reinitializer(2) onlyOwner{
+    function reInit() external reinitializer(2) onlyOwner {
         unchecked {
-            for(uint256 i=0; i<getMemberLength();i++){
+            for (uint256 i = 0; i < getMemberLength(); i++) {
                 Node memory node = nodes[i];
                 checkNodeName[node.name] = true;
                 checkNodeEnode[node.enode] = true;
-                checkNodeIpPort[keccak256(abi.encodePacked(node.ip, node.port))] = true;
+                checkNodeIpPort[
+                    keccak256(abi.encodePacked(node.ip, node.port))
+                ] = true;
             }
         }
     }
 
-    function setMembersForMigration(
-        uint256 id,
-        address staker,
-        address voter,
-        address reward,
-        uint256 stakerLastAddProposalTime,
-        bytes memory name,
-        bytes memory enode,
-        bytes memory ip,
-        uint port
-    ) external override {
-        stakers[id] = staker;
-        stakerIdx[stakers[id]] = id;
-        voters[id] = voter;
-        voterIdx[voters[id]] = id;
-        rewards[id] = reward;
-        rewardIdx[rewards[id]] = id;
-        memberLength = id;
-
-        Node memory node = Node(name, enode, ip, port);
-        require(
-            checkNodeInfoChange(
-                node.name,
-                node.enode,
-                node.ip,
-                node.port,
-                node
-            ),
-            "node info is duplicated"
-        );
-        checkNodeName[node.name] = true;
-        checkNodeEnode[node.enode] = true;
-        checkNodeIpPort[keccak256(abi.encodePacked(node.ip, node.port))] = true;
-        nodes[id] = node;
-        nodeIdxFromMember[staker] = id;
-        nodeToMember[id] = staker;
-        nodeLength = id;
-        lastAddProposalTime[staker] = stakerLastAddProposalTime;
-
-        emit MemberAdded(staker, voter);
+    function reInitV3(
+        uint256[] memory indices,
+        address[] memory newRewards
+    ) external reinitializer(3) onlyOwner {
+        unchecked {
+            for (uint256 i = 0; i < indices.length; i++) {
+                address oldReward = rewards[i];
+                address newReward = newRewards[i - 1];
+                rewards[i] = newReward;
+                rewardIdx[newReward] = i;
+                rewardIdx[oldReward] = 0;
+            }
+        }
+        //for the testnet
+        checkNodeName[nodes[40].name] = true;
+        checkNodeEnode[nodes[40].enode] = true;
+        checkNodeIpPort[
+            keccak256(abi.encodePacked(nodes[40].ip, nodes[40].port))
+        ] = true;
     }
 
-    function setBallotForMigration(
-        uint256 oldballotLength,
-        uint256 oldvoteLength,
-        uint256 oldballotInVoting
-    ) external override {
-        ballotLength = oldballotLength;
-        voteLength = oldvoteLength;
-        ballotInVoting = oldballotInVoting;
-    }
-
-    function setProposalTimePeriodForMigration(
-        uint256 newPeriod
-    ) external override {
-        proposal_time_period = newPeriod;
-    }
-
-    function initMigration(
-        address registry,
-        uint256 oldModifiedBlock,
-        address oldOwner
-    ) external override initializer {
-        __ReentrancyGuard_init();
-        __Ownable_init();
-        setRegistry(registry);
-
-        modifiedBlock = oldModifiedBlock;
-        transferOwnership(oldOwner);
-        emit GovDataMigrated(msg.sender);
+    function maigration(address newGov) external onlyOwner {
+        IGov(newGov).initMigration(address(reg), modifiedBlock, owner());
+        unchecked{
+            for (uint256 i = 1; i < getMemberLength()+1; i++) {
+                IGov(newGov).setMembersForMigration(
+                    i,
+                    stakers[i],
+                    voters[i],
+                    rewards[i],
+                    lastAddProposalTime[stakers[i]],
+                    nodes[i].name,
+                    nodes[i].enode,
+                    nodes[i].ip,
+                    nodes[i].port
+                );
+            }
+        }
+        IGov(newGov).setBallotForMigration(ballotLength, voteLength, ballotInVoting);
+        IGov(newGov).setProposalTimePeriodForMigration(proposal_time_period);
     }
 }

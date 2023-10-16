@@ -9,13 +9,15 @@ import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
 import "./interface/IEnvStorage.sol";
 import "./interface/IStaking.sol";
+import "./interface/INCPStaking.sol";
 
 contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, IStaking {
 
+    //balance of each NCP
     mapping(address => uint256) private _balance;
     mapping(address => uint256) private _lockedBalance;
     uint256 private _totalLockedBalance;
-    bool private revoked = false;
+    bool private revoked;
 
     //====NXTMeta====//
     event Staked(address indexed payee, uint256 amount, uint256 total, uint256 available);
@@ -25,12 +27,18 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
     event TransferLocked(address indexed payee, uint256 amount, uint256 total, uint256 available);
     event Revoked(address indexed owner, uint256 amount);
 
+    //====Phase2-Staking====//
+    event DelegateStaked(address indexed payee, uint256 amount, address indexed ncp, uint256 ncpTotalLocked, uint256 userTotalLocked);
+    event DelegateUnstaked(address indexed payee, uint256 amount, address indexed ncp, uint256 ncpTotalLocked, uint256 userTotalLocked);
+    event NCPAddrChanged(address indexed ncp);
+
     constructor(){
         _disableInitializers();
     }
 
     function init(address registry, bytes memory data) external initializer {
         _totalLockedBalance = 0;
+        revoked = false;
         // _transferOwnership(_msgSender());
         __ReentrancyGuard_init();
         __Ownable_init();
@@ -78,8 +86,13 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
 
         if(IGov(getGovAddress()).isMember(msg.sender)){
             uint256 minimum_staking = IEnvStorage(getEnvStorageAddress()).getStakingMin();
-            if(minimum_staking > _lockedBalance[msg.sender] && availableBalanceOf(msg.sender) >= (minimum_staking - _lockedBalance[msg.sender]))
+            //if minimum lock is going higher than current locked value, lock more
+            if(minimum_staking > _lockedBalance[msg.sender] && availableBalanceOf(msg.sender) >= (minimum_staking - _lockedBalance[msg.sender])){
                 _lock(msg.sender, minimum_staking - _lockedBalance[msg.sender]);
+                if(ncpStaking != address(0)){
+                    INCPStaking(ncpStaking).ncpDeposit(minimum_staking - _lockedBalance[msg.sender], payable(msg.sender));
+                }
+            }
         }
 
         emit Staked(msg.sender, msg.value, _balance[msg.sender], availableBalanceOf(msg.sender));
@@ -94,14 +107,24 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
 
         //if minimum is changed unlock staked value
         uint256 minimum_staking = IEnvStorage(getEnvStorageAddress()).getStakingMin();
-        if(lockedBalanceOf(msg.sender) > minimum_staking){
-            _unlock(msg.sender, lockedBalanceOf(msg.sender) - minimum_staking);
+
+        bool unlockBalance = false;
+        if(lockedBalanceOf(msg.sender) - _lockedUserBalanceToNCPTotal[msg.sender] >= minimum_staking + amount){
+            _unlock(msg.sender, amount);
+            unlockBalance = true;
         }
 
         require(amount <= availableBalanceOf(msg.sender), "Withdraw amount should be equal or less than balance");
 
         _balance[msg.sender] = _balance[msg.sender] - amount;
-        payable(msg.sender).transfer(amount);
+
+        if(ncpStaking != address(0) && unlockBalance) {
+            ( bool succ, ) = payable(ncpStaking).call{value:amount}("");
+            require(succ, "Transfer to NCP staking failed");
+            INCPStaking(ncpStaking).ncpWithdraw(amount, payable(msg.sender));
+        } else {
+            payable(msg.sender).transfer(amount);
+        }
 
         emit Unstaked(msg.sender, amount, _balance[msg.sender], availableBalanceOf(msg.sender));
     }
@@ -117,6 +140,10 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
 
     function lockMore(uint256 lockAmount) external onlyGovStaker {
         _lock(msg.sender, lockAmount);
+
+        if(ncpStaking != address(0)){
+            INCPStaking(ncpStaking).ncpDeposit(lockAmount, payable(msg.sender));
+        }
     }
 
     function _lock(address payee, uint256 lockAmount) internal {
@@ -130,6 +157,7 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
         require(_lockedBalance[payee] <= maximum, "Locked balance is larger than max");
 
         _totalLockedBalance = _totalLockedBalance + lockAmount;
+
 
         emit Locked(payee, lockAmount, _balance[payee], availableBalanceOf(payee));
     }
@@ -160,7 +188,7 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
     
     function _unlock(address payee, uint256 unlockAmount) internal {
         if (unlockAmount == 0) return;
-        // require(_lockedBalance[payee] >= unlockAmount, "Unlock amount should be equal or less than balance locked");
+        require(_lockedBalance[payee] >= unlockAmount, "Unlock amount should be equal or less than balance locked");
         _lockedBalance[payee] = _lockedBalance[payee] - unlockAmount;
         _totalLockedBalance = _totalLockedBalance - unlockAmount;
 
@@ -244,4 +272,89 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
     uint256[49] private __gap;
+
+    //Phase2 - Staking
+    mapping(address /* NCP */ => mapping(address /* user */ => uint256 /* amount */)) private _lockedUserBalanceToNCP;
+    mapping(address /* NCP */ => uint256 /* amount */) private _lockedUserBalanceToNCPTotal;
+
+    address public ncpStaking;
+
+    modifier onlyNCPStaking() {
+        require(msg.sender == ncpStaking, "Only NCPStaking contract can call this function");
+        _;
+    }
+
+    function userBalanceOf(address ncp, address user) external view override returns (uint256) {
+        return _lockedUserBalanceToNCP[ncp][user];
+    }
+
+    function userTotalBalanceOf(address ncp) external view override returns (uint256) {
+        return _lockedUserBalanceToNCPTotal[ncp];
+    }
+
+    function getRatioOfUserBalance(address ncp) external view override returns (uint256) {
+        uint256 user = _lockedUserBalanceToNCPTotal[ncp];
+        uint256 locked = _lockedBalance[ncp];
+        if (user == 0 || locked == 0) return 0;
+        return user * 1e2 / locked;
+    }
+
+    function setNCPStaking(address _ncpStaking) external onlyOwner {
+        require(_ncpStaking != address(0), "NCPStaking is the zero address");
+        ncpStaking = _ncpStaking;
+        emit NCPAddrChanged(_ncpStaking);
+    }
+
+    /**
+     * @dev Deposit from a user for delegate staking.
+     */
+    function delegateDepositAndLockMore(address ncp) external payable override nonReentrant notRevoked onlyNCPStaking {
+        require(msg.value > 0, "Deposit amount should be greater than zero");
+        require(IGov(getGovAddress()).isMember(ncp), "NCP should be a member");
+
+        // console.log("delegateDepositAndLockMore: msg.value: %s",ncp);
+
+        uint256 userDepositValue = msg.value;
+        //added value to ncp balance
+        _balance[ncp] = _balance[ncp] + userDepositValue;
+
+        uint256 minimum_staking = IEnvStorage(getEnvStorageAddress()).getStakingMin();
+        uint256 maximum_staking = IEnvStorage(getEnvStorageAddress()).getStakingMax();
+        require(minimum_staking <= _lockedBalance[ncp] && (_lockedBalance[ncp] + userDepositValue) <= maximum_staking, "user should be in staking range");
+        _lock(ncp, userDepositValue);
+
+        _lockedUserBalanceToNCP[ncp][msg.sender] = _lockedUserBalanceToNCP[ncp][msg.sender] + userDepositValue;
+        _lockedUserBalanceToNCPTotal[ncp] = _lockedUserBalanceToNCPTotal[ncp] + userDepositValue;
+
+        emit DelegateStaked(msg.sender, userDepositValue, ncp, _lockedUserBalanceToNCPTotal[ncp], _lockedUserBalanceToNCP[ncp][msg.sender]);
+    }
+
+    /**
+     * @dev Withdraw for a user.
+     * @param amount The amount of funds will be unlocked, withdrawn and transferred to.
+     */
+    function delegateUnlockAndWithdraw(address ncp, uint256 amount) external override nonReentrant notRevoked onlyNCPStaking {
+        require(amount > 0, "Amount should be bigger than zero");
+        require(IGov(getGovAddress()).isMember(ncp), "NCP should be a member");
+
+        uint256 userWithdrawValue = amount;
+        uint256 minimum_staking = IEnvStorage(getEnvStorageAddress()).getStakingMin();
+        require(userWithdrawValue <= _lockedUserBalanceToNCP[ncp][msg.sender] && lockedBalanceOf(ncp) - userWithdrawValue >= minimum_staking, "Withdraw amount should be equal or less than balance");
+        _unlock(ncp, userWithdrawValue);
+
+        _balance[ncp] = _balance[ncp] - userWithdrawValue;
+        _lockedUserBalanceToNCP[ncp][msg.sender] = _lockedUserBalanceToNCP[ncp][msg.sender] - userWithdrawValue;
+        _lockedUserBalanceToNCPTotal[ncp] = _lockedUserBalanceToNCPTotal[ncp] - userWithdrawValue;
+
+        // payable(ncpStaking).transfer(userWithdrawValue);
+        ( bool succ, ) = payable(ncpStaking).call{value:userWithdrawValue}("");
+        require(succ, "Transfer to NCP staking failed");
+
+        emit DelegateUnstaked(msg.sender, userWithdrawValue, ncp, _lockedUserBalanceToNCPTotal[ncp], _lockedUserBalanceToNCP[ncp][msg.sender]);
+    }
+
+    function getTotalLockedBalance() external view override returns (uint256) {
+        return _totalLockedBalance;
+    }
+
 }

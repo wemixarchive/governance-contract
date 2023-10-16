@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-interface IGov {
+interface ITestnetGov {
     function isReward(address addr) external view returns (bool);
     function isVoter(address addr) external view returns (bool);
     function isStaker(address addr) external view returns (bool);
@@ -15,24 +15,4 @@ interface IGov {
     function getNode(uint256) external view returns (bytes memory, bytes memory, bytes memory, uint);
     function getBallotInVoting() external view returns (uint256);
     function getVoter(uint256 idx) external view returns (address);
-
-    function setMembersForMigration(
-        uint256 id,
-        address staker,
-        address voter,
-        address reward,
-        uint256 stakerLastAddProposalTime,
-        bytes memory name,
-        bytes memory enode,
-        bytes memory ip,
-        uint port
-    ) external;
-    function setBallotForMigration(
-        uint256 oldballotLength,
-        uint256 oldvoteLength,
-        uint256 oldballotInVoting
-    ) external;
-
-    function setProposalTimePeriodForMigration(uint256 newPeriod) external;
-    function initMigration(address registry, uint256 oldModifiedBlock, address oldOwner) external;
 }

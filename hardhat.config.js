@@ -1,19 +1,14 @@
 require("@nomiclabs/hardhat-waffle");
 const { task } = require("hardhat/config");
-require("hardhat-gas-reporter");
-require("hardhat-contract-sizer");
-
+// require("hardhat-gas-reporter");
+// require("hardhat-contract-sizer");
 require("dotenv").config();
 
 const path = require("path");
 
-const sendTx = require("./scripts/sendTx_task").sendTxKeep;
-const setting = require("./scripts/setting_task").set;
-const changeEnv = require("./scripts/changeEnv_task").changeEnvVal;
 const deployGov = require("./scripts/deploy_task").deployGov;
-const deployTestGov = require("./scripts/deploy_test_task").deployGov;
-const deployLocalGov = require("./scripts/deploy_local_task").deployGov;
 const addMember = require("./scripts/addMembers_task").addMembers;
+// const impersonateMember = require("./scripts/impersonateNode").impersonateMember;
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -21,73 +16,34 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
     const accounts = await hre.ethers.getSigners();
 
     for (const account of accounts) {
-        console.log(account.address);
+        const balance = await hre.ethers.provider.getBalance(account.address);
+        console.log(account.address, balance/10**18);
     }
 });
 
 task("deployGov", "Deploy governance contracts")
-.addParam("pw").addParam('acc').addParam('conf').setAction(async (taskArgs, hre)=>{
-    await deployGov(hre, taskArgs.pw, taskArgs.acc, taskArgs.conf);
-})
+    .addParam("pw")
+    .addParam("acc")
+    .addParam("conf")
+    .setAction(async (taskArgs, hre) => {
+        await deployGov(hre, taskArgs.pw, taskArgs.acc, taskArgs.conf);
+    });
 
 task("addMember", "Add governance members")
-.addParam("pw")
-.addParam("addr")
-.addParam("acc")
-.addParam("conf")
-.setAction(async (taskArgs, hre)=>{
-    await addMember(hre, taskArgs.pw, taskArgs.addr, taskArgs.acc, taskArgs.conf);
-})
-task("deployGovTest", "Deploy governance contracts")
-.addParam("pw").setAction(async (taskArgs, hre)=>{
-    await deployTestGov(hre, taskArgs.pw);
-})
-
-task("deployLocalTest", "Deploy governance contracts").addParam("conf")
-.setAction(async (taskArgs, hre)=>{
-    await deployLocalGov(hre, taskArgs.conf);
-})
-task("changeMP", "Change maxPrioirtyFeePerGas")
     .addParam("pw")
-    .addParam("envValue")
-    .setAction(async (args, hre) => {
-        let envName = "maxPriorityFeePerGas";
-
-        let envTypes = ["uint256"];
-        let envValue = [args.envValue];
-        envMsg = "mp test";
-        // console.log(envName, types, envValue, msg)
-        const sets = await setting(hre, args.pw);
-        await changeEnv(hre, sets, envName, envTypes, envValue, envMsg);
+    .addParam("addr")
+    .addParam("acc")
+    .addParam("conf")
+    .setAction(async (taskArgs, hre) => {
+        await addMember(hre, taskArgs.pw, taskArgs.addr, taskArgs.acc, taskArgs.conf);
     });
 
-task("changeFee", "Change gasLimitAndBaseFee")
-    .addParam("pw")
-    .addParam("gasLimit")
-    .addParam("changeRate")
-    .addParam("targetPerc")
-    .addParam("maxBasefee")
-    .setAction(async (args, hre) => {
-        let envName = "gasLimitAndBaseFee";
-
-        let envTypes = ["uint256", "uint256", "uint256", "uint256"];
-        let envValue = [args.gasLimit, args.changeRate, args.targetPerc, args.maxBasefee + "0".repeat(9)];
-        envMsg = "mp test";
-        // console.log(envName, types, envValue, msg)
-        const sets = await setting(hre, args.pw);
-        await changeEnv(hre, sets, envName, envTypes, envValue, envMsg);
-    });
-
-task("sendTx", "send tx")
-    .addParam("pw")
-    .addParam("fromIdx")
-    .addParam("toIdx")
-    .addParam("value")
-    .setAction(async (args, hre) => {
-        const sets = await setting(hre, args.pw);
-        await sendTx(hre, sets, args.fromIdx, args.toIdx, args.value);
-    });
-
+// task("impMember", "Impersonante new gov member and stake")
+//     .addParam("gov")
+//     .addParam("addr")
+//     .setAction(async (taskArgs, hre) => {
+//         await impersonateMember(hre, taskArgs.gov, taskArgs.addr);
+//     });
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
@@ -95,28 +51,32 @@ task("sendTx", "send tx")
  * @type import('hardhat/config').HardhatUserConfig
  */
 
-const privateKey = process.env.SK;
-const rpcURL = process.env.rpc;
-
 module.exports = {
     networks: {
         hardhat: {
             accounts: {
                 mnemonic: "test test test test test test test test test test test junk",
                 initialIndex: 0,
-                accountsBalance: "1000000000" + "0".repeat(18),
+                accountsBalance: "10000000000" + "0".repeat(18),
             },
-            // forking:{
-            //     url: 'https://api.test.wemix.com'
-            // },
-            allowUnlimitedContractSize : true
+            forking:{
+                url: 'https://api.test.wemix.com'
+            },
+            allowUnlimitedContractSize: true,
         },
         localhost: {
             url: "http://127.0.0.1:8545",
         },
-        rpc:{
-            url: rpcURL
-        }
+        dev: {
+            url: "http://127.0.0.1:9100",
+            gasPrice : 110000000000,
+        },
+        wemix: {
+            url: "https://api.wemix.com",
+        },
+        wtestnet: {
+            url: "https://api.test.wemix.com",
+        },
     },
     contractSizer: {
         runOnCompile: true,
