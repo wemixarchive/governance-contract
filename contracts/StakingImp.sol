@@ -88,10 +88,13 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
             uint256 minimum_staking = IEnvStorage(getEnvStorageAddress()).getStakingMin();
             //if minimum lock is going higher than current locked value, lock more
             if(minimum_staking > _lockedBalance[msg.sender] && availableBalanceOf(msg.sender) >= (minimum_staking - _lockedBalance[msg.sender])){
-                _lock(msg.sender, minimum_staking - _lockedBalance[msg.sender]);
                 if(ncpStaking != address(0)){
-                    INCPStaking(ncpStaking).ncpDeposit(minimum_staking - _lockedBalance[msg.sender], payable(msg.sender));
+                    uint256 pid = INCPStaking(ncpStaking).ncpToIdx(msg.sender);
+                    if (INCPStaking(ncpStaking).getUserInfo(pid, msg.sender).lastRewardClaimed != 0){
+                        INCPStaking(ncpStaking).ncpDeposit(minimum_staking - _lockedBalance[msg.sender], payable(msg.sender));
+                    }
                 }
+                _lock(msg.sender, minimum_staking - _lockedBalance[msg.sender]);
             }
         }
 
@@ -142,7 +145,10 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
         _lock(msg.sender, lockAmount);
 
         if(ncpStaking != address(0)){
-            INCPStaking(ncpStaking).ncpDeposit(lockAmount, payable(msg.sender));
+            uint256 pid = INCPStaking(ncpStaking).ncpToIdx(msg.sender);
+            if (INCPStaking(ncpStaking).getUserInfo(pid, msg.sender).lastRewardClaimed != 0){
+                INCPStaking(ncpStaking).ncpDeposit(lockAmount, payable(msg.sender));
+            }
         }
     }
 
