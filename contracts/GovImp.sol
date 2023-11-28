@@ -795,7 +795,7 @@ contract GovImp is
         nodeLength = nodeLength - 1;
         modifiedBlock = block.number;
         // Unlock and transfer remained to governance
-        transferLockedAndUnlock(oldStaker, unlockAmount);
+        transferLockedAndUnlock(oldStaker, unlockAmount, 0);
 
         emit MemberRemoved(oldStaker, oldVoter);
     }
@@ -975,7 +975,7 @@ contract GovImp is
             nodeIdxFromMember[oldStaker] = 0;
 
             // Unlock and transfer remained to governance
-            transferLockedAndUnlock(oldStaker, lockAmount);
+            transferLockedAndUnlock(oldStaker, lockAmount, 0);
 
             emit MemberChanged(oldStaker, newStaker, newVoter);
         } else {
@@ -1120,15 +1120,17 @@ contract GovImp is
         IStaking(getStakingAddress()).unlock(addr, amount);
     }
 
-    function transferLockedAndUnlock(address addr, uint256 unlockAmount)
+    function transferLockedAndUnlock(address addr, uint256 unlockAmount, uint256 slashing)
         private
     {
         IStaking staking = IStaking(getStakingAddress());
         uint256 locked = staking.lockedBalanceOf(addr);
-        if (locked > unlockAmount) {
-            staking.transferLocked(addr, locked - unlockAmount);
-            unlock(addr, unlockAmount);
-        } else {
+        uint256 ext = locked - getMinStaking();
+
+        if (locked > unlockAmount) { // Check proposal (unlockAmount <= minStaking)
+            unlock(addr, unlockAmount + ext); // ncp
+            staking.transferLocked(addr, slashing, locked - unlockAmount - slashing - ext); // slashing, admin + user
+         } else {
             unlock(addr, locked);
         }
     }

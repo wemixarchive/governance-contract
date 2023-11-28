@@ -10,6 +10,8 @@ import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "./interface/IEnvStorage.sol";
 import "./interface/IStaking.sol";
 import "./interface/INCPStaking.sol";
+import "./interface/INCPExit.sol";
+
 
 contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, IStaking {
 
@@ -169,18 +171,27 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
     }
 
     /**
-     * @dev Transfer locked funds to governance
+     * @dev Transfer locked funds to Ecosystem, NCPExit
      * @param from The address whose funds will be transfered.
-     * @param amount The amount of funds will be transfered.
+     * @param slashing The amount of funds will be transfered.
+     * @param exitAmount The amount of exitContract will be transfered.(admin + userTotal)
      */
-    function transferLocked(address from, uint256 amount) external override onlyGov {
-        if (amount == 0) return;
-        unlock(from, amount);
-        _balance[from] = _balance[from] - amount;
-        address ecosystem = getEcosystemAddress();
-        _balance[ecosystem] = _balance[ecosystem] + amount;
+    function transferLocked(address from, uint256 slashing, uint256 exitAmount) external override onlyGov {
+        if (slashing == 0 && exitAmount == 0) return;
+        INCPExit ncpExit = INCPExit(getContractAddress(bytes32("NCPExit")));
 
-        emit TransferLocked(from, amount, _balance[from], availableBalanceOf(from));
+        unlock(from, slashing + exitAmount);
+        _balance[from] = _balance[from] - (slashing + exitAmount);
+
+        address ecosystem = getEcosystemAddress();
+        _balance[ecosystem] = _balance[ecosystem] + slashing;
+        /*
+            @TO-DO
+                Remove _lockedUserBalanceToNCPTotal, _lockedUserBalanceToNCP
+        */
+        ncpExit.exit{value: exitAmount}(from, exitAmount, _lockedUserBalanceToNCPTotal[from]);
+
+        emit TransferLocked(from, slashing + exitAmount, _balance[from], availableBalanceOf(from));
     }
 
     /**
