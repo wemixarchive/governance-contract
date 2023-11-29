@@ -49,6 +49,9 @@ contract BallotStorage is  GovChecker, BallotEnums, IBallotStorage {
         bytes newNodeIp;
         uint256 newNodePort;
         uint256 lockAmount;
+        // For exit
+        uint256 unlockAmount;
+        uint256 slashing;
     }
 
     //For GovernanceChange 
@@ -215,7 +218,9 @@ contract BallotStorage is  GovChecker, BallotEnums, IBallotStorage {
         bytes memory newNodeId, // admin.nodeInfo.id is 512 bit public key
         bytes memory newNodeIp,
         uint256 newNodePort,
-        uint256 lockAmount
+        uint256 lockAmount,
+        uint256 unlockAmount,
+        uint256 slashing
     )
     {
         BallotMember storage tBallot = ballotMemberMap[_id];
@@ -228,6 +233,8 @@ contract BallotStorage is  GovChecker, BallotEnums, IBallotStorage {
         newNodeIp = tBallot.newNodeIp;
         newNodePort = tBallot.newNodePort;
         lockAmount = tBallot.lockAmount;
+        unlockAmount = tBallot.unlockAmount;
+        slashing = tBallot.slashing;
     }
 
     function getBallotAddress(uint256 _id) public override view returns (
@@ -269,7 +276,9 @@ contract BallotStorage is  GovChecker, BallotEnums, IBallotStorage {
         bytes memory _newNodeName, // name
         bytes memory _newNodeId, // admin.nodeInfo.id is 512 bit public key
         bytes memory _newNodeIp,
-        uint _newNodePort
+        uint _newNodePort,
+        uint256 _unlockAmount,
+        uint256 _slashing
     )
         public
         override
@@ -301,6 +310,9 @@ contract BallotStorage is  GovChecker, BallotEnums, IBallotStorage {
         newBallot.newNodeId = _newNodeId;
         newBallot.newNodeIp = _newNodeIp;
         newBallot.newNodePort = _newNodePort;
+        newBallot.unlockAmount = _unlockAmount;
+        newBallot.slashing = _slashing;
+
         ballotMemberMap[_id] = newBallot;
 
     }

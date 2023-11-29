@@ -289,7 +289,9 @@ contract GovImp is
             uint256(BallotTypes.MemberAdd), // ballot type
             msg.sender, // creator
             ZERO, // old staker address
-            info
+            info,
+            0,
+            0
         );
         updateBallotLock(ballotIdx, info.lockAmount);
         updateBallotMemo(ballotIdx, info.memo);
@@ -334,7 +336,9 @@ contract GovImp is
             uint256(BallotTypes.MemberRemoval), // ballot type
             msg.sender,
             staker,
-            info
+            info,
+            0,
+            0
         );
         updateBallotLock(ballotIdx, lockAmount);
         updateBallotMemo(ballotIdx, memo);
@@ -351,7 +355,9 @@ contract GovImp is
     // voter can propose and vote anything
     function addProposalToChangeMember(
         MemberInfo memory newInfo,
-        address oldStaker
+        address oldStaker,
+        uint256 unlockAmount,
+        uint256 slashing
     )
         external
         onlyGovMem
@@ -376,6 +382,14 @@ contract GovImp is
             ),
             "Already a member"
         );
+        // For exit
+        if (msg.sender == oldStaker && oldStaker == newInfo.staker) {
+            // Change member enviroment, finalized
+            require(unlockAmount == 0 && slashing == 0, "Invalid proposal");
+        } else if (oldStaker != newInfo.staker /* && msg.sender != oldStaker */) {
+            // Propose Change or Exit member by other.
+            require(unlockAmount + slashing <= getMinStaking(), "Invalid amount: (unlockAmount + slashing) must be equal or low to minStaking");
+        }
 
         ballotIdx = ballotLength + 1;
         createBallotForMember(
@@ -383,7 +397,9 @@ contract GovImp is
             uint256(BallotTypes.MemberChange), // ballot type
             msg.sender, // creator
             oldStaker, // old staker address
-            newInfo
+            newInfo,
+            unlockAmount,
+            slashing
         );
         updateBallotLock(ballotIdx, newInfo.lockAmount);
         updateBallotMemo(ballotIdx, newInfo.memo);
@@ -650,6 +666,8 @@ contract GovImp is
             bytes memory ip,
             uint port,
             uint256 lockAmount
+            ,
+            ,
         ) = getBallotMember(ballotIdx);
         if (isMember(newStaker)) {
             // new staker is already a member or a voter/
@@ -719,14 +737,16 @@ contract GovImp is
 
         (
             address oldStaker,
-            ,
-            ,
-            ,
-            ,
-            ,
-            ,
-            ,
+            ,// newStakerAddress
+            ,// newVoterAddress
+            ,// newRewardAddress
+            ,// newNodeName
+            ,// newNodeId
+            ,// newNodeIp
+            ,// newNodePort
             uint256 unlockAmount
+            ,// unlockAmount
+            ,// slashing
         ) = getBallotMember(ballotIdx);
         if (!isMember(oldStaker)) {
             emit NotApplicable(ballotIdx, "Not already a member");
@@ -898,7 +918,9 @@ contract GovImp is
             bytes memory enode,
             bytes memory ip,
             uint port,
-            uint256 lockAmount
+            uint256 lockAmount,
+            uint256 unlockAmount,
+            uint256 slashing
         ) = getBallotMember(ballotIdx);
         if (!isMember(oldStaker)) {
             emit NotApplicable(ballotIdx, "Old address is not a member");
@@ -975,7 +997,7 @@ contract GovImp is
             nodeIdxFromMember[oldStaker] = 0;
 
             // Unlock and transfer remained to governance
-            transferLockedAndUnlock(oldStaker, lockAmount, 0);
+            transferLockedAndUnlock(oldStaker, unlockAmount, slashing);
 
             emit MemberChanged(oldStaker, newStaker, newVoter);
         } else {
@@ -1016,7 +1038,9 @@ contract GovImp is
         uint256 bType,
         address creator,
         address oAddr,
-        MemberInfo memory info
+        MemberInfo memory info,
+        uint256 unlockAmount,
+        uint256 slashing
     ) private {
         IBallotStorage(getBallotStorageAddress()).createBallotForMember(
             id, // ballot id
@@ -1030,7 +1054,10 @@ contract GovImp is
             info.name, // new name
             info.enode, // new enode
             info.ip, // new ip
-            info.port // new port
+            info.port, // new port
+            // For exit
+            unlockAmount,
+            slashing
         );
     }
 
@@ -1106,6 +1133,8 @@ contract GovImp is
             bytes memory,
             bytes memory,
             uint256,
+            uint256,
+            uint256,
             uint256
         )
     {
@@ -1126,10 +1155,15 @@ contract GovImp is
         IStaking staking = IStaking(getStakingAddress());
         uint256 locked = staking.lockedBalanceOf(addr);
         uint256 ext = locked - getMinStaking();
-
-        if (locked > unlockAmount) { // Check proposal (unlockAmount <= minStaking)
-            unlock(addr, unlockAmount + ext); // ncp
-            staking.transferLocked(addr, slashing, locked - unlockAmount - slashing - ext); // slashing, admin + user
+        // @ locked = MinStaking(unlockAmount, slashing, a) + ncpLockMore, ncpUserTotal
+        // @ ext = ncpLockMore, ncpUserTotal
+        /*
+            @TO-DO
+                Check current minStaking >= unlockAmount + slashing
+        */
+        if (locked > unlockAmount) {
+            unlock(addr, unlockAmount);
+            staking.transferLocked(addr, slashing, ext);
          } else {
             unlock(addr, locked);
         }

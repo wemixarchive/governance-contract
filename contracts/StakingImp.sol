@@ -171,27 +171,34 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
     }
 
     /**
-     * @dev Transfer locked funds to Ecosystem, NCPExit
+     * @dev Transfer locked value(slashing, ncpLockMore, ncpUserTotal) to Ecosystem, NCPExit
      * @param from The address whose funds will be transfered.
      * @param slashing The amount of funds will be transfered.
-     * @param exitAmount The amount of exitContract will be transfered.(admin + userTotal)
+     * @param ext ncpLockMore + ncpUserTotal
      */
-    function transferLocked(address from, uint256 slashing, uint256 exitAmount) external override onlyGov {
-        if (slashing == 0 && exitAmount == 0) return;
+    function transferLocked(address from, uint256 slashing, uint256 ext) external override onlyGov {
+        if (slashing == 0 && ext == 0) return;
         INCPExit ncpExit = INCPExit(getContractAddress(bytes32("NCPExit")));
 
-        unlock(from, slashing + exitAmount);
-        _balance[from] = _balance[from] - (slashing + exitAmount);
-
+        // Ecosystem
+        unlock(from, slashing);
+        _balance[from] = _balance[from] - slashing;
         address ecosystem = getEcosystemAddress();
         _balance[ecosystem] = _balance[ecosystem] + slashing;
+        
+        // NCPLockMore
+        uint256 ncpLockMore = ext - _lockedUserBalanceToNCPTotal[from];
+        unlock(from, ncpLockMore);
         /*
             @TO-DO
                 Remove _lockedUserBalanceToNCPTotal, _lockedUserBalanceToNCP
         */
-        ncpExit.exit{value: exitAmount}(from, exitAmount, _lockedUserBalanceToNCPTotal[from]);
+        //To NCPExit
+        uint256 transferedBalance = lockedBalanceOf(from);
+        unlock(from, transferedBalance);
+        ncpExit.exit{value:  transferedBalance}(from, transferedBalance , _lockedUserBalanceToNCPTotal[from]);
 
-        emit TransferLocked(from, slashing + exitAmount, _balance[from], availableBalanceOf(from));
+        emit TransferLocked(from, slashing + transferedBalance, _balance[from], availableBalanceOf(from));
     }
 
     /**
