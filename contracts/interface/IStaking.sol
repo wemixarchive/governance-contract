@@ -7,7 +7,7 @@ interface IStaking {
     function withdraw(uint256) external;
     function lock(address, uint256) external;
     function unlock(address, uint256) external;
-    function transferLocked(address, uint256, uint256) external;
+    function transferLocked(address, uint256, uint256) external returns (bool);
     function balanceOf(address) external view returns (uint256);
     function lockedBalanceOf(address) external view returns (uint256);
     function availableBalanceOf(address) external view returns (uint256);
