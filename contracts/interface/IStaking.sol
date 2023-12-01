@@ -7,7 +7,7 @@ interface IStaking {
     function withdraw(uint256) external;
     function lock(address, uint256) external;
     function unlock(address, uint256) external;
-    function transferLocked(address, uint256, uint256) external returns (bool);
+    function transferLocked(address, uint256, uint256) external;
     function balanceOf(address) external view returns (uint256);
     function lockedBalanceOf(address) external view returns (uint256);
     function availableBalanceOf(address) external view returns (uint256);
@@ -20,4 +20,5 @@ interface IStaking {
     function delegateDepositAndLockMore(address ncp) external payable;
     function delegateUnlockAndWithdraw(address ncp, uint256 amount) external;
     function getTotalLockedBalance() external view returns (uint256);
+    function withdrawForUser(address ncp, address user, uint256 amount) external;
 }

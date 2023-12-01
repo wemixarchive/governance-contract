@@ -176,7 +176,7 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
      * @param slashing The amount of funds will be transfered.
      * @param ext ncpLockMore + ncpUserTotal
      */
-    function transferLocked(address from, uint256 slashing, uint256 ext) external override onlyGov returns (bool) {
+    function transferLocked(address from, uint256 slashing, uint256 ext) external override onlyGov {
         INCPExit ncpExit = INCPExit(getContractAddress(bytes32("NCPExit")));
 
         // Ecosystem
@@ -189,19 +189,17 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
         uint256 ncpLockMore = ext - _lockedUserBalanceToNCPTotal[from];
         unlock(from, ncpLockMore);
 
-        // TODO Remove _lockedUserBalanceToNCPTotal, _lockedUserBalanceToNCP
-
         // To NCPExit
         uint256 transferedBalance = lockedBalanceOf(from);
         // TODO _lockedUserBalanceToNCPTotal zero check, transferedBalance(a + _lockedUserBalanceToNCPTotal) >= _lockedUserBalanceToNCPTotal
-        if (transferedBalance < _lockedUserBalanceToNCPTotal[from]) return false;
+        require(transferedBalance < _lockedUserBalanceToNCPTotal[from], "transferedBalance < _lockedUserBalanceToNCPTotal[from]");
 
         unlock(from, transferedBalance);
         _balance[from] = _balance[from] - transferedBalance;
-        ncpExit.exit{value:  transferedBalance}(from, transferedBalance , _lockedUserBalanceToNCPTotal[from]);
+        ncpExit.exit{value:  transferedBalance}(from, transferedBalance, _lockedUserBalanceToNCPTotal[from]);
         // TODO Check _lockedUserBalanceToNCPTotal[from] = 0;
+        _lockedUserBalanceToNCPTotal[from] = 0;
         emit TransferLocked(from, slashing + transferedBalance, _balance[from], availableBalanceOf(from));
-        return true;
     }
 
     /**
@@ -384,4 +382,7 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
         return _totalLockedBalance;
     }
 
+    function withdrawForUser(address ncp, address user, uint256 amount) external override onlyNCPStaking {
+        _lockedUserBalanceToNCP[ncp][user] = _lockedUserBalanceToNCP[ncp][user] - amount;
+    }
 }

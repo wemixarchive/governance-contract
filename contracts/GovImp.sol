@@ -991,9 +991,7 @@ contract GovImp is
 
             // Unlock and transfer remained to governance
             // TODO Check bool
-            if (!transferLockedAndUnlock(ballotIdx,oldStaker)) {
-                return false;
-            }
+            transferLockedAndUnlock(ballotIdx, oldStaker);
 
             emit MemberChanged(oldStaker, newStaker, newVoter);
         } else {
@@ -1152,15 +1150,14 @@ contract GovImp is
         IStaking(getStakingAddress()).unlock(addr, amount);
     }
 
-    function transferLockedAndUnlock(uint256 ballotIdx, address addr) private returns (bool)
+    function transferLockedAndUnlock(uint256 ballotIdx, address addr) private
     {
         //TODO getBallotExit(ballotIdx)
         (uint256 unlockAmount, uint256 slashing) = getBallotForExit(ballotIdx);
 
         //TODO Check current minStaking >= unlockAmount + slashing
-        if (getMinStaking() <= unlockAmount + slashing) {
-            return false;
-        }
+        require(getMinStaking() <= unlockAmount + slashing, "getMinStaking() <= unlockAmount + slashing");
+
         IStaking staking = IStaking(getStakingAddress());
         uint256 locked = staking.lockedBalanceOf(addr);
         uint256 ext = locked - getMinStaking();
@@ -1169,10 +1166,9 @@ contract GovImp is
 
         if (locked > unlockAmount) {
             unlock(addr, unlockAmount);
-            return staking.transferLocked(addr, slashing, ext);
+            staking.transferLocked(addr, slashing, ext);
          } else {
             unlock(addr, locked);
-            return true;
         }
     }
 
