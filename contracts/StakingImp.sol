@@ -382,7 +382,8 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
         return _totalLockedBalance;
     }
 
-    function withdrawForUser(address ncp, address user, uint256 amount) external override onlyNCPStaking {
+    function withdrawForUser(address ncp, address user, uint256 amount) external override {
+        require(msg.sender == getContractAddress(bytes32("NCPExit")), "Only NCPExit contract can call this function" );
         _lockedUserBalanceToNCP[ncp][user] = _lockedUserBalanceToNCP[ncp][user] - amount;
     }
 }
