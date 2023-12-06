@@ -1156,7 +1156,7 @@ contract GovImp is
         (uint256 unlockAmount, uint256 slashing) = getBallotForExit(ballotIdx);
 
         //TODO Check current minStaking >= unlockAmount + slashing
-        require(getMinStaking() <= unlockAmount + slashing, "getMinStaking() <= unlockAmount + slashing");
+        require(unlockAmount + slashing <= getMinStaking(), "minStaking value must be greater than or equal to the sum of unlockAmount, slashing");
 
         IStaking staking = IStaking(getStakingAddress());
         uint256 locked = staking.lockedBalanceOf(addr);

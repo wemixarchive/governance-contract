@@ -192,7 +192,7 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
         // To NCPExit
         uint256 transferedBalance = lockedBalanceOf(from);
         // TODO _lockedUserBalanceToNCPTotal zero check, transferedBalance(a + _lockedUserBalanceToNCPTotal) >= _lockedUserBalanceToNCPTotal
-        require(transferedBalance < _lockedUserBalanceToNCPTotal[from], "transferedBalance < _lockedUserBalanceToNCPTotal[from]");
+        require(transferedBalance >= _lockedUserBalanceToNCPTotal[from], "transferedBalance must be greater than or equal to _lockedUserBalanceToNCPTotal.");
 
         unlock(from, transferedBalance);
         _balance[from] = _balance[from] - transferedBalance;
