@@ -340,7 +340,7 @@ contract GovImp is
         );
         updateBallotLock(ballotIdx, lockAmount);
         updateBallotMemo(ballotIdx, memo);
-        createBallotExit(ballotIdx, unlockAmount, slashing);
+        createBallotForExit(ballotIdx, unlockAmount, slashing);
         ballotLength = ballotIdx;
     }
 
@@ -400,8 +400,8 @@ contract GovImp is
         );
         updateBallotLock(ballotIdx, newInfo.lockAmount);
         updateBallotMemo(ballotIdx, newInfo.memo);
-        //TODO createBallotExit
-        createBallotExit(ballotIdx, unlockAmount, slashing);
+        //TODO createBallotForExit
+        createBallotForExit(ballotIdx, unlockAmount, slashing);
         ballotLength = ballotIdx;
         // 요청자 == 변경할 voting 주소
         if (msg.sender == oldStaker && oldStaker == newInfo.staker) {
@@ -1061,7 +1061,7 @@ contract GovImp is
         IBallotStorage(getBallotStorageAddress()).updateBallotMemo(id, memo);
     }
 
-    function createBallotExit(uint256 id, uint256 unlockAmount, uint256 slashing) private {
+    function createBallotForExit(uint256 id, uint256 unlockAmount, uint256 slashing) private {
         IBallotStorage(getBallotStorageAddress()).createBallotForExit(id, unlockAmount, slashing);
     }
 
