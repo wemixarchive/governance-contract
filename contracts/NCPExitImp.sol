@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 import "./interface/INCPStaking.sol";
 import "./interface/INCPExit.sol";
-import "./interface/IStaking.sol";
+import "./interface/IGovStaking.sol";
 import "./GovChecker.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
@@ -18,15 +18,11 @@ contract NCPExitImp is
     /* =========== STATE VARIABLES ===========*/
     using AddressUpgradeable for address payable;
 
-    address public ncpStaking;
-    // address public governanceStaking;
-    // address public governance;
     address private _administrator;
     address private _administratorSetter;
 
     mapping(address /* ncp address */ => /* user + a */ uint256) private _receivedTotalAmount;
     mapping(address /* ncp address */ => /* user */ uint256) private _lockedUserBalanceToNCPTotal;
-    // TODO mapping(address /* ncp address */ => /* administratorAmount */ uint256) private _administratorAmount;
 
     /* =========== MODIFIERES ===========*/
     modifier onlyGovStaking() {
@@ -35,7 +31,7 @@ contract NCPExitImp is
     }
 
     modifier onlyNcpStaking() {
-        require(msg.sender == ncpStaking, "Only NcpStaking can call this function.");
+        require(msg.sender == IGovStaking(getStakingAddress()).ncpStaking(), "Only NcpStaking can call this function.");
         _;
     }
 
@@ -57,18 +53,13 @@ contract NCPExitImp is
         _disableInitializers();
     }
     function initialize(
-        address _registry,
-        address _ncpStaking
+        address _registry
     ) external initializer {
         __Ownable_init();
         __ReentrancyGuard_init();
         setRegistry(_registry);
         _administrator = owner();
         _administratorSetter = owner();
-
-        ncpStaking = _ncpStaking;
-        // governance = getGovAddress();
-        // governanceStaking = getStakingAddress();
     }
 
     function setAdministrator(
@@ -85,50 +76,18 @@ contract NCPExitImp is
         _administratorSetter = _newAdministratorSetter;
     }
 
-    /*function setGovStaking(
-        address _newGovStaking
-    ) external onlyAdministrator {
-
-        governanceStaking = _newGovStaking;
-    }
-
-    function setGov(
-        address _newGov
-    ) external onlyAdministrator {
-
-        governance = _newGov;
-    }*/
-
-    function setNCPStaking(
-        address _newNCPStaking
-    ) external onlyAdministrator {
-
-        ncpStaking = _newNCPStaking;
-    }
-
-    function exit(address exitNcp, uint256 totalAmount, uint256 lockedUserBalanceToNCPTotal) external override payable nonReentrant onlyGovStaking {
+    function depositExitAmount(address exitNcp, uint256 totalAmount, uint256 lockedUserBalanceToNCPTotal) external override payable nonReentrant onlyGovStaking {
         require(totalAmount == msg.value);
-        // TODO Check exitNcp
-        // userTotal + administrator
-        // require(_receivedTotalAmount[exitNcp] == 0);
         _receivedTotalAmount[exitNcp] = totalAmount;
 
         // administrator
-        // TODO lockedUserBalanceToNCPTotal
         _lockedUserBalanceToNCPTotal[exitNcp] = lockedUserBalanceToNCPTotal;
     }
 
     function withdrawForUser(address exitNcp, address exitUser, uint256 amount) external override nonReentrant onlyNcpStaking {
-        // For user
-        IStaking govStaking = IStaking(getStakingAddress());
 
-        uint256 govUserLockedAmount = govStaking.userBalanceOf(exitNcp, exitUser);
-        // TODO Check lockedUserBalanceToNCPTotal >= amount
         require(_lockedUserBalanceToNCPTotal[exitNcp] >= amount, "_lockedUserBalanceToNCPTotal[exitNcp] >= amount");
-        require(govUserLockedAmount == amount, "govUserLockedAmount == amount");
-        govStaking.withdrawForUser(exitNcp, exitUser, amount);
 
-        // TODO require amount == GovStaking, remove
         _receivedTotalAmount[exitNcp] = _receivedTotalAmount[exitNcp] - amount;
         _lockedUserBalanceToNCPTotal[exitNcp] = _lockedUserBalanceToNCPTotal[exitNcp] - amount;
 
@@ -137,20 +96,18 @@ contract NCPExitImp is
 
     function withdrawForAdministrator(address exitNcp, uint256 amount, address to) external override nonReentrant onlyAdministrator {
         // For admin
-        // TODO Check _receivedTotalAmount[exitNcp] - lockedUserBalanceToNCPTotal[exitNcp] >= amount
         require(_receivedTotalAmount[exitNcp] - _lockedUserBalanceToNCPTotal[exitNcp] >= amount);
         _receivedTotalAmount[exitNcp] = _receivedTotalAmount[exitNcp] - amount;
 
         payable(to).sendValue(amount);
     }
 
-    // TODO Get _receivedTotalAmount[exitNcp] - _lockedUserBalanceToNCPTotal[exitNcp]
     function getAvailableAmountForAdministrator(address exitNcp) external view override onlyAdministrator returns (uint256) {
         // For admin
         return _receivedTotalAmount[exitNcp] - _lockedUserBalanceToNCPTotal[exitNcp];
     }
 
-    function upgradeExit(address newImp) external onlyOwner {
+    function upgradeNCPExit(address newImp) external onlyOwner {
         if (newImp != address(0)) {
             _authorizeUpgrade(newImp);
             _upgradeToAndCallUUPS(newImp, new bytes(0), false);

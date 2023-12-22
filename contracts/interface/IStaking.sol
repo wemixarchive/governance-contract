@@ -20,5 +20,4 @@ interface IStaking {
     function delegateDepositAndLockMore(address ncp) external payable;
     function delegateUnlockAndWithdraw(address ncp, uint256 amount) external;
     function getTotalLockedBalance() external view returns (uint256);
-    function withdrawForUser(address ncp, address user, uint256 amount) external;
 }

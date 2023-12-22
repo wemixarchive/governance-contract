@@ -191,14 +191,15 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
 
         // To NCPExit
         uint256 transferedBalance = lockedBalanceOf(from);
-        // TODO _lockedUserBalanceToNCPTotal zero check, transferedBalance(a + _lockedUserBalanceToNCPTotal) >= _lockedUserBalanceToNCPTotal
         require(transferedBalance >= _lockedUserBalanceToNCPTotal[from], "transferedBalance must be greater than or equal to _lockedUserBalanceToNCPTotal.");
 
         unlock(from, transferedBalance);
         _balance[from] = _balance[from] - transferedBalance;
-        ncpExit.exit{value:  transferedBalance}(from, transferedBalance, _lockedUserBalanceToNCPTotal[from]);
-        // TODO Check _lockedUserBalanceToNCPTotal[from] = 0;
-        _lockedUserBalanceToNCPTotal[from] = 0;
+        ncpExit.depositExitAmount{value:  transferedBalance}(from, transferedBalance, _lockedUserBalanceToNCPTotal[from]);
+        if(ncpStaking != address(0)) {
+            _lockedUserBalanceToNCPTotal[from] = 0;
+            _lockedUserBalanceToNCP[from][ncpStaking] = 0;
+        }
         emit TransferLocked(from, slashing + transferedBalance, _balance[from], availableBalanceOf(from));
     }
 
@@ -380,10 +381,5 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
 
     function getTotalLockedBalance() external view override returns (uint256) {
         return _totalLockedBalance;
-    }
-
-    function withdrawForUser(address ncp, address user, uint256 amount) external override {
-        require(msg.sender == getContractAddress(bytes32("NCPExit")), "Only NCPExit contract can call this function" );
-        _lockedUserBalanceToNCP[ncp][user] = _lockedUserBalanceToNCP[ncp][user] - amount;
     }
 }

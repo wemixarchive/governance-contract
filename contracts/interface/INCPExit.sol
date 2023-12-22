@@ -25,7 +25,7 @@ interface INCPExit {
      * @param totalAmount Total amount of ether to exit with.
      * @param lockedUserBalanceToNCPTotal Total locked user balance to NCP.
      */
-    function exit(
+    function depositExitAmount(
         address exitNcp,
         uint256 totalAmount,
         uint256 lockedUserBalanceToNCPTotal
