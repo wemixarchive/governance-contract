@@ -128,7 +128,7 @@ contract BallotStorageImp is  GovChecker, BallotEnums, IBallotStorage, UUPSUpgra
 
     address internal previousBallotStorage;
 
-    uint256 internal ballotCount = 0;
+    uint256 internal ballotCount;
 
     // For exit
     mapping(uint=>BallotExit) internal ballotExitMap;
