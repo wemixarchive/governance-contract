@@ -483,8 +483,8 @@ contract GovImp is
 
     function vote(uint256 ballotIdx, bool approval)
         external
-        onlyGovMem
         nonReentrant
+        onlyGovMem
         checkLockedAmount
     {
         // Check if some ballot is in progress
