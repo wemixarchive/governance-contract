@@ -128,7 +128,9 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
             require(succ, "Transfer to NCP staking failed");
             INCPStaking(ncpStaking).ncpWithdraw(amount, payable(msg.sender));
         } else {
-            payable(msg.sender).transfer(amount);
+            //payable(msg.sender).transfer(amount);
+            ( bool succ, ) = payable(msg.sender).call{value: amount}("");
+            require(succ, "Transfer to sender failed");
         }
 
         emit Unstaked(msg.sender, amount, _balance[msg.sender], availableBalanceOf(msg.sender));

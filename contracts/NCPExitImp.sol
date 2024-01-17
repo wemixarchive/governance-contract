@@ -65,14 +65,14 @@ contract NCPExitImp is
     function setAdministrator(
         address _newAdministrator
     ) override external onlyAdministratorSetter() {
-
+        require(_newAdministrator != address(0), "Address should be non-zero");
         _administrator = _newAdministrator;
     }
 
     function setAdministratorSetter(
         address _newAdministratorSetter
     ) override external onlyAdministratorSetter(){
-
+        require(_newAdministratorSetter != address(0), "Address should be non-zero");
         _administratorSetter = _newAdministratorSetter;
     }
 
