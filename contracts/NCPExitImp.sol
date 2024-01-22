@@ -114,6 +114,10 @@ contract NCPExitImp is
         }
     }
 
+    function getLockedUserBalanceToNCPTotal(address exitNcp) external view override returns (uint256) {
+        return _lockedUserBalanceToNCPTotal[exitNcp];
+    }
+
     function _authorizeUpgrade(address newImplementation)
         internal
         override

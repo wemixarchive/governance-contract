@@ -400,7 +400,6 @@ contract GovImp is
         );
         updateBallotLock(ballotIdx, newInfo.lockAmount);
         updateBallotMemo(ballotIdx, newInfo.memo);
-        //TODO createBallotForExit
         createBallotForExit(ballotIdx, unlockAmount, slashing);
         ballotLength = ballotIdx;
         // 요청자 == 변경할 voting 주소
@@ -741,7 +740,6 @@ contract GovImp is
             ,// newNodeId
             ,// newNodeIp
             ,// newNodePort
-             // TODO Check uint256 unlockAmount
         ) = getBallotMember(ballotIdx);
         if (!isMember(oldStaker)) {
             emit NotApplicable(ballotIdx, "Not already a member");
@@ -990,7 +988,6 @@ contract GovImp is
             nodeIdxFromMember[oldStaker] = 0;
 
             // Unlock and transfer remained to governance
-            // TODO Check bool
             transferLockedAndUnlock(ballotIdx, oldStaker);
 
             emit MemberChanged(oldStaker, newStaker, newVoter);
@@ -1152,17 +1149,13 @@ contract GovImp is
 
     function transferLockedAndUnlock(uint256 ballotIdx, address addr) private
     {
-        //TODO getBallotExit(ballotIdx)
         (uint256 unlockAmount, uint256 slashing) = getBallotForExit(ballotIdx);
 
-        //TODO Check current minStaking >= unlockAmount + slashing
         require(unlockAmount + slashing <= getMinStaking(), "minStaking value must be greater than or equal to the sum of unlockAmount, slashing");
 
         IStaking staking = IStaking(getStakingAddress());
         uint256 locked = staking.lockedBalanceOf(addr);
         uint256 ext = locked - getMinStaking();
-        // @ locked = MinStaking(unlockAmount, slashing, a) + ncpLockMore, ncpUserTotal
-        // @ ext = ncpLockMore, ncpUserTotal
 
         if (locked > unlockAmount) {
             unlock(addr, unlockAmount);

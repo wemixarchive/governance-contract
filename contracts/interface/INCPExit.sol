@@ -56,4 +56,8 @@ interface INCPExit {
     function getAvailableAmountForAdministrator(
         address exitNcp
     ) external view returns(uint256);
+
+    function getLockedUserBalanceToNCPTotal(
+        address exitNcp
+    ) external view returns(uint256);
 }
