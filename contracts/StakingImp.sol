@@ -10,6 +10,8 @@ import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "./interface/IEnvStorage.sol";
 import "./interface/IStaking.sol";
 import "./interface/INCPStaking.sol";
+import "./interface/INCPExit.sol";
+
 
 contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, IStaking {
 
@@ -126,7 +128,9 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
             require(succ, "Transfer to NCP staking failed");
             INCPStaking(ncpStaking).ncpWithdraw(amount, payable(msg.sender));
         } else {
-            payable(msg.sender).transfer(amount);
+            //payable(msg.sender).transfer(amount);
+            ( bool succ, ) = payable(msg.sender).call{value: amount}("");
+            require(succ, "Transfer to sender failed");
         }
 
         emit Unstaked(msg.sender, amount, _balance[msg.sender], availableBalanceOf(msg.sender));
@@ -169,18 +173,36 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
     }
 
     /**
-     * @dev Transfer locked funds to governance
+     * @dev Transfer locked value(slashing, ncpLockMore, ncpUserTotal) to Ecosystem, NCPExit
      * @param from The address whose funds will be transfered.
-     * @param amount The amount of funds will be transfered.
+     * @param slashing The amount of funds will be transfered.
+     * @param ext ncpLockMore + ncpUserTotal
      */
-    function transferLocked(address from, uint256 amount) external override onlyGov {
-        if (amount == 0) return;
-        unlock(from, amount);
-        _balance[from] = _balance[from] - amount;
-        address ecosystem = getEcosystemAddress();
-        _balance[ecosystem] = _balance[ecosystem] + amount;
+    function transferLocked(address from, uint256 slashing, uint256 ext) external override onlyGov {
+        INCPExit ncpExit = INCPExit(getContractAddress(bytes32("NCPExit")));
 
-        emit TransferLocked(from, amount, _balance[from], availableBalanceOf(from));
+        // Ecosystem
+        unlock(from, slashing);
+        _balance[from] = _balance[from] - slashing;
+        address ecosystem = getEcosystemAddress();
+        _balance[ecosystem] = _balance[ecosystem] + slashing;
+        
+        // NCPLockMore
+        uint256 ncpLockMore = ext - _lockedUserBalanceToNCPTotal[from];
+        unlock(from, ncpLockMore);
+
+        // To NCPExit
+        uint256 transferedBalance = lockedBalanceOf(from);
+        require(transferedBalance >= _lockedUserBalanceToNCPTotal[from], "transferedBalance must be greater than or equal to _lockedUserBalanceToNCPTotal.");
+
+        unlock(from, transferedBalance);
+        _balance[from] = _balance[from] - transferedBalance;
+        ncpExit.depositExitAmount{value:  transferedBalance}(from, transferedBalance, _lockedUserBalanceToNCPTotal[from]);
+        if(ncpStaking != address(0)) {
+            _lockedUserBalanceToNCPTotal[from] = 0;
+            _lockedUserBalanceToNCP[from][ncpStaking] = 0;
+        }
+        emit TransferLocked(from, slashing + transferedBalance, _balance[from], availableBalanceOf(from));
     }
 
     /**
@@ -362,5 +384,4 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
     function getTotalLockedBalance() external view override returns (uint256) {
         return _totalLockedBalance;
     }
-
 }
