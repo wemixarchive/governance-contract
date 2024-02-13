@@ -300,7 +300,9 @@ contract GovImp is
         address staker,
         uint256 lockAmount,
         bytes memory memo,
-        uint256 duration
+        uint256 duration,
+        uint256 unlockAmount,
+        uint256 slashing
     )
         external
         onlyGovMem
@@ -338,6 +340,7 @@ contract GovImp is
         );
         updateBallotLock(ballotIdx, lockAmount);
         updateBallotMemo(ballotIdx, memo);
+        createBallotForExit(ballotIdx, unlockAmount, slashing);
         ballotLength = ballotIdx;
     }
 
@@ -351,7 +354,9 @@ contract GovImp is
     // voter can propose and vote anything
     function addProposalToChangeMember(
         MemberInfo memory newInfo,
-        address oldStaker
+        address oldStaker,
+        uint256 unlockAmount,
+        uint256 slashing
     )
         external
         onlyGovMem
@@ -376,6 +381,14 @@ contract GovImp is
             ),
             "Already a member"
         );
+        // For exit
+        if (msg.sender == oldStaker && oldStaker == newInfo.staker) {
+            // Change member enviroment, finalized
+            require(unlockAmount == 0 && slashing == 0, "Invalid proposal");
+        } else if (oldStaker != newInfo.staker /* && msg.sender != oldStaker */) {
+            // Propose Change or Exit member by other.
+            require(unlockAmount + slashing <= getMinStaking(), "Invalid amount: (unlockAmount + slashing) must be equal or low to minStaking");
+        }
 
         ballotIdx = ballotLength + 1;
         createBallotForMember(
@@ -387,6 +400,7 @@ contract GovImp is
         );
         updateBallotLock(ballotIdx, newInfo.lockAmount);
         updateBallotMemo(ballotIdx, newInfo.memo);
+        createBallotForExit(ballotIdx, unlockAmount, slashing);
         ballotLength = ballotIdx;
         // 요청자 == 변경할 voting 주소
         if (msg.sender == oldStaker && oldStaker == newInfo.staker) {
@@ -468,8 +482,8 @@ contract GovImp is
 
     function vote(uint256 ballotIdx, bool approval)
         external
-        onlyGovMem
         nonReentrant
+        onlyGovMem
         checkLockedAmount
     {
         // Check if some ballot is in progress
@@ -719,14 +733,13 @@ contract GovImp is
 
         (
             address oldStaker,
-            ,
-            ,
-            ,
-            ,
-            ,
-            ,
-            ,
-            uint256 unlockAmount
+            ,// newStakerAddress
+            ,// newVoterAddress
+            ,// newRewardAddress
+            ,// newNodeName
+            ,// newNodeId
+            ,// newNodeIp
+            ,// newNodePort
         ) = getBallotMember(ballotIdx);
         if (!isMember(oldStaker)) {
             emit NotApplicable(ballotIdx, "Not already a member");
@@ -795,7 +808,7 @@ contract GovImp is
         nodeLength = nodeLength - 1;
         modifiedBlock = block.number;
         // Unlock and transfer remained to governance
-        transferLockedAndUnlock(oldStaker, unlockAmount);
+        transferLockedAndUnlock(ballotIdx, oldStaker);
 
         emit MemberRemoved(oldStaker, oldVoter);
     }
@@ -975,7 +988,7 @@ contract GovImp is
             nodeIdxFromMember[oldStaker] = 0;
 
             // Unlock and transfer remained to governance
-            transferLockedAndUnlock(oldStaker, lockAmount);
+            transferLockedAndUnlock(ballotIdx, oldStaker);
 
             emit MemberChanged(oldStaker, newStaker, newVoter);
         } else {
@@ -1045,6 +1058,10 @@ contract GovImp is
         IBallotStorage(getBallotStorageAddress()).updateBallotMemo(id, memo);
     }
 
+    function createBallotForExit(uint256 id, uint256 unlockAmount, uint256 slashing) private {
+        IBallotStorage(getBallotStorageAddress()).createBallotForExit(id, unlockAmount, slashing);
+    }
+
     function startBallot(
         uint256 id,
         uint256 s,
@@ -1111,6 +1128,16 @@ contract GovImp is
     {
         return IBallotStorage(getBallotStorageAddress()).getBallotMember(id);
     }
+    function getBallotForExit(uint256 id)
+        private
+        view
+        returns (
+            uint256,
+            uint256
+        )
+    {
+        return IBallotStorage(getBallotStorageAddress()).getBallotForExit(id);
+    }
 
     function lock(address addr, uint256 amount) private {
         IStaking(getStakingAddress()).lock(addr, amount);
@@ -1120,15 +1147,20 @@ contract GovImp is
         IStaking(getStakingAddress()).unlock(addr, amount);
     }
 
-    function transferLockedAndUnlock(address addr, uint256 unlockAmount)
-        private
+    function transferLockedAndUnlock(uint256 ballotIdx, address addr) private
     {
+        (uint256 unlockAmount, uint256 slashing) = getBallotForExit(ballotIdx);
+
+        require(unlockAmount + slashing <= getMinStaking(), "minStaking value must be greater than or equal to the sum of unlockAmount, slashing");
+
         IStaking staking = IStaking(getStakingAddress());
         uint256 locked = staking.lockedBalanceOf(addr);
+        uint256 ext = locked - getMinStaking();
+
         if (locked > unlockAmount) {
-            staking.transferLocked(addr, locked - unlockAmount);
             unlock(addr, unlockAmount);
-        } else {
+            staking.transferLocked(addr, slashing, ext);
+         } else {
             unlock(addr, locked);
         }
     }
