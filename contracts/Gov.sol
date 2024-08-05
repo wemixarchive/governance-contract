@@ -7,10 +7,8 @@ import "@openzeppelin/contracts/proxy/beacon/IBeacon.sol";
 contract Gov is ERC1967Proxy, IBeacon {
     // "Metadium Governance"
 
-    constructor(address _imp) ERC1967Proxy(_imp, ''){
-    }
-    function implementation() external override view returns(address){
+    constructor(address _imp) ERC1967Proxy(_imp, "") {}
+    function implementation() external view override returns (address) {
         return _implementation();
     }
-    
 }

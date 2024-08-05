@@ -9,12 +9,7 @@ import "./GovChecker.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
-contract NCPExitImp is
-    GovChecker,
-    INCPExit,
-    UUPSUpgradeable,
-    ReentrancyGuardUpgradeable
-{
+contract NCPExitImp is GovChecker, INCPExit, UUPSUpgradeable, ReentrancyGuardUpgradeable {
     /* =========== STATE VARIABLES ===========*/
     using AddressUpgradeable for address payable;
 
@@ -41,7 +36,7 @@ contract NCPExitImp is
     }
 
     modifier onlyAdministratorSetter() {
-        require(msg.sender == _administratorSetter,"Caller is not AdministratorSetter.");
+        require(msg.sender == _administratorSetter, "Caller is not AdministratorSetter.");
         _;
     }
 
@@ -52,9 +47,7 @@ contract NCPExitImp is
     constructor() {
         _disableInitializers();
     }
-    function initialize(
-        address _registry
-    ) external initializer {
+    function initialize(address _registry) external initializer {
         __Ownable_init();
         __ReentrancyGuard_init();
         setRegistry(_registry);
@@ -62,21 +55,21 @@ contract NCPExitImp is
         _administratorSetter = owner();
     }
 
-    function setAdministrator(
-        address _newAdministrator
-    ) override external onlyAdministratorSetter() {
+    function setAdministrator(address _newAdministrator) external override onlyAdministratorSetter {
         require(_newAdministrator != address(0), "Address should be non-zero");
         _administrator = _newAdministrator;
     }
 
-    function setAdministratorSetter(
-        address _newAdministratorSetter
-    ) override external onlyAdministratorSetter(){
+    function setAdministratorSetter(address _newAdministratorSetter) external override onlyAdministratorSetter {
         require(_newAdministratorSetter != address(0), "Address should be non-zero");
         _administratorSetter = _newAdministratorSetter;
     }
 
-    function depositExitAmount(address exitNcp, uint256 totalAmount, uint256 lockedUserBalanceToNCPTotal) external override payable nonReentrant onlyGovStaking {
+    function depositExitAmount(
+        address exitNcp,
+        uint256 totalAmount,
+        uint256 lockedUserBalanceToNCPTotal
+    ) external payable override nonReentrant onlyGovStaking {
         require(totalAmount == msg.value);
         _receivedTotalAmount[exitNcp] = totalAmount;
 
@@ -85,7 +78,6 @@ contract NCPExitImp is
     }
 
     function withdrawForUser(address exitNcp, address exitUser, uint256 amount) external override nonReentrant onlyNcpStaking {
-
         require(_lockedUserBalanceToNCPTotal[exitNcp] >= amount, "_lockedUserBalanceToNCPTotal[exitNcp] >= amount");
 
         _receivedTotalAmount[exitNcp] = _receivedTotalAmount[exitNcp] - amount;
@@ -118,9 +110,5 @@ contract NCPExitImp is
         return _lockedUserBalanceToNCPTotal[exitNcp];
     }
 
-    function _authorizeUpgrade(address newImplementation)
-        internal
-        override
-        onlyOwner
-    {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }
