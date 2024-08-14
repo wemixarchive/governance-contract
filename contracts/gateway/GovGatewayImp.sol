@@ -163,9 +163,9 @@ contract GovGatewayImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeabl
 
     function isVote(uint256 id, address ballotStorageAddr) public view returns (bool) {
         IGovGateway ballotGateway = IGovGateway(ballotStorageAddr);
-        (, uint256 curBallotId, , , , ) = ballotGateway.getVote(id);
+        (uint256 voteId, , , , , ) = ballotGateway.getVote(id);
 
-        return id == curBallotId;
+        return id == voteId;
     }
     // Check Previous
     function getBallot(
