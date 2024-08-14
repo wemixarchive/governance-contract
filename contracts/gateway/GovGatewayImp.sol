@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.0;
-import "hardhat/console.sol";
+
 import "../interface/IBallotStorage.sol";
 import "./IGovGateway.sol";
 import "../GovChecker.sol";
@@ -88,7 +88,6 @@ contract GovGatewayImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeabl
     function getBallotStorageLength() public view returns (uint256) {
         IGovGateway curBallotStorage = IGovGateway(getBallotStorageAddress());
         uint256 ballotStorageLength = 1;
-        console.log("ballotStorageLength", ballotStorageLength);
         while (curBallotStorage.getPreviousBallotStorage() != address(0)) {
             ballotStorageLength += 1;
             curBallotStorage = IGovGateway(curBallotStorage.getPreviousBallotStorage());
@@ -98,20 +97,17 @@ contract GovGatewayImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeabl
 
     function getBallotStorageAddressList() public view returns (address[] memory) {
         uint256 length = getBallotStorageLength(); // 2 , 1, 0 / 3
-        console.log("getBallotStorageLength", length);
         address[] memory addressList = new address[](length);
 
         length--; // 2 -> 1, 0
         IGovGateway curBallotStorage = IGovGateway(getBallotStorageAddress());
         addressList[length] = getBallotStorageAddress(); // 2 - 1, 0
-        console.log("length", length);
 
         while (curBallotStorage.getPreviousBallotStorage() != address(0)) {
             if (length == 0) break;
             length--;
             addressList[length] = curBallotStorage.getPreviousBallotStorage();
             curBallotStorage = IGovGateway(curBallotStorage.getPreviousBallotStorage());
-            console.log(curBallotStorage.getPreviousBallotStorage());
         }
         return addressList;
     }
@@ -157,7 +153,6 @@ contract GovGatewayImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeabl
     function isBallot(uint256 id, address ballotStorageAddr) public view returns (bool) {
         IBallotStorage curBallotStorage = IBallotStorage(ballotStorageAddr);
         (, , , address creator, , , , , , , ) = curBallotStorage.getBallotBasic(id);
-        console.log(creator != address(0));
         return creator != address(0);
     }
 
@@ -188,14 +183,11 @@ contract GovGatewayImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeabl
         uint256 j = 0;
         for (uint256 i = 0; i < ballotAddressList.length; i++) {
             if (!isBallot(ballotId, ballotAddressList[i])) {
-                console.log("Vote False");
                 j++;
             } else {
-                console.log("Vote True");
                 break;
             }
         }
-        console.log(j);
         IGovGateway ballotGateway = IGovGateway(ballotAddressList[j]);
         IBallotStorage curBallotStorage = IBallotStorage(ballotAddressList[j]);
         (, , , , , uint256 totalVoters, , , , , ) = curBallotStorage.getBallotBasic(ballotId);
@@ -232,14 +224,11 @@ contract GovGatewayImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeabl
         uint256 j = 0;
         for (uint256 i = 0; i < ballotAddressList.length; i++) {
             if (!isBallot(ballotId, ballotAddressList[i])) {
-                console.log("Vote False");
                 j++;
             } else {
-                console.log("Vote True");
                 break;
             }
         }
-        console.log(j);
         IGovGateway ballotGateway = IGovGateway(ballotAddressList[j]);
         IBallotStorage curBallotStorage = IBallotStorage(ballotAddressList[j]);
         (, , , , , uint256 totalVoters, , , , , ) = curBallotStorage.getBallotBasic(ballotId);
@@ -277,7 +266,6 @@ contract GovGatewayImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeabl
                 totalVoterIdx += totalBallotVoters;
             } else {
                 idx++;
-                console.log("idx", idx);
                 if (ballotAddressList.length <= idx) break;
                 curBallotStorage = IBallotStorage(ballotAddressList[idx]);
                 (uint256 totalBallotVoters, , ) = curBallotStorage.getBallotVotingInfo(i);
@@ -318,7 +306,6 @@ contract GovGatewayImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeabl
         uint256 ballotLength = govGateway.ballotLength();
 
         ballotList = new BallotBasic[](ballotLength);
-        console.log(ballotLength);
         uint256 j = 0;
         for (uint256 i = 1; i <= ballotLength; i++) {
             if (isBallot(i, ballotAddressList[j])) {
@@ -337,7 +324,6 @@ contract GovGatewayImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeabl
         IBallotStorage curBallotStorage;
         uint256 ballotLength = govGateway.ballotLength();
         (uint256 targetVoter, uint256 totalVoterIdx, uint256 addressIdx) = getTargetTotalVoters(ballotId);
-        console.log("idx", addressIdx);
         if (ballotAddressList.length > addressIdx) {
             IGovGateway ballotGateway = IGovGateway(ballotAddressList[addressIdx]);
             voteList = new Vote[](targetVoter);
@@ -347,14 +333,12 @@ contract GovGatewayImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeabl
                 j++;
             }
         }
-        console.log("total", totalVoterIdx, targetVoter, addressIdx);
     }
 
     function getMemberList() external view returns (MemberInfo[] memory memberList) {
         IGovGateway govGateway = IGovGateway(getGovAddress());
         memberList = new MemberInfo[](govGateway.getMemberLength());
         for (uint256 i = 1; i <= govGateway.getMemberLength(); i++) {
-            console.log(i);
             (bytes memory name, bytes memory enode, bytes memory ip, uint port) = govGateway.getNode(i);
             memberList[i - 1] = MemberInfo({
                 staker: govGateway.getMember(i),
