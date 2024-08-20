@@ -4,44 +4,21 @@ pragma solidity ^0.8.0;
 import "../GovChecker.sol";
 import "../storage/EternalStorage.sol";
 
-
 abstract contract AEnvStorage is EternalStorage, GovChecker {
-    event StringVarableChanged ( 
-        bytes32 indexed _name,
-        string _value
-    );
+    event StringVarableChanged(bytes32 indexed _name, string _value);
 
-    event UintVarableChanged ( 
-        bytes32 indexed _name,
-        uint _value
-    );
+    event UintVarableChanged(bytes32 indexed _name, uint _value);
 
-    event IntVarableChanged ( 
-        bytes32 indexed _name,
-        int _value
-    );
+    event IntVarableChanged(bytes32 indexed _name, int _value);
 
-    event AddressVarableChanged ( 
-        bytes32 indexed _name,
-        address _value
-    );
+    event AddressVarableChanged(bytes32 indexed _name, address _value);
 
-    event Bytes32VarableChanged ( 
-        bytes32 indexed _name,
-        bytes32 _value
-    );
+    event Bytes32VarableChanged(bytes32 indexed _name, bytes32 _value);
 
-    event BytesVarableChanged ( 
-        bytes32 indexed _name,
-        bytes _value
-    );
+    event BytesVarableChanged(bytes32 indexed _name, bytes _value);
 
-    event VarableChanged ( 
-        bytes32 indexed _name,
-        uint256 indexed _type,
-        string _value
-    );
-   
+    event VarableChanged(bytes32 indexed _name, uint256 indexed _type, string _value);
+
     /**
      * @dev Allows the owner to set a value for a int variable
      * @param h The keccak256 hash of the variable name
@@ -77,7 +54,7 @@ abstract contract AEnvStorage is EternalStorage, GovChecker {
      * @param h The keccak256 hash of the variable name
      * @param v The value to be stored
      */
-    function setString(bytes32 h, string memory v) internal  {
+    function setString(bytes32 h, string memory v) internal {
         _setString(h, v);
         emit StringVarableChanged(h, v);
     }

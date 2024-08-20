@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-
 contract BallotEnums {
     enum BallotStates {
         Invalid,
@@ -20,10 +19,11 @@ contract BallotEnums {
 
     enum BallotTypes {
         Invalid,
-        MemberAdd,  // new Member Address, new Node id, new Node ip, new Node port
+        MemberAdd, // new Member Address, new Node id, new Node ip, new Node port
         MemberRemoval, // old Member Address
-        MemberChange,     // Old Member Address, New Member Address, new Node id, New Node ip, new Node port
+        MemberChange, // Old Member Address, New Member Address, new Node id, New Node ip, new Node port
         GovernanceChange, // new Governace Impl Address
-        EnvValChange    // Env variable name, type , value
+        EnvValChange, // Env variable name, type , value
+        Execute // Genernal Purpose
     }
 }

@@ -11,7 +11,7 @@ contract EternalStorage {
         mapping(bytes32 => bool) _bool;
         mapping(bytes32 => int256) _int;
         mapping(bytes32 => uint256) _uint;
-        mapping(bytes32 => string)_string;
+        mapping(bytes32 => string) _string;
         mapping(bytes32 => address) _address;
         mapping(bytes32 => bytes) _bytes;
         mapping(bytes32 => bytes32) _bytes32;
@@ -55,7 +55,7 @@ contract EternalStorage {
      * @dev Get the value stored of a string variable by the hash name
      * @param h The keccak256 hash of the variable name
      */
-    function getString(bytes32 h) public view returns (string memory){
+    function getString(bytes32 h) public view returns (string memory) {
         return s._string[h];
     }
 
@@ -137,7 +137,6 @@ contract EternalStorage {
     function _setBytes32(bytes32 h, bytes32 v) internal {
         s._bytes32[h] = v;
     }
-
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
