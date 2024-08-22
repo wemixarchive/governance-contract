@@ -11,6 +11,11 @@ import "./interface/IGov.sol";
  */
 contract GovChecker is OwnableUpgradeable {
     IRegistry public reg;
+    /** @TODO
+     * IRegistry private _reg;
+     * ...
+     * function reg() public view returns(IRegistry) {return _reg;}
+     */
 
     bytes32 public constant GOV_NAME = "GovernanceContract";
     bytes32 public constant STAKING_NAME = "Staking";
@@ -35,58 +40,16 @@ contract GovChecker is OwnableUpgradeable {
     }
 
     modifier onlyGov() {
-        require(getGovAddress() == msg.sender, "No Permission");
+        require(getContractAddress(GOV_NAME) == msg.sender, "No Permission");
         _;
     }
 
     modifier onlyGovMem() {
-        require(IGov(getGovAddress()).isMember(msg.sender), "No Permission");
-        _;
-    }
-
-    modifier onlyGovStaker() {
-        require(IGov(getGovAddress()).isStaker(msg.sender), "No Permission");
-        _;
-    }
-
-    modifier anyGov() {
-        require(getGovAddress() == msg.sender || IGov(getGovAddress()).isMember(msg.sender), "No Permission");
+        require(IGov(getContractAddress(GOV_NAME)).isMember(msg.sender), "No Permission");
         _;
     }
 
     function getContractAddress(bytes32 name) internal view returns (address) {
         return reg.getContractAddress(name);
-    }
-
-    function getGovAddress() internal view returns (address) {
-        return getContractAddress(GOV_NAME);
-    }
-
-    function getStakingAddress() internal view returns (address) {
-        return getContractAddress(STAKING_NAME);
-    }
-
-    function getBallotStorageAddress() internal view returns (address) {
-        return getContractAddress(BALLOT_STORAGE_NAME);
-    }
-
-    function getEnvStorageAddress() internal view returns (address) {
-        return getContractAddress(ENV_STORAGE_NAME);
-    }
-
-    function getRewardPoolAddress() internal view returns (address) {
-        return getContractAddress(REWARD_POOL_NAME);
-    }
-
-    function getEcosystemAddress() internal view returns (address) {
-        return getContractAddress(ECOSYSTEM_NAME);
-    }
-
-    function getStakingRewardAddress() internal view returns (address) {
-        return getContractAddress(STAKING_REWARD_NAME);
-    }
-
-    function getMaintenanceAddress() internal view returns (address) {
-        return getContractAddress(MAINTENANCE_NAME);
     }
 }

@@ -158,7 +158,7 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable, IEnvStorag
         return (getUint(BLOCK_GASLIMIT_NAME), getUint(BASE_FEE_MAX_CHANGE_RATE_NAME), getUint(GAS_TARGET_PERCENTAGE_NAME));
     }
 
-    // function getStakingRewardAddress() public override view returns(address){
+    // function getContractAddress(STAKING_REWARD_NAME) public override view returns(address){
     //     return getAddress(STAKING_REWARD_ADDRESS_NAME);
     // }
 

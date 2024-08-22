@@ -133,21 +133,21 @@ contract BallotStorageImp is GovChecker, BallotEnums, IBallotStorage, UUPSUpgrad
     }
 
     modifier onlyGovOrCreator(uint256 _ballotId) {
-        require((getGovAddress() == msg.sender) || (ballotBasicMap[_ballotId].creator == msg.sender), "No Permission");
+        require((getContractAddress(GOV_NAME) == msg.sender) || (ballotBasicMap[_ballotId].creator == msg.sender), "No Permission");
         _;
     }
 
     modifier notDisabled() {
-        require(address(this) == getBallotStorageAddress(), "Is Disabled");
+        require(address(this) == getContractAddress(BALLOT_STORAGE_NAME), "Is Disabled");
         _;
     }
 
     function getMinVotingDuration() public view returns (uint256) {
-        return IEnvStorage(getEnvStorageAddress()).getBallotDurationMin();
+        return IEnvStorage(getContractAddress(ENV_STORAGE_NAME)).getBallotDurationMin();
     }
 
     function getMaxVotingDuration() public view returns (uint256) {
-        return IEnvStorage(getEnvStorageAddress()).getBallotDurationMax();
+        return IEnvStorage(getContractAddress(ENV_STORAGE_NAME)).getBallotDurationMax();
     }
 
     function getTime() public view returns (uint256) {
@@ -159,7 +159,7 @@ contract BallotStorageImp is GovChecker, BallotEnums, IBallotStorage, UUPSUpgrad
     }
 
     function isDisabled() public view returns (bool) {
-        return (address(this) != getBallotStorageAddress());
+        return (address(this) != getContractAddress(BALLOT_STORAGE_NAME));
     }
 
     function getBallotCount() public view returns (uint256) {

@@ -91,7 +91,7 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
         require(lockAmount >= getMinStaking() && getMaxStaking() >= lockAmount, "Invalid lock amount");
 
         // Lock
-        IStaking staking = IStaking(getStakingAddress());
+        IStaking staking = IStaking(getContractAddress(STAKING_NAME));
         require(staking.availableBalanceOf(msg.sender) >= lockAmount, "Insufficient staking");
         staking.lock(msg.sender, lockAmount);
 
@@ -135,7 +135,7 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
         modifiedBlock = block.number;
 
         // Lock
-        IStaking staking = IStaking(getStakingAddress());
+        IStaking staking = IStaking(getContractAddress(STAKING_NAME));
 
         require(lockAmount >= getMinStaking() && getMaxStaking() >= lockAmount, "Invalid lock amount");
 
@@ -359,7 +359,7 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
             revert("ERC1967Upgrade: new implementation is not UUPS");
         }
         ballotIdx = ballotLength + 1;
-        IBallotStorage(getBallotStorageAddress()).createBallotForAddress(
+        IBallotStorage(getContractAddress(BALLOT_STORAGE_NAME)).createBallotForAddress(
             ballotLength + 1, // ballot id
             uint256(BallotTypes.GovernanceChange), // ballot type
             duration,
@@ -382,7 +382,7 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
         require(checkVariableCondition(envName, envVal), "Invalid value");
 
         ballotIdx = ballotLength + 1;
-        IBallotStorage(getBallotStorageAddress()).createBallotForVariable(
+        IBallotStorage(getContractAddress(BALLOT_STORAGE_NAME)).createBallotForVariable(
             ballotIdx, // ballot id
             uint256(BallotTypes.EnvValChange), // ballot type
             duration,
@@ -412,19 +412,19 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
     }
 
     function getMinStaking() public view returns (uint256) {
-        return IEnvStorage(getEnvStorageAddress()).getStakingMin();
+        return IEnvStorage(getContractAddress(ENV_STORAGE_NAME)).getStakingMin();
     }
 
     function getMaxStaking() public view returns (uint256) {
-        return IEnvStorage(getEnvStorageAddress()).getStakingMax();
+        return IEnvStorage(getContractAddress(ENV_STORAGE_NAME)).getStakingMax();
     }
 
     function getMinVotingDuration() public view returns (uint256) {
-        return IEnvStorage(getEnvStorageAddress()).getBallotDurationMin();
+        return IEnvStorage(getContractAddress(ENV_STORAGE_NAME)).getBallotDurationMin();
     }
 
     function getMaxVotingDuration() public view returns (uint256) {
-        return IEnvStorage(getEnvStorageAddress()).getBallotDurationMax();
+        return IEnvStorage(getContractAddress(ENV_STORAGE_NAME)).getBallotDurationMax();
     }
 
     function getThreshold() public pure returns (uint256) {
@@ -484,9 +484,9 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
     function createVote(uint256 ballotIdx, bool approval) private {
         uint256 voteIdx = voteLength + 1;
         address staker = getStakerAddr(msg.sender);
-        uint256 weight = 10000 / getMemberLength(); //IStaking(getStakingAddress()).calcVotingWeightWithScaleFactor(staker, 10000);
+        uint256 weight = 10000 / getMemberLength(); //IStaking(getContractAddress(STAKING_NAME)).calcVotingWeightWithScaleFactor(staker, 10000);
         uint256 decision = approval ? uint256(DecisionTypes.Accept) : uint256(DecisionTypes.Reject);
-        IBallotStorage(getBallotStorageAddress()).createVote(voteIdx, ballotIdx, staker, decision, weight);
+        IBallotStorage(getContractAddress(BALLOT_STORAGE_NAME)).createVote(voteIdx, ballotIdx, staker, decision, weight);
         voteLength = voteIdx;
     }
 
@@ -514,7 +514,7 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
             }
         } else {
             if (ballotType == uint256(BallotTypes.Execute)) {
-                IBallotStorage _ballotStorage = IBallotStorage(getBallotStorageAddress());
+                IBallotStorage _ballotStorage = IBallotStorage(getContractAddress(BALLOT_STORAGE_NAME));
                 (, uint256 _value, ) = _ballotStorage.getBallotExecute(ballotIdx);
                 _returnValueToCreator(_ballotStorage, ballotIdx, _value);
             }
@@ -842,7 +842,7 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
     function changeGov(uint256 ballotIdx) private {
         fromValidBallot(ballotIdx, uint256(BallotTypes.GovernanceChange));
 
-        address newImp = IBallotStorage(getBallotStorageAddress()).getBallotAddress(ballotIdx);
+        address newImp = IBallotStorage(getContractAddress(BALLOT_STORAGE_NAME)).getBallotAddress(ballotIdx);
         if (newImp != ZERO) {
             _authorizeUpgrade(newImp);
             _upgradeToAndCallUUPS(newImp, new bytes(0), false);
@@ -853,9 +853,9 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
     function applyEnv(uint256 ballotIdx) private {
         fromValidBallot(ballotIdx, uint256(BallotTypes.EnvValChange));
 
-        (bytes32 envKey, uint256 envType, bytes memory envVal) = IBallotStorage(getBallotStorageAddress()).getBallotVariable(ballotIdx);
+        (bytes32 envKey, uint256 envType, bytes memory envVal) = IBallotStorage(getContractAddress(BALLOT_STORAGE_NAME)).getBallotVariable(ballotIdx);
 
-        IEnvStorage envStorage = IEnvStorage(getEnvStorageAddress());
+        IEnvStorage envStorage = IEnvStorage(getContractAddress(ENV_STORAGE_NAME));
         envStorage.setVariable(envKey, envVal);
         modifiedBlock = block.number;
 
@@ -864,7 +864,7 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
 
     //------------------ Code reduction for creation gas
     function createBallotForMember(uint256 id, uint256 bType, address creator, address oAddr, MemberInfo memory info) private {
-        IBallotStorage(getBallotStorageAddress()).createBallotForMember(
+        IBallotStorage(getContractAddress(BALLOT_STORAGE_NAME)).createBallotForMember(
             id, // ballot id
             bType, // ballot type
             info.duration,
@@ -881,52 +881,52 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
     }
 
     function updateBallotLock(uint256 id, uint256 amount) private {
-        IBallotStorage(getBallotStorageAddress()).updateBallotMemberLockAmount(id, amount);
+        IBallotStorage(getContractAddress(BALLOT_STORAGE_NAME)).updateBallotMemberLockAmount(id, amount);
     }
 
     function updateBallotMemo(uint256 id, bytes memory memo) private {
-        IBallotStorage(getBallotStorageAddress()).updateBallotMemo(id, memo);
+        IBallotStorage(getContractAddress(BALLOT_STORAGE_NAME)).updateBallotMemo(id, memo);
     }
 
     function createBallotForExit(uint256 id, uint256 unlockAmount, uint256 slashing) private {
-        IBallotStorage(getBallotStorageAddress()).createBallotForExit(id, unlockAmount, slashing);
+        IBallotStorage(getContractAddress(BALLOT_STORAGE_NAME)).createBallotForExit(id, unlockAmount, slashing);
     }
 
     function startBallot(uint256 id, uint256 s, uint256 e) private {
-        IBallotStorage(getBallotStorageAddress()).startBallot(id, s, e);
+        IBallotStorage(getContractAddress(BALLOT_STORAGE_NAME)).startBallot(id, s, e);
     }
 
     function finalizeBallot(uint256 id, uint256 state) private {
-        IBallotStorage(getBallotStorageAddress()).finalizeBallot(id, state);
+        IBallotStorage(getContractAddress(BALLOT_STORAGE_NAME)).finalizeBallot(id, state);
     }
 
     function getBallotState(uint256 id) private view returns (uint256, uint256, bool) {
-        return IBallotStorage(getBallotStorageAddress()).getBallotState(id);
+        return IBallotStorage(getContractAddress(BALLOT_STORAGE_NAME)).getBallotState(id);
     }
 
     function getBallotPeriod(uint256 id) private view returns (uint256, uint256, uint256) {
-        return IBallotStorage(getBallotStorageAddress()).getBallotPeriod(id);
+        return IBallotStorage(getContractAddress(BALLOT_STORAGE_NAME)).getBallotPeriod(id);
     }
 
     function getBallotVotingInfo(uint256 id) private view returns (uint256, uint256, uint256) {
-        return IBallotStorage(getBallotStorageAddress()).getBallotVotingInfo(id);
+        return IBallotStorage(getContractAddress(BALLOT_STORAGE_NAME)).getBallotVotingInfo(id);
     }
 
     function getBallotMember(
         uint256 id
     ) private view returns (address, address, address, address, bytes memory, bytes memory, bytes memory, uint256, uint256) {
-        return IBallotStorage(getBallotStorageAddress()).getBallotMember(id);
+        return IBallotStorage(getContractAddress(BALLOT_STORAGE_NAME)).getBallotMember(id);
     }
     function getBallotForExit(uint256 id) private view returns (uint256, uint256) {
-        return IBallotStorage(getBallotStorageAddress()).getBallotForExit(id);
+        return IBallotStorage(getContractAddress(BALLOT_STORAGE_NAME)).getBallotForExit(id);
     }
 
     function lock(address addr, uint256 amount) private {
-        IStaking(getStakingAddress()).lock(addr, amount);
+        IStaking(getContractAddress(STAKING_NAME)).lock(addr, amount);
     }
 
     function unlock(address addr, uint256 amount) private {
-        IStaking(getStakingAddress()).unlock(addr, amount);
+        IStaking(getContractAddress(STAKING_NAME)).unlock(addr, amount);
     }
 
     function transferLockedAndUnlock(uint256 ballotIdx, address addr) private {
@@ -934,7 +934,7 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
 
         require(unlockAmount + slashing <= getMinStaking(), "minStaking value must be greater than or equal to the sum of unlockAmount, slashing");
 
-        IStaking staking = IStaking(getStakingAddress());
+        IStaking staking = IStaking(getContractAddress(STAKING_NAME));
         uint256 locked = staking.lockedBalanceOf(addr);
         uint256 ext = locked - getMinStaking();
 
@@ -947,12 +947,12 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
     }
 
     function lockedBalanceOf(address addr) private view returns (uint256) {
-        // IStaking staking = IStaking(getStakingAddress()).lockedBalanceOf(addr);
-        return IStaking(getStakingAddress()).lockedBalanceOf(addr);
+        // IStaking staking = IStaking(getContractAddress(STAKING_NAME)).lockedBalanceOf(addr);
+        return IStaking(getContractAddress(STAKING_NAME)).lockedBalanceOf(addr);
     }
 
     function availableBalanceOf(address addr) private view returns (uint256) {
-        return IStaking(getStakingAddress()).availableBalanceOf(addr);
+        return IStaking(getContractAddress(STAKING_NAME)).availableBalanceOf(addr);
     }
 
     //------------------ Code reduction end
@@ -962,7 +962,7 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
     function _authorizeUpgrade(address newImplementation) internal override onlyGovMem {}
 
     function checkVariableCondition(bytes32 envKey, bytes memory envVal) internal view returns (bool) {
-        return IEnvStorage(getEnvStorageAddress()).checkVariableCondition(envKey, envVal);
+        return IEnvStorage(getContractAddress(ENV_STORAGE_NAME)).checkVariableCondition(envKey, envVal);
     }
 
     function getStakerAddr(address _addr) public view returns (address staker) {
@@ -1117,7 +1117,7 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
 
         uint256 _ballotIdx = ballotLength + 1;
 
-        IBallotStorage(getBallotStorageAddress()).createBallotForExecute(
+        IBallotStorage(getContractAddress(BALLOT_STORAGE_NAME)).createBallotForExecute(
             _ballotIdx, // ballot id
             uint256(BallotTypes.Execute), // ballot type
             _duration,
@@ -1132,7 +1132,7 @@ contract GovImp is AGov, ReentrancyGuardUpgradeable, BallotEnums, EnvConstants, 
 
     function _execute(uint256 _ballotIdx) private {
         fromValidBallot(_ballotIdx, uint256(BallotTypes.Execute));
-        IBallotStorage _ballotStorage = IBallotStorage(getBallotStorageAddress());
+        IBallotStorage _ballotStorage = IBallotStorage(getContractAddress(BALLOT_STORAGE_NAME));
 
         (address _target, uint256 _value, bytes memory _calldata) = _ballotStorage.getBallotExecute(_ballotIdx);
         (bool _success, bytes memory _returnData) = _target.call{ value: _value }(_calldata);

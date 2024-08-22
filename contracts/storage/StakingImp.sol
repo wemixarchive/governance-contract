@@ -32,6 +32,11 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
     event DelegateUnstaked(address indexed payee, uint256 amount, address indexed ncp, uint256 ncpTotalLocked, uint256 userTotalLocked);
     event NCPAddrChanged(address indexed ncp);
 
+    modifier onlyGovStaker() {
+        require(IGov(getContractAddress(GOV_NAME)).isStaker(msg.sender), "No Permission");
+        _;
+    }
+
     constructor() {
         _disableInitializers();
     }
@@ -83,8 +88,8 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
 
         _balance[msg.sender] = _balance[msg.sender] + msg.value;
 
-        if (IGov(getGovAddress()).isMember(msg.sender)) {
-            uint256 minimum_staking = IEnvStorage(getEnvStorageAddress()).getStakingMin();
+        if (IGov(getContractAddress(GOV_NAME)).isMember(msg.sender)) {
+            uint256 minimum_staking = IEnvStorage(getContractAddress(ENV_STORAGE_NAME)).getStakingMin();
             //if minimum lock is going higher than current locked value, lock more
             if (minimum_staking > _lockedBalance[msg.sender] && availableBalanceOf(msg.sender) >= (minimum_staking - _lockedBalance[msg.sender])) {
                 if (ncpStaking != address(0)) {
@@ -108,7 +113,7 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
         require(amount > 0, "Amount should be bigger than zero");
 
         //if minimum is changed unlock staked value
-        uint256 minimum_staking = IEnvStorage(getEnvStorageAddress()).getStakingMin();
+        uint256 minimum_staking = IEnvStorage(getContractAddress(ENV_STORAGE_NAME)).getStakingMin();
 
         bool unlockBalance = false;
         if (lockedBalanceOf(msg.sender) - _lockedUserBalanceToNCPTotal[msg.sender] >= minimum_staking + amount) {
@@ -157,7 +162,7 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
         if (lockAmount == 0) return;
         require(_balance[payee] >= lockAmount, "Lock amount should be equal or less than balance");
         require(availableBalanceOf(payee) >= lockAmount, "Insufficient balance that can be locked");
-        uint256 maximum = IEnvStorage(getEnvStorageAddress()).getStakingMax();
+        uint256 maximum = IEnvStorage(getContractAddress(ENV_STORAGE_NAME)).getStakingMax();
 
         _lockedBalance[payee] = _lockedBalance[payee] + lockAmount;
         require(_lockedBalance[payee] <= maximum, "Locked balance is larger than max");
@@ -179,7 +184,7 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
         // Ecosystem
         unlock(from, slashing);
         _balance[from] = _balance[from] - slashing;
-        address ecosystem = getEcosystemAddress();
+        address ecosystem = getContractAddress(ECOSYSTEM_NAME);
         _balance[ecosystem] = _balance[ecosystem] + slashing;
 
         // NCPLockMore
@@ -331,7 +336,7 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
      */
     function delegateDepositAndLockMore(address ncp) external payable override nonReentrant notRevoked onlyNCPStaking {
         require(msg.value > 0, "Deposit amount should be greater than zero");
-        require(IGov(getGovAddress()).isMember(ncp), "NCP should be a member");
+        require(IGov(getContractAddress(GOV_NAME)).isMember(ncp), "NCP should be a member");
 
         // console.log("delegateDepositAndLockMore: msg.value: %s",ncp);
 
@@ -339,8 +344,8 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
         //added value to ncp balance
         _balance[ncp] = _balance[ncp] + userDepositValue;
 
-        uint256 minimum_staking = IEnvStorage(getEnvStorageAddress()).getStakingMin();
-        uint256 maximum_staking = IEnvStorage(getEnvStorageAddress()).getStakingMax();
+        uint256 minimum_staking = IEnvStorage(getContractAddress(ENV_STORAGE_NAME)).getStakingMin();
+        uint256 maximum_staking = IEnvStorage(getContractAddress(ENV_STORAGE_NAME)).getStakingMax();
         require(
             minimum_staking <= _lockedBalance[ncp] && (_lockedBalance[ncp] + userDepositValue) <= maximum_staking,
             "user should be in staking range"
@@ -359,10 +364,10 @@ contract StakingImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeable, 
      */
     function delegateUnlockAndWithdraw(address ncp, uint256 amount) external override nonReentrant notRevoked onlyNCPStaking {
         require(amount > 0, "Amount should be bigger than zero");
-        require(IGov(getGovAddress()).isMember(ncp), "NCP should be a member");
+        require(IGov(getContractAddress(GOV_NAME)).isMember(ncp), "NCP should be a member");
 
         uint256 userWithdrawValue = amount;
-        uint256 minimum_staking = IEnvStorage(getEnvStorageAddress()).getStakingMin();
+        uint256 minimum_staking = IEnvStorage(getContractAddress(ENV_STORAGE_NAME)).getStakingMin();
         require(
             userWithdrawValue <= _lockedUserBalanceToNCP[ncp][msg.sender] && lockedBalanceOf(ncp) - userWithdrawValue >= minimum_staking,
             "Withdraw amount should be equal or less than balance"

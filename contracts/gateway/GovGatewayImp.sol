@@ -86,7 +86,7 @@ contract GovGatewayImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeabl
     }
 
     function getBallotStorageLength() public view returns (uint256) {
-        IGovGateway curBallotStorage = IGovGateway(getBallotStorageAddress());
+        IGovGateway curBallotStorage = IGovGateway(getContractAddress(BALLOT_STORAGE_NAME));
         uint256 ballotStorageLength = 1;
         while (curBallotStorage.getPreviousBallotStorage() != address(0)) {
             ballotStorageLength += 1;
@@ -100,8 +100,8 @@ contract GovGatewayImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeabl
         address[] memory addressList = new address[](length);
 
         length--; // 2 -> 1, 0
-        IGovGateway curBallotStorage = IGovGateway(getBallotStorageAddress());
-        addressList[length] = getBallotStorageAddress(); // 2 - 1, 0
+        IGovGateway curBallotStorage = IGovGateway(getContractAddress(BALLOT_STORAGE_NAME));
+        addressList[length] = getContractAddress(BALLOT_STORAGE_NAME); // 2 - 1, 0
 
         while (curBallotStorage.getPreviousBallotStorage() != address(0)) {
             if (length == 0) break;
@@ -166,7 +166,7 @@ contract GovGatewayImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeabl
     function getBallot(
         uint256 id
     ) external view returns (uint256, uint256, uint256, address, bytes memory, uint256, uint256, uint256, uint256, bool, uint256) {
-        require(IGovGateway(getGovAddress()).ballotLength() >= id);
+        require(IGovGateway(getContractAddress(GOV_NAME)).ballotLength() >= id);
 
         address[] memory ballotAddressList = getBallotStorageAddressList();
         for (uint256 i = 0; i < ballotAddressList.length; i++) {
@@ -178,7 +178,7 @@ contract GovGatewayImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeabl
 
     function getVoteListByBallotId(uint256 ballotId) external view returns (Vote[] memory voteList) {
         address[] memory ballotAddressList = getBallotStorageAddressList();
-        IGovGateway govGateway = IGovGateway(getGovAddress());
+        IGovGateway govGateway = IGovGateway(getContractAddress(GOV_NAME));
 
         uint256 j = 0;
         for (uint256 i = 0; i < ballotAddressList.length; i++) {
@@ -215,10 +215,10 @@ contract GovGatewayImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeabl
     }
 
     function getVoteIdListByBallotId(uint256 ballotId) external view returns (uint256[] memory voteList) {
-        require(IGovGateway(getGovAddress()).ballotLength() >= ballotId);
+        require(IGovGateway(getContractAddress(GOV_NAME)).ballotLength() >= ballotId);
 
         address[] memory ballotAddressList = getBallotStorageAddressList();
-        IGovGateway govGateway = IGovGateway(getGovAddress());
+        IGovGateway govGateway = IGovGateway(getContractAddress(GOV_NAME));
 
         uint256 j = 0;
         for (uint256 i = 0; i < ballotAddressList.length; i++) {
@@ -299,7 +299,7 @@ contract GovGatewayImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeabl
 
     function getBallotListAll() external view returns (BallotBasic[] memory ballotList) {
         address[] memory ballotAddressList = getBallotStorageAddressList();
-        IGovGateway govGateway = IGovGateway(getGovAddress());
+        IGovGateway govGateway = IGovGateway(getContractAddress(GOV_NAME));
         uint256 ballotLength = govGateway.ballotLength();
 
         ballotList = new BallotBasic[](ballotLength);
@@ -329,7 +329,7 @@ contract GovGatewayImp is GovChecker, UUPSUpgradeable, ReentrancyGuardUpgradeabl
     }
 
     function getMemberList() external view returns (MemberInfo[] memory memberList) {
-        IGovGateway govGateway = IGovGateway(getGovAddress());
+        IGovGateway govGateway = IGovGateway(getContractAddress(GOV_NAME));
         memberList = new MemberInfo[](govGateway.getMemberLength());
         for (uint256 i = 1; i <= govGateway.getMemberLength(); i++) {
             (bytes memory name, bytes memory enode, bytes memory ip, uint port) = govGateway.getNode(i);

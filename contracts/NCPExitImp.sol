@@ -21,12 +21,12 @@ contract NCPExitImp is GovChecker, INCPExit, UUPSUpgradeable, ReentrancyGuardUpg
 
     /* =========== MODIFIERES ===========*/
     modifier onlyGovStaking() {
-        require(msg.sender == getStakingAddress(), "Only governance staking contract can call this function.");
+        require(msg.sender == getContractAddress(STAKING_NAME), "Only governance staking contract can call this function.");
         _;
     }
 
     modifier onlyNcpStaking() {
-        require(msg.sender == IGovStaking(getStakingAddress()).ncpStaking(), "Only NcpStaking can call this function.");
+        require(msg.sender == IGovStaking(getContractAddress(STAKING_NAME)).ncpStaking(), "Only NcpStaking can call this function.");
         _;
     }
 
