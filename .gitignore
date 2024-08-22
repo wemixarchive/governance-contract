@@ -84,3 +84,5 @@ artifacts/
 cache/
 
 .vscode/
+
+bin/

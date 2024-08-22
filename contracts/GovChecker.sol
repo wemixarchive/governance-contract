@@ -11,7 +11,7 @@ import "./interface/IGov.sol";
  */
 contract GovChecker is OwnableUpgradeable {
     IRegistry public reg;
-    /** @TODO
+    /** TODO
      * IRegistry private _reg;
      * ...
      * function reg() public view returns(IRegistry) {return _reg;}
