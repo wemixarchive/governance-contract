@@ -52,7 +52,7 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable, IEnvStorag
     }
 
     function getStakingMin() public override view returns (uint256) {
-        return getUint(STAKING_MIN_NAME);
+        return forkBlock > block.number ? getUint(STAKING_MIN_NAME): 0;
     }
 
     function getStakingMax() public override view returns (uint256) {
@@ -82,7 +82,7 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable, IEnvStorag
     }
 
     function setStakingMin(uint256 _value)  public onlyGov { 
-        setUint(STAKING_MIN_NAME, _value);
+        // setUint(STAKING_MIN_NAME, _value);
     }
 
     function setStakingMax(uint256 _value)  public onlyGov { 
@@ -139,7 +139,7 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable, IEnvStorag
     function getStakingMinMax() public override view returns (uint256, uint256) {
         return 
         (
-            getUint(STAKING_MIN_NAME),
+            (forkBlock > block.number) ? getUint(STAKING_MIN_NAME) : 0,
             getUint(STAKING_MAX_NAME)
         );
     }
@@ -198,7 +198,7 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable, IEnvStorag
 
     function setStakingMinMax(uint256 _min, uint256 _max)  public onlyGov { 
         require(_min <= _max, "Minimum staking must be smaller and equal than maximum staking");
-        setUint(STAKING_MIN_NAME, _min);
+        // setUint(STAKING_MIN_NAME, _min);
         setUint(STAKING_MAX_NAME, _max);
     }
 
@@ -402,5 +402,14 @@ contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable, IEnvStorag
      * variables without shifting down storage in the inheritance chain.
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
-    uint256[49] private __gap;
+    uint256[48] private __gap;
+
+    uint256 public forkBlock; // Block number at fork point
+
+    function initializeV2(
+        uint256 _forkBlock
+    ) external reinitializer(2) {
+        require(_forkBlock > block.number, "invalid forkBlock");
+        forkBlock = _forkBlock;
+    }
 }
