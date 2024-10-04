@@ -193,15 +193,9 @@ contract GovGatewayImp is
 
     function isVote(uint256 id, address ballotStorageAddr) public view returns (bool) {
         IGovGateway ballotGateway = IGovGateway(ballotStorageAddr);
-        (
-            ,
-            uint256 curBallotId,
-            ,
-            ,
-            ,
-        ) = ballotGateway.getVote(id);
-        
-        return id == curBallotId;
+
+        (uint256 voteId, , , , , ) = ballotGateway.getVote(id);
+        return id == voteId;
     }
     // Check Previous
     function getBallot(uint256 id) external view returns 
