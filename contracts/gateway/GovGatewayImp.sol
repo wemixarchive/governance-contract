@@ -276,7 +276,7 @@ contract GovGatewayImp is
 
 
     function getVoteIdListByBallotId(uint256 ballotId) external view returns (uint256[] memory voteList) {
-        require(IGovGateway(getGovAddress()).ballotLength() > ballotId);
+        require(IGovGateway(getGovAddress()).ballotLength() >= ballotId);
 
         address[] memory ballotAddressList = getBallotStorageAddressList();
         IGovGateway govGateway = IGovGateway(getGovAddress());
