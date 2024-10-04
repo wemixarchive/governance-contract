@@ -1341,4 +1341,12 @@ contract GovImp is
 
         return 0;
     }
+
+    function upgradeTo(address) external override {
+        revert("Invalid access");
+    }
+
+    function upgradeToAndCall(address, bytes memory) external payable override {
+        revert("Invalid access");
+    }
 }
