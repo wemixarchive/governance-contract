@@ -250,7 +250,6 @@ contract GovGatewayImp is
         }
 
         uint256 voteLength = govGateway.voteLength();
-        uint256 ballotLength = govGateway.ballotLength();
 
         voteList = new Vote[](totalVoters);
         uint256 voteListIdx = 0;
@@ -309,7 +308,6 @@ contract GovGatewayImp is
         if (totalVoters == 0) return voteList;
 
         uint256 voteLength = govGateway.voteLength();
-        uint256 ballotLength = govGateway.ballotLength();
         voteList = new uint256[](totalVoters);
         uint256 voteListIdx = 0;
 
@@ -334,7 +332,6 @@ contract GovGatewayImp is
     function getTargetTotalVoters(uint256 ballotId) public view returns (uint256, uint256, uint256) {
 
         address[] memory ballotAddressList = getBallotStorageAddressList();
-        IGovGateway govGateway = IGovGateway(getGovAddress());
         IBallotStorage curBallotStorage;
         
         uint256 totalVoterIdx = 0;
@@ -413,13 +410,9 @@ contract GovGatewayImp is
 
     function getVoteList(uint256 ballotId) external view returns (Vote[] memory voteList) {
         address[] memory ballotAddressList = getBallotStorageAddressList();
-        IGovGateway govGateway = IGovGateway(getGovAddress());
-        IBallotStorage curBallotStorage;
-        uint256 ballotLength = govGateway.ballotLength();
         (uint256 targetVoter, uint256 totalVoterIdx, uint256 addressIdx) = getTargetTotalVoters(ballotId);
         console.log("idx", addressIdx);
         if(ballotAddressList.length > addressIdx) {
-            IGovGateway ballotGateway = IGovGateway(ballotAddressList[addressIdx]);
             voteList = new Vote[](targetVoter);
             uint256 j = 0;
             for(uint256 i = (totalVoterIdx - targetVoter + 1); i <= totalVoterIdx; i ++) {
