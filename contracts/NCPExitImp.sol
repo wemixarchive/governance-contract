@@ -6,9 +6,9 @@ import "./interface/INCPStaking.sol";
 import "./interface/INCPExit.sol";
 import "./interface/IGovStaking.sol";
 import "./GovChecker.sol";
-import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
-import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+import "./openzeppelin-contracts-upgradeable/contracts/security/ReentrancyGuardUpgradeable.sol";
+import "./openzeppelin-contracts-upgradeable/contracts/utils/AddressUpgradeable.sol";
+import "./openzeppelin-contracts/contracts/proxy/utils/UUPSUpgradeable.sol";
 contract NCPExitImp is
     GovChecker,
     INCPExit,

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "./openzeppelin-contracts-upgradeable/contracts/security/ReentrancyGuardUpgradeable.sol";
 import "./abstract/BallotEnums.sol";
 import "./abstract/EnvConstants.sol";
 import "./abstract/TestnetAGov.sol";
@@ -10,7 +10,7 @@ import "./interface/IBallotStorage.sol";
 import "./interface/IEnvStorage.sol";
 import "./interface/IStaking.sol";
 
-import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+import "./openzeppelin-contracts/contracts/proxy/utils/UUPSUpgradeable.sol";
 
 contract TestnetGovImp is
     TestnetAGov,

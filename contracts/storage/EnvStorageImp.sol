@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 import "../abstract/EnvConstants.sol";
 import "../abstract/AEnvStorage.sol";
-import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+import "../openzeppelin-contracts/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "../interface/IEnvStorage.sol";
 
 contract EnvStorageImp is AEnvStorage, EnvConstants, UUPSUpgradeable, IEnvStorage {

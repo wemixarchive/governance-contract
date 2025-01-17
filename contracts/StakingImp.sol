@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-// import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+// import "./openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
 
-import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "./openzeppelin-contracts-upgradeable/contracts/security/ReentrancyGuardUpgradeable.sol";
 import "./GovChecker.sol";
-import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+import "./openzeppelin-contracts/contracts/proxy/utils/UUPSUpgradeable.sol";
 
 import "./interface/IEnvStorage.sol";
 import "./interface/IStaking.sol";

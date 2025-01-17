@@ -5,7 +5,7 @@ import "../abstract/BallotEnums.sol";
 import "../GovChecker.sol";
 import "../interface/IEnvStorage.sol";
 import "../interface/IBallotStorage.sol";
-import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+import "../openzeppelin-contracts/contracts/proxy/utils/UUPSUpgradeable.sol";
 
 contract BallotStorageImp is  GovChecker, BallotEnums, IBallotStorage, UUPSUpgradeable {
     
